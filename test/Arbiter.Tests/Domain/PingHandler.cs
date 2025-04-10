@@ -2,8 +2,11 @@ namespace Arbiter.Tests.Domain;
 
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public ValueTask<Pong> Handle(Ping request, CancellationToken cancellationToken)
+    public async ValueTask<Pong> Handle(Ping request, CancellationToken cancellationToken = default)
     {
-        return ValueTask.FromResult(new Pong { Message = request.Message + " Pong" });
+        // Simulate some work
+        await Task.Delay(100, cancellationToken);
+
+        return new Pong { Message = $"{request.Message} Pong" };
     }
 }

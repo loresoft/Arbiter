@@ -25,9 +25,9 @@ dotnet add package Arbiter
 
 ### Features
 
-- Request with response handling
-- Notifications (Events)
-- Pipeline Behaviors, like middleware 
+- Request with response handling using `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>`
+- Notifications (Events) using `INotification` and `INotificationHandler<TNotification>`
+- Pipeline Behaviors, like middleware, using `IPipelineBehavior<TRequest, TResponse>`
 - Dependence Injection based, no reflection
 
 
@@ -83,6 +83,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        // Register Arbiter services
         services.AddArbiter();
 
         // Register handlers
