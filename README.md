@@ -45,9 +45,14 @@ public class Ping : IRequest<Pong>
 ```csharp
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public ValueTask<Pong> Handle(Ping request, CancellationToken cancellationToken)
+    public async ValueTask<Pong> Handle(
+        Ping request, 
+        CancellationToken cancellationToken = default)
     {
-        return ValueTask.FromResult(new Pong { Message = request.Message + " Pong" });
+        // Simulate some work
+        await Task.Delay(100, cancellationToken);
+
+        return new Pong { Message = $"{request.Message} Pong" };
     }
 }
 ```
@@ -57,7 +62,10 @@ public class PingHandler : IRequestHandler<Ping, Pong>
 ```csharp
 public class PingBehavior : IPipelineBehavior<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(Ping request, RequestHandlerDelegate<Pong> next, CancellationToken cancellationToken = default)
+    public async ValueTask<Pong> Handle(
+        Ping request, 
+        RequestHandlerDelegate<Pong> next, 
+        CancellationToken cancellationToken = default)
     {
         // Do something before the request is handled
         var response = await next(cancellationToken);
@@ -99,7 +107,9 @@ public class PingController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(string? message, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Get(
+        string? message = null, 
+        CancellationToken? cancellationToken = default)
     {
         var request = new Ping { Message = message };
         var response = await _mediator.Send<Ping, Pong>(request, cancellationToken);
