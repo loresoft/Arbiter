@@ -17,7 +17,8 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>
     {
-        ArgumentNullException.ThrowIfNull(request);
+        if (request is null)
+            throw new ArgumentNullException(nameof(request));
 
         var handler = _serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
 
@@ -34,7 +35,8 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         CancellationToken cancellationToken = default)
         where TNotification : INotification
     {
-        ArgumentNullException.ThrowIfNull(notification);
+        if (notification is null)
+            throw new ArgumentNullException(nameof(notification));
 
         var handlers = _serviceProvider.GetServices<INotificationHandler<TNotification>>().ToList();
         if (handlers.Count == 0)
