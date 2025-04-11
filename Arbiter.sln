@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbiter.Tests", "test\Arbit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbiter.Benchmarks", "test\Arbiter.Benchmarks\Arbiter.Benchmarks.csproj", "{8B6870E4-64AB-413A-8D4A-0EF3A6500671}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbiter.CommandQuery", "src\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj", "{98BB0A9B-E910-424C-91C2-943B3DD71584}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbiter.CommandQuery.EntityFramework", "src\Arbiter.CommandQuery.EntityFramework\Arbiter.CommandQuery.EntityFramework.csproj", "{E299505B-B9A0-426A-869F-0CEE0D0330E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +40,14 @@ Global
 		{8B6870E4-64AB-413A-8D4A-0EF3A6500671}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B6870E4-64AB-413A-8D4A-0EF3A6500671}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B6870E4-64AB-413A-8D4A-0EF3A6500671}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98BB0A9B-E910-424C-91C2-943B3DD71584}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98BB0A9B-E910-424C-91C2-943B3DD71584}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98BB0A9B-E910-424C-91C2-943B3DD71584}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98BB0A9B-E910-424C-91C2-943B3DD71584}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E299505B-B9A0-426A-869F-0CEE0D0330E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E299505B-B9A0-426A-869F-0CEE0D0330E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E299505B-B9A0-426A-869F-0CEE0D0330E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E299505B-B9A0-426A-869F-0CEE0D0330E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

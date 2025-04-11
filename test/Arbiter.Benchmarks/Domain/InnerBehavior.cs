@@ -2,7 +2,7 @@ namespace Arbiter.Benchmarks.Domain;
 
 public class InnerBehavior(TextWriter writer) : Arbiter.IPipelineBehavior<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(Ping request, RequestHandlerDelegate<Pong> next, CancellationToken cancellationToken)
+    public async ValueTask<Pong?> Handle(Ping request, RequestHandlerDelegate<Pong> next, CancellationToken cancellationToken)
     {
         await writer.WriteLineAsync("Inner before");
         var response = await next(cancellationToken);

@@ -35,7 +35,7 @@ public class ArbiterBenchmark
     }
 
     [Benchmark]
-    public ValueTask<Pong> SendingRequests()
+    public ValueTask<Pong?> SendingRequests()
     {
         return _mediator.Send<Ping, Pong>(_request);
     }

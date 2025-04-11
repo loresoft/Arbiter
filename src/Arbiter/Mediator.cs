@@ -12,7 +12,7 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
     private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
     /// <inheritdoc />
-    public async ValueTask<TResponse> Send<TRequest, TResponse>(
+    public async ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>
@@ -57,10 +57,10 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         private readonly IPipelineBehavior<TRequest, TResponse> _behavior = behavior ?? throw new ArgumentNullException(nameof(behavior));
         private readonly IRequestHandler<TRequest, TResponse> _next = next ?? throw new ArgumentNullException(nameof(next));
 
-        public readonly ValueTask<TResponse> Handle(TRequest request, CancellationToken cancellationToken = default)
+        public readonly ValueTask<TResponse?> Handle(TRequest request, CancellationToken cancellationToken = default)
         {
             var child = _next;
-            ValueTask<TResponse> handler(CancellationToken token) => child.Handle(request, token);
+            ValueTask<TResponse?> handler(CancellationToken token) => child.Handle(request, token);
 
             return _behavior.Handle(
                 request,

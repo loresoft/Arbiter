@@ -14,7 +14,7 @@ public interface IMediator
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null</exception>
-    ValueTask<TResponse> Send<TRequest, TResponse>(
+    ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>;

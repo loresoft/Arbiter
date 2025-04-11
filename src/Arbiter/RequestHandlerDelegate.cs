@@ -6,4 +6,4 @@ namespace Arbiter;
 /// <typeparam name="TResponse"> The type of response from the piple</typeparam>
 /// <param name="cancellationToken">Cancellation token</param>
 /// <returns>Awaitable task returning a <typeparamref name="TResponse"/></returns>
-public delegate ValueTask<TResponse> RequestHandlerDelegate<TResponse>(CancellationToken cancellationToken = default);
+public delegate ValueTask<TResponse?> RequestHandlerDelegate<TResponse>(CancellationToken cancellationToken = default);

@@ -22,7 +22,7 @@ public class MediatorTests
         var response = await mediator.Send<Ping, Pong>(request);
 
         await Assert.That(response).IsNotNull();
-        await Assert.That(response.Message).IsEqualTo("Ping Pong");
+        await Assert.That(response!.Message).IsEqualTo("Ping Pong");
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class MediatorTests
         var response = await mediator.Send<Ping, Pong>(request);
 
         await Assert.That(response).IsNotNull();
-        await Assert.That(response.Message).IsEqualTo("Ping Pong");
+        await Assert.That(response!.Message).IsEqualTo("Ping Pong");
 
         await Assert.That(logger.Messages).Contains("Outer before");
         await Assert.That(logger.Messages).Contains("Inner before");
