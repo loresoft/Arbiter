@@ -9,19 +9,30 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 
+/// <summary>
+/// A handler for a request that reads a paged collection of entities in the specified <see cref="DbContext"/>.
+/// </summary>
+/// <inheritdoc/>
 public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     : DataContextHandlerBase<TContext, EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>
     where TContext : DbContext
     where TEntity : class
 {
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityPagedQueryHandler{TContext, TEntity, TReadModel}"/> class.
+    /// </summary>
+    /// <inheritdoc/>
     public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
         : base(loggerFactory, dataContext, mapper)
     {
     }
 
 
-    protected override async ValueTask<EntityPagedResult<TReadModel>?> Process(EntityPagedQuery<TReadModel> request, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    protected override async ValueTask<EntityPagedResult<TReadModel>?> Process(
+        EntityPagedQuery<TReadModel> request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -52,7 +63,12 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
         };
     }
 
-
+    /// <summary>
+    /// Builds the query from the request.
+    /// </summary>
+    /// <param name="request">The request to build the query from.</param>
+    /// <param name="query">The IQueryable to apply the entity query to</param>
+    /// <returns>An IQueryable with the entity query applied</returns>
     protected virtual IQueryable<TEntity> BuildQuery(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query)
     {
         var entityQuery = request.Query;
@@ -69,7 +85,17 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
         return query;
     }
 
-    protected virtual async ValueTask<int> QueryTotal(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query, CancellationToken cancellationToken)
+    /// <summary>
+    /// Queries the total number of items for the specified <paramref name="query"/>.
+    /// </summary>
+    /// <param name="request">The request to build the query from.</param>
+    /// <param name="query">The IQueryable to apply the entity query to</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The total number of items for the <paramref name="query"/></returns>
+    protected virtual async ValueTask<int> QueryTotal(
+        EntityPagedQuery<TReadModel> request,
+        IQueryable<TEntity> query,
+        CancellationToken cancellationToken)
     {
         return await query
             .TagWithCallSite()
@@ -77,7 +103,17 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             .ConfigureAwait(false);
     }
 
-    protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryPaged(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query, CancellationToken cancellationToken)
+    /// <summary>
+    /// Queries the paged data for the specified <paramref name="query"/>.
+    /// </summary>
+    /// <param name="request">The request to build the query from.</param>
+    /// <param name="query">The IQueryable to apply the entity query to</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A list entities for the specified query</returns>
+    protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryPaged(
+        EntityPagedQuery<TReadModel> request,
+        IQueryable<TEntity> query,
+        CancellationToken cancellationToken)
     {
         var entityQuery = request.Query;
 

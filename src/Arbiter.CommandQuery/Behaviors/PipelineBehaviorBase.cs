@@ -1,5 +1,7 @@
 using System.Diagnostics;
 
+using Arbiter.CommandQuery.Handlers;
+
 using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.Behaviors;
@@ -13,23 +15,25 @@ public abstract partial class PipelineBehaviorBase<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : class, IRequest<TResponse>
 {
-    private readonly string _name;
+    private static readonly string _typeName = typeof(RequestHandlerBase<TRequest, TResponse>).Name;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PipelineBehaviorBase{TRequest, TResponse}"/> class.
+    /// </summary>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this handler.</param>
+    /// <exception cref="ArgumentNullException">When <paramref name="loggerFactory"/> is null</exception>"
     protected PipelineBehaviorBase(ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
-        var type = GetType();
-
-        Logger = loggerFactory.CreateLogger(type);
-        _name = type.Name;
+        Logger = loggerFactory.CreateLogger(_typeName);
     }
 
     /// <summary>
-    /// Gets the logger.
+    /// Gets the <see cref="ILogger"/> for this pipeline behavior.
     /// </summary>
     /// <value>
-    /// The logger.
+    /// The <see cref="ILogger"/> for this pipeline behavior.
     /// </value>
     protected ILogger Logger { get; }
 
@@ -46,13 +50,13 @@ public abstract partial class PipelineBehaviorBase<TRequest, TResponse>
         var startTime = Stopwatch.GetTimestamp();
         try
         {
-            LogStart(Logger, _name, request);
+            LogStart(Logger, _typeName, request);
             return await Process(request, next, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             var elaspsed = Stopwatch.GetElapsedTime(startTime);
-            LogFinish(Logger, _name, request, elaspsed.TotalMilliseconds);
+            LogFinish(Logger, _typeName, request, elaspsed.TotalMilliseconds);
         }
     }
 
@@ -62,9 +66,7 @@ public abstract partial class PipelineBehaviorBase<TRequest, TResponse>
     /// <param name="request">The incoming request.</param>
     /// <param name="next">Awaitable delegate for the next action in the pipeline. Eventually this delegate represents the handler.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// Awaitable task returning the <typeparamref name="TResponse" />
-    /// </returns>
+    /// <returns>Awaitable task returning the <typeparamref name="TResponse" /></returns>
     protected abstract ValueTask<TResponse?> Process(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

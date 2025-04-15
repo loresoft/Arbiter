@@ -18,7 +18,7 @@ public record EntityCreateCommand<TCreateModel, TReadModel>
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityCreateCommand{TCreateModel, TReadModel}"/> class.
     /// </summary>
-    /// <param name="principal">the <see cref="ClaimsPrincipal"/> this command is run for</param>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> this command is run for</param>
     /// <param name="model">The create model for this command.</param>
     public EntityCreateCommand(ClaimsPrincipal? principal, [NotNull] TCreateModel model)
         : base(principal, model)

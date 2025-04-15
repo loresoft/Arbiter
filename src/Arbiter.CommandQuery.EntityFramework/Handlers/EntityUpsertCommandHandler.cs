@@ -1,3 +1,5 @@
+// Ignore Spelling: Upsert
+
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 
@@ -6,18 +8,29 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 
+/// <summary>
+/// A handler for a request to update or insert of an entity in the specified <see cref="DbContext"/>.
+/// </summary>
+/// <inheritdoc/>
 public class EntityUpsertCommandHandler<TContext, TEntity, TKey, TUpdateModel, TReadModel>
     : EntityDataContextHandlerBase<TContext, TEntity, TKey, TReadModel, EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>
     where TContext : DbContext
     where TEntity : class, IHaveIdentifier<TKey>, new()
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityUpsertCommandHandler{TContext, TEntity, TKey, TUpdateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <inheritdoc/>
     public EntityUpsertCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
         : base(loggerFactory, dataContext, mapper)
     {
 
     }
 
-    protected override async ValueTask<TReadModel?> Process(EntityUpsertCommand<TKey, TUpdateModel, TReadModel> request, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    protected override async ValueTask<TReadModel?> Process(
+        EntityUpsertCommand<TKey, TUpdateModel, TReadModel> request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 

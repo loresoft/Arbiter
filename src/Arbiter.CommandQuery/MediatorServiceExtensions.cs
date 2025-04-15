@@ -1,3 +1,5 @@
+// Ignore Spelling: Upsert
+
 using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
@@ -6,22 +8,40 @@ using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Arbiter.CommandQuery;
 
+/// <summary>
+/// Extensions for adding mediator services to the service collection.
+/// </summary>
 public static class MediatorServiceExtensions
 {
+    /// <summary>
+    /// Adds the mediator services to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddMediator(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddArbiter();
         services.TryAddSingleton<IPrincipalReader, PrincipalReader>();
 
         return services;
     }
 
+
+    /// <summary>
+    /// Adds the remote dispatcher to the service collection.  The client must register the <see cref="RemoteDispatcher"/> with the correct <see cref="HttpClient"/>.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddRemoteDispatcher(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -35,6 +55,11 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the server dispatcher to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddServerDispatcher(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -48,6 +73,13 @@ public static class MediatorServiceExtensions
     }
 
 
+    /// <summary>
+    /// Adds the caching query behaviors for <see cref="IMemoryCache"/> to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityQueryMemoryCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -61,6 +93,13 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the caching query behaviors for <see cref="IDistributedCache"/> to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityQueryDistributedCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -74,6 +113,13 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the caching query behaviors for <see cref="HybridCache"/> to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -87,6 +133,15 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the caching command behaviors for <see cref="HybridCache"/> to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TCreateModel">The type of the create model.</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel, TCreateModel, TUpdateModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -102,7 +157,13 @@ public static class MediatorServiceExtensions
         return services;
     }
 
-
+    /// <summary>
+    /// Adds the entity query behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityQueryBehaviors<TKey, TReadModel>(this IServiceCollection services)
         where TReadModel : class
     {
@@ -126,6 +187,14 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the entity create behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TCreateModel">The type of the create model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityCreateBehaviors<TKey, TReadModel, TCreateModel>(this IServiceCollection services)
         where TCreateModel : class
     {
@@ -149,6 +218,14 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the entity update behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityUpdateBehaviors<TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TUpdateModel : class
     {
@@ -172,6 +249,14 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the entity upsert behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityUpsertBehaviors<TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TUpdateModel : class
     {
@@ -195,6 +280,14 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the entity patch behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityPatchBehaviors<TKey, TEntity, TReadModel>(this IServiceCollection services)
         where TEntity : class, IHaveIdentifier<TKey>, new()
     {
@@ -206,6 +299,14 @@ public static class MediatorServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds the entity delete behaviors to the service collection.
+    /// </summary>
+    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityDeleteBehaviors<TKey, TEntity, TReadModel>(this IServiceCollection services)
         where TEntity : class, IHaveIdentifier<TKey>, new()
     {

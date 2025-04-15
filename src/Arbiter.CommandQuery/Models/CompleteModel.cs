@@ -11,7 +11,7 @@ public class CompleteModel
     /// Gets or sets a value indicating whether operation was successful.
     /// </summary>
     /// <value>
-    ///   <c>true</c> if was successful; otherwise, <c>false</c>.
+    ///   <see langword="true"/> if was successful; otherwise, <see langword="false"/>.
     /// </value>
     [JsonPropertyName("successful")]
     public bool Successful { get; set; }

@@ -19,7 +19,7 @@ public partial class HybridCacheQueryBehavior<TRequest, TResponse> : PipelineBeh
     /// <summary>
     /// Initializes a new instance of the <see cref="HybridCacheQueryBehavior{TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     /// <param name="hybridCache">The hybrid cache.</param>
     /// <exception cref="ArgumentNullException">hybridCache</exception>
     public HybridCacheQueryBehavior(

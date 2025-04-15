@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
-/// An identifiers base model<c>class</c>
+/// An identifiers base model<see langword="class"/>
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 public class EntityIdentifiersModel<TKey>

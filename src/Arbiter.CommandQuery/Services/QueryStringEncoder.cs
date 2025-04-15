@@ -4,8 +4,18 @@ using System.Text.Json;
 
 namespace Arbiter.CommandQuery.Services;
 
+/// <summary>
+/// A service to encode and decode values for query strings.
+/// </summary>
 public static class QueryStringEncoder
 {
+    /// <summary>
+    /// Encodes a value to a query string format.
+    /// </summary>
+    /// <typeparam name="T">The type of the value</typeparam>
+    /// <param name="value">The value to encode</param>
+    /// <param name="options">The JSON options to use for serialization</param>
+    /// <returns>A query string encode value</returns>
     public static string? Encode<T>(T value, JsonSerializerOptions? options = null)
     {
         if (value is null)
@@ -24,6 +34,13 @@ public static class QueryStringEncoder
         return Base64UrlEncode(jsonBytes);
     }
 
+    /// <summary>
+    /// Decodes a query string value to its original format.
+    /// </summary>
+    /// <typeparam name="T">The type of the value</typeparam>
+    /// <param name="encodedQueryString">The encoded query string format</param>
+    /// <param name="options">The JSON options to use for serialization</param>
+    /// <returns>The instance decoded from the query string format</returns>
     public static T? Decode<T>(string? encodedQueryString, JsonSerializerOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(encodedQueryString))
@@ -40,7 +57,7 @@ public static class QueryStringEncoder
     }
 
 
-    public static string Base64UrlEncode(ReadOnlySpan<byte> input)
+    private static string Base64UrlEncode(ReadOnlySpan<byte> input)
     {
         const int StackAllocThreshold = 128;
 
@@ -64,7 +81,7 @@ public static class QueryStringEncoder
         return base64Url;
     }
 
-    public static byte[] Base64UrlDecode(string input)
+    private static byte[] Base64UrlDecode(string input)
     {
         ArgumentNullException.ThrowIfNull(input);
 

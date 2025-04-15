@@ -6,17 +6,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 
+/// <summary>
+/// A handler for a request that creates an entity in the specified <see cref="DbContext"/>.
+/// </summary>
+/// <inheritdoc/>
 public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, TReadModel>
     : EntityDataContextHandlerBase<TContext, TEntity, TKey, TReadModel, EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>
     where TContext : DbContext
     where TEntity : class, IHaveIdentifier<TKey>, new()
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityCreateCommandHandler{TContext, TEntity, TKey, TCreateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <inheritdoc/>
     public EntityCreateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
         : base(loggerFactory, dataContext, mapper)
     {
     }
 
-    protected override async ValueTask<TReadModel?> Process(EntityCreateCommand<TCreateModel, TReadModel> request, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    protected override async ValueTask<TReadModel?> Process(
+        EntityCreateCommand<TCreateModel, TReadModel> request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 

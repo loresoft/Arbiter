@@ -328,12 +328,12 @@ public sealed partial class UrlBuilder
 
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf(Func<bool> condition, string? path)
     {
         if (condition is null || !condition())
@@ -343,12 +343,12 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf(Func<string?, bool> condition, string? path)
     {
         if (condition is null || !condition(path))
@@ -358,12 +358,12 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf(bool condition, string? path)
     {
         if (!condition)
@@ -373,13 +373,13 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf<TValue>(Func<bool> condition, TValue? path)
     {
         if (condition is null || !condition())
@@ -389,13 +389,13 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf<TValue>(Func<TValue?, bool> condition, TValue? path)
     {
         if (condition is null || !condition(path))
@@ -405,13 +405,13 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="path">The path segment to append.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendPathIf<TValue>(bool condition, TValue? path)
     {
         if (!condition)
@@ -443,7 +443,7 @@ public sealed partial class UrlBuilder
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQuery(string name, string? value)
     {
         if (name is null)
@@ -461,7 +461,7 @@ public sealed partial class UrlBuilder
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQuery<TValue>(string name, TValue? value)
     {
         if (name is null)
@@ -479,7 +479,7 @@ public sealed partial class UrlBuilder
     /// <param name="name">The query string name.</param>
     /// <param name="values">The query string values.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueries<TValue>(string name, IEnumerable<TValue>? values)
     {
         if (name is null)
@@ -537,13 +537,13 @@ public sealed partial class UrlBuilder
 
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf(Func<bool> condition, string name, string? value)
     {
         if (condition is null || !condition())
@@ -553,13 +553,13 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf(Func<string?, bool> condition, string name, string? value)
     {
         if (condition is null || !condition(value))
@@ -569,13 +569,13 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf(bool condition, string name, string? value)
     {
         if (!condition)
@@ -585,14 +585,14 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf<TValue>(Func<bool> condition, string name, TValue? value)
     {
         if (condition is null || !condition())
@@ -602,14 +602,14 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf<TValue>(Func<TValue?, bool> condition, string name, TValue? value)
     {
         if (condition is null || !condition(value))
@@ -619,14 +619,14 @@ public sealed partial class UrlBuilder
     }
 
     /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <c>true</c>.
+    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="condition">The condition on weather the query string is appended.</param>
     /// <param name="name">The query string name.</param>
     /// <param name="value">The query string value.</param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <c>null</c></exception>
+    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
     public UrlBuilder AppendQueryIf<TValue>(bool condition, string name, TValue? value)
     {
         if (!condition)

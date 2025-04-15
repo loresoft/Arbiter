@@ -9,7 +9,7 @@ public interface ICacheResult
     /// Determines whether this entity is cacheable.
     /// </summary>
     /// <returns>
-    ///   <c>true</c> if this entity is cacheable; otherwise, <c>false</c>.
+    ///   <see langword="true"/> if this entity is cacheable; otherwise, <see langword="false"/>.
     /// </returns>
     bool IsCacheable();
 
@@ -30,12 +30,12 @@ public interface ICacheResult
     /// <summary>
     /// Gets how long a cache entry can be inactive (e.g. not accessed) before it will be removed.
     /// </summary>
-    /// <returns>The sliding expiration <see cref="TimeSpan"/> if set; otherwise <c>null</c>.</returns>
+    /// <returns>The sliding expiration <see cref="TimeSpan"/> if set; otherwise <see langword="null"/>.</returns>
     TimeSpan? SlidingExpiration();
 
     /// <summary>
     /// Gets an absolute expiration date for the cache entry.
     /// </summary>
-    /// <returns>The absolute expiration <see cref="DateTimeOffset"/> if set; otherwise <c>null</c>.</returns>
+    /// <returns>The absolute expiration <see cref="DateTimeOffset"/> if set; otherwise <see langword="null"/>.</returns>
     DateTimeOffset? AbsoluteExpiration();
 }

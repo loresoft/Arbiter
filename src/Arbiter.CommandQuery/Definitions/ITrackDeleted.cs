@@ -9,7 +9,7 @@ public interface ITrackDeleted
     /// Gets or sets a value indicating whether this instance is deleted.
     /// </summary>
     /// <value>
-    ///   <c>true</c> if this instance is deleted; otherwise, <c>false</c>.
+    ///   <see langword="true"/> if this instance is deleted; otherwise, <see langword="false"/>.
     /// </value>
     bool IsDeleted { get; set; }
 }

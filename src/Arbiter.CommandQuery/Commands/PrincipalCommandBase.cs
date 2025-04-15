@@ -14,7 +14,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
     /// </summary>
-    /// <param name="principal">the <see cref="ClaimsPrincipal"/> this command is run for</param>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> this command is run for</param>
     protected PrincipalCommandBase(ClaimsPrincipal? principal)
     {
         Principal = principal;

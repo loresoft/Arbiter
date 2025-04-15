@@ -20,7 +20,7 @@ public class EntityChangeNotificationBehavior<TKey, TEntityModel, TResponse>
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityChangeNotificationBehavior{TKey, TEntityModel, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     /// <param name="mediator">The mediator.</param>
     /// <exception cref="ArgumentNullException"></exception>
     public EntityChangeNotificationBehavior(ILoggerFactory loggerFactory, IMediator mediator) : base(loggerFactory)

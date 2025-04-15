@@ -5,7 +5,7 @@ using Arbiter.CommandQuery.Definitions;
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
-/// A create model base <c>class</c>
+/// A create model base <see langword="class"/>
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 /// <seealso cref="EntityIdentifierModel{TKey}" />

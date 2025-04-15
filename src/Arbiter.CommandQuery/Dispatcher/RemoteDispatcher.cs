@@ -1,3 +1,5 @@
+// Ignore Spelling: serializer
+
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -10,6 +12,9 @@ using Microsoft.Extensions.Options;
 
 namespace Arbiter.CommandQuery.Dispatcher;
 
+/// <summary>
+/// A dispatcher that sends requests to a remote service over HTTP. Use for Blazor Interactive WebAssembly rendering mode.
+/// </summary>
 public class RemoteDispatcher : IDispatcher
 {
     private readonly HttpClient _httpClient;
@@ -17,6 +22,13 @@ public class RemoteDispatcher : IDispatcher
     private readonly DispatcherOptions _dispatcherOptions;
     private readonly HybridCache? _hybridCache;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RemoteDispatcher"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client to send request over</param>
+    /// <param name="serializerOptions">The JSON options to use for serialization</param>
+    /// <param name="dispatcherOptions">The dispatcher options to use</param>
+    /// <param name="hybridCache">The optional hybrid cache to use.</param>
     public RemoteDispatcher(
         HttpClient httpClient,
         JsonSerializerOptions serializerOptions,
@@ -33,6 +45,7 @@ public class RemoteDispatcher : IDispatcher
         _hybridCache = hybridCache;
     }
 
+    /// <inheritdoc />
     public async ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)

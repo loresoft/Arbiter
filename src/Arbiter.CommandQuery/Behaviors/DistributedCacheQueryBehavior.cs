@@ -1,3 +1,5 @@
+// Ignore Spelling: Serializer
+
 using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.Extensions.Caching.Distributed;
@@ -20,7 +22,7 @@ public partial class DistributedCacheQueryBehavior<TRequest, TResponse> : Pipeli
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedCacheQueryBehavior{TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     /// <param name="distributedCache">The distributed cache.</param>
     /// <param name="distributedCacheSerializer">The distributed cache serializer.</param>
     /// <exception cref="ArgumentNullException"></exception>

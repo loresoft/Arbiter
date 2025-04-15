@@ -3,7 +3,7 @@ using System.Text;
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
-/// Build a <c>string</c> based Linq expression from a <see cref="EntityFilter"/> instance
+/// Build a <see langword="string"/> based Linq expression from a <see cref="EntityFilter"/> instance
 /// </summary>
 public class LinqExpressionBuilder
 {

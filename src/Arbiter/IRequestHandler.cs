@@ -17,5 +17,6 @@ public interface IRequestHandler<in TRequest, TResponse>
     /// <param name="request">The request to handle</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="request"/> is null</exception>"
     ValueTask<TResponse?> Handle(TRequest request, CancellationToken cancellationToken = default);
 }

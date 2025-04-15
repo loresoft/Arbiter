@@ -23,7 +23,7 @@ public abstract class DeletedFilterBehaviorBase<TEntityModel, TRequest, TRespons
     /// <summary>
     /// Initializes a new instance of the <see cref="DeletedFilterBehaviorBase{TEntityModel, TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     protected DeletedFilterBehaviorBase(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
     }
@@ -31,9 +31,9 @@ public abstract class DeletedFilterBehaviorBase<TEntityModel, TRequest, TRespons
     /// <summary>
     /// Rewrites the specified filter to include a soft delete (IsDeleted) filter.
     /// </summary>
-    /// <param name="originalFilter">The original filter.</param>
-    /// <param name="principal">The principal.</param>
-    /// <returns></returns>
+    /// <param name="originalFilter">The original filter to rewrite.</param>
+    /// <param name="principal">The claims principal for this behavior.</param>
+    /// <returns>An <see cref="EntityFilter"/> with soft delete added</returns>
     protected virtual EntityFilter? RewriteFilter(EntityFilter? originalFilter, ClaimsPrincipal? principal)
     {
         if (!_supportsDelete.Value)
@@ -65,9 +65,9 @@ public abstract class DeletedFilterBehaviorBase<TEntityModel, TRequest, TRespons
     /// <summary>
     /// Determines whether the specified original filter has a soft delete (IsDeleted) filter.
     /// </summary>
-    /// <param name="originalFilter">The original filter.</param>
+    /// <param name="originalFilter">The original filter to check.</param>
     /// <returns>
-    ///   <c>true</c> if the specified original filter has a soft delete filter; otherwise, <c>false</c>.
+    ///   <see langword="true"/> if the specified original filter has a soft delete filter; otherwise, <see langword="false"/>.
     /// </returns>
     protected virtual bool HasDeletedFilter(EntityFilter? originalFilter)
     {

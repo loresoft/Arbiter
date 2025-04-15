@@ -12,8 +12,20 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Arbiter.CommandQuery.EntityFramework;
 
+/// <summary>
+/// Extensions for adding Entity Framework Core support to the command/query pipeline.
+/// </summary>
 public static class DomainServiceExtensions
 {
+    /// <summary>
+    /// Registers entity queries with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityQueries<TContext, TEntity, TKey, TReadModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -35,6 +47,17 @@ public static class DomainServiceExtensions
     }
 
 
+    /// <summary>
+    /// Registers entity create, update and delete commands with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TCreateModel">The type of the create model</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityCommands<TContext, TEntity, TKey, TReadModel, TCreateModel, TUpdateModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -58,6 +81,16 @@ public static class DomainServiceExtensions
     }
 
 
+    /// <summary>
+    /// Registers entity create command with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TCreateModel">The type of the create model</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityCreateCommand<TContext, TEntity, TKey, TReadModel, TCreateModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -73,6 +106,16 @@ public static class DomainServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers entity update command with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityUpdateCommand<TContext, TEntity, TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -92,6 +135,16 @@ public static class DomainServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers entity update or insert command with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <typeparam name="TUpdateModel">The type of the update model</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityUpsertCommand<TContext, TEntity, TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -107,6 +160,15 @@ public static class DomainServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers entity patch command with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityPatchCommand<TContext, TEntity, TKey, TReadModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()
@@ -121,6 +183,15 @@ public static class DomainServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers entity delete command with pipeline behaviors in the service collection.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TKey">The key type for the data context entity</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityDeleteCommand<TContext, TEntity, TKey, TReadModel>(this IServiceCollection services)
         where TContext : DbContext
         where TEntity : class, IHaveIdentifier<TKey>, new()

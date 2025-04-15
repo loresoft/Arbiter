@@ -5,7 +5,7 @@ using Arbiter.CommandQuery.Definitions;
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
-/// An update model base <c>class</c>
+/// An update model base <see langword="class"/>
 /// </summary>
 /// <seealso cref="ITrackUpdated" />
 /// <seealso cref="ITrackConcurrency" />

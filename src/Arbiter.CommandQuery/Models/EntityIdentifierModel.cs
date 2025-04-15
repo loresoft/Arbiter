@@ -6,7 +6,7 @@ using Arbiter.CommandQuery.Definitions;
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
-/// An identifier base model <c>class</c>
+/// An identifier base model <see langword="class"/>
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 /// <seealso cref="IHaveIdentifier{TKey}" />

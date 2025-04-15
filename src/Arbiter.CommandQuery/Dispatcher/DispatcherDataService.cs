@@ -6,8 +6,15 @@ using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Dispatcher;
 
+/// <summary>
+/// A data service for dispatching common data requests to a data store.
+/// </summary>
 public class DispatcherDataService : IDispatcherDataService
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DispatcherDataService"/> class.
+    /// </summary>
+    /// <param name="dispatcher">The dispatcher used to send requests</param>
     public DispatcherDataService(IDispatcher dispatcher)
     {
         ArgumentNullException.ThrowIfNull(dispatcher);
@@ -15,8 +22,11 @@ public class DispatcherDataService : IDispatcherDataService
         Dispatcher = dispatcher;
     }
 
+
+    /// <inheritdoc/>
     public IDispatcher Dispatcher { get; }
 
+    /// <inheritdoc/>
     public async ValueTask<TModel?> Get<TKey, TModel>(
         TKey id,
         TimeSpan? cacheTime = null,
@@ -33,6 +43,7 @@ public class DispatcherDataService : IDispatcherDataService
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
     public async ValueTask<IReadOnlyCollection<TModel>> Get<TKey, TModel>(
         IEnumerable<TKey> ids,
         TimeSpan? cacheTime = null,
@@ -51,6 +62,7 @@ public class DispatcherDataService : IDispatcherDataService
         return result ?? [];
     }
 
+    /// <inheritdoc/>
     public async ValueTask<IReadOnlyCollection<TModel>> All<TModel>(
         string? sortField = null,
         TimeSpan? cacheTime = null,
@@ -74,6 +86,7 @@ public class DispatcherDataService : IDispatcherDataService
         return result ?? [];
     }
 
+    /// <inheritdoc/>
     public async ValueTask<IReadOnlyCollection<TModel>> Select<TModel>(
         EntitySelect? entitySelect = null,
         TimeSpan? cacheTime = null,
@@ -92,6 +105,7 @@ public class DispatcherDataService : IDispatcherDataService
         return result ?? [];
     }
 
+    /// <inheritdoc/>
     public async ValueTask<EntityPagedResult<TModel>> Page<TModel>(
         EntityQuery? entityQuery = null,
         CancellationToken cancellationToken = default)
@@ -109,6 +123,7 @@ public class DispatcherDataService : IDispatcherDataService
     }
 
 
+    /// <inheritdoc/>
     public async ValueTask<IEnumerable<TModel>> Search<TModel>(
         string searchText,
         EntityFilter? entityFilter = null,
@@ -134,6 +149,7 @@ public class DispatcherDataService : IDispatcherDataService
     }
 
 
+    /// <inheritdoc/>
     public async ValueTask<TReadModel?> Save<TKey, TUpdateModel, TReadModel>(
         TKey id,
         TUpdateModel updateModel,
@@ -150,6 +166,7 @@ public class DispatcherDataService : IDispatcherDataService
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
     public async ValueTask<TReadModel?> Create<TCreateModel, TReadModel>(
         TCreateModel createModel,
         CancellationToken cancellationToken = default)
@@ -165,6 +182,7 @@ public class DispatcherDataService : IDispatcherDataService
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
     public async ValueTask<TReadModel?> Update<TKey, TUpdateModel, TReadModel>(
         TKey id,
         TUpdateModel updateModel,
@@ -181,6 +199,7 @@ public class DispatcherDataService : IDispatcherDataService
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
     public async ValueTask<TReadModel?> Delete<TKey, TReadModel>(
         TKey id,
         CancellationToken cancellationToken = default)
@@ -195,6 +214,7 @@ public class DispatcherDataService : IDispatcherDataService
     }
 
 
+    /// <inheritdoc/>
     public virtual ValueTask<ClaimsPrincipal?> GetUser(CancellationToken cancellationToken = default)
     {
         return ValueTask.FromResult<ClaimsPrincipal?>(default);

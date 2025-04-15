@@ -7,6 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.Behaviors;
 
+/// <summary>
+/// A behavior for authenticating a model against the tenant.
+/// </summary>
+/// <typeparam name="TKey">The type of the model key</typeparam>
+/// <typeparam name="TEntityModel">The type of the model</typeparam>
+/// <typeparam name="TResponse">The type of the response</typeparam>
 public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
     : PipelineBehaviorBase<EntityModelCommand<TEntityModel, TResponse>, TResponse>
     where TEntityModel : class
@@ -14,12 +20,19 @@ public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
 
     private readonly ITenantResolver<TKey> _tenantResolver;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantAuthenticateCommandBehavior{TKey, TEntityModel, TResponse}"/> class.
+    /// </summary>
+    /// <param name="loggerFactory"> The logger factory to create an <see cref="ILogger"/> from</param>
+    /// <param name="tenantResolver"> The tenant resolver service.</param>
+    /// <exception cref="ArgumentNullException">When <paramref name="tenantResolver"/> is null</exception>
     public TenantAuthenticateCommandBehavior(ILoggerFactory loggerFactory, ITenantResolver<TKey> tenantResolver)
         : base(loggerFactory)
     {
         _tenantResolver = tenantResolver ?? throw new ArgumentNullException(nameof(tenantResolver));
     }
 
+    /// <inheritdoc />
     protected override async ValueTask<TResponse?> Process(
         EntityModelCommand<TEntityModel, TResponse> request,
         RequestHandlerDelegate<TResponse> next,

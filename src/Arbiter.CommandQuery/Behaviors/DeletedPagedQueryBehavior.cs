@@ -15,7 +15,7 @@ public class DeletedPagedQueryBehavior<TEntityModel>
     /// <summary>
     /// Initializes a new instance of the <see cref="DeletedPagedQueryBehavior{TEntityModel}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     public DeletedPagedQueryBehavior(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
     }

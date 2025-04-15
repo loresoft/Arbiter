@@ -8,15 +8,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.Services;
 
+/// <summary>
+/// A service to read claims from a principal.
+/// </summary>
 public partial class PrincipalReader : IPrincipalReader
 {
     private readonly ILogger<PrincipalReader> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PrincipalReader"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for this service</param>
     public PrincipalReader(ILogger<PrincipalReader> logger)
     {
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public string? GetEmail(IPrincipal? principal)
     {
         if (principal is null)
@@ -34,6 +42,7 @@ public partial class PrincipalReader : IPrincipalReader
         return email;
     }
 
+    /// <inheritdoc />
     public string? GetIdentifier(IPrincipal? principal)
     {
         if (principal is null)
@@ -46,6 +55,7 @@ public partial class PrincipalReader : IPrincipalReader
         return name;
     }
 
+    /// <inheritdoc />
     public string? GetName(IPrincipal? principal)
     {
         if (principal is null)
@@ -63,6 +73,7 @@ public partial class PrincipalReader : IPrincipalReader
         return name;
     }
 
+    /// <inheritdoc />
     public Guid? GetObjectId(IPrincipal? principal)
     {
         if (principal is null)
@@ -70,7 +81,7 @@ public partial class PrincipalReader : IPrincipalReader
 
         var claimPrincipal = principal as ClaimsPrincipal;
         var claim = claimPrincipal?.FindFirst(ClaimNames.IdentifierClaim)
-            ?? claimPrincipal?.FindFirst(ClaimNames.ObjectIdenttifier)
+            ?? claimPrincipal?.FindFirst(ClaimNames.ObjectIdentifier)
             ?? claimPrincipal?.FindFirst(ClaimTypes.NameIdentifier);
 
         return Guid.TryParse(claim?.Value, out var oid) ? oid : null;

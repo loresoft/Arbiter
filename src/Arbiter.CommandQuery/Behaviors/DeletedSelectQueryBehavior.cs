@@ -15,7 +15,7 @@ public class DeletedSelectQueryBehavior<TEntityModel>
     /// <summary>
     /// Initializes a new instance of the <see cref="DeletedSelectQueryBehavior{TEntityModel}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     public DeletedSelectQueryBehavior(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
     }

@@ -19,9 +19,9 @@ public partial class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBe
     /// <summary>
     /// Initializes a new instance of the <see cref="HybridCacheExpireBehavior{TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> from</param>
     /// <param name="hybridCache">The hybrid cache.</param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentNullException">When <paramref name="hybridCache"/> is null</exception>
     public HybridCacheExpireBehavior(
         ILoggerFactory loggerFactory,
         HybridCache hybridCache)

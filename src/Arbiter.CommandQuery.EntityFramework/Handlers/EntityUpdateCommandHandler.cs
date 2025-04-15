@@ -6,18 +6,29 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 
+/// <summary>
+/// A handler for a request to update an entity in the specified <see cref="DbContext"/>.
+/// </summary>
+/// <inheritdoc />
 public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, TReadModel>
     : EntityDataContextHandlerBase<TContext, TEntity, TKey, TReadModel, EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>
     where TContext : DbContext
     where TEntity : class, IHaveIdentifier<TKey>, new()
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityUpdateCommandHandler{TContext, TEntity, TKey, TUpdateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <inheritdoc />
     public EntityUpdateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
         : base(loggerFactory, dataContext, mapper)
     {
 
     }
 
-    protected override async ValueTask<TReadModel?> Process(EntityUpdateCommand<TKey, TUpdateModel, TReadModel> request, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    protected override async ValueTask<TReadModel?> Process(
+        EntityUpdateCommand<TKey, TUpdateModel, TReadModel> request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 

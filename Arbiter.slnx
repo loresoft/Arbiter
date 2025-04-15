@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/Build/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path="README.md" />
+    <File Path="src/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Arbiter.Benchmarks/Arbiter.Benchmarks.csproj" />
+    <Project Path="test/Arbiter.Tests/Arbiter.Tests.csproj" />
+  </Folder>
+  <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />
+  <Project Path="src/Arbiter.CommandQuery.EntityFramework/Arbiter.CommandQuery.EntityFramework.csproj" />
+  <Project Path="src/Arbiter.CommandQuery.MongoDB/Arbiter.CommandQuery.MongoDB.csproj" />
+  <Project Path="src/Arbiter.CommandQuery/Arbiter.CommandQuery.csproj" />
+  <Project Path="src/Arbiter/Arbiter.csproj" />
+</Solution>

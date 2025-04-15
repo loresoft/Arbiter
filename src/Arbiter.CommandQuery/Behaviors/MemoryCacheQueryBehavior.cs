@@ -16,11 +16,17 @@ public partial class MemoryCacheQueryBehavior<TRequest, TResponse> : PipelineBeh
 {
     private readonly IMemoryCache _memoryCache;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MemoryCacheQueryBehavior{TRequest, TResponse}"/> class.
+    /// </summary>
+    /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">When <paramref name="memoryCache"/> is null</exception>
     public MemoryCacheQueryBehavior(ILoggerFactory loggerFactory, IMemoryCache memoryCache) : base(loggerFactory)
     {
         _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
     }
 
+    /// <inheritdoc />
     protected override async ValueTask<TResponse?> Process(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

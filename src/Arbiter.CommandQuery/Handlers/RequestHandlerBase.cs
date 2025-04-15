@@ -12,28 +12,25 @@ namespace Arbiter.CommandQuery.Handlers;
 public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly string _name;
-
+    private static readonly string _typeName = typeof(RequestHandlerBase<TRequest, TResponse>).Name;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequestHandlerBase{TRequest, TResponse}"/> class.
     /// </summary>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this handler.</param>
+    /// <exception cref="ArgumentNullException">When <paramref name="loggerFactory"/> is null</exception>"
     protected RequestHandlerBase(ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
-        var type = GetType();
-
-        Logger = loggerFactory.CreateLogger(type);
-        _name = type.Name;
+        Logger = loggerFactory.CreateLogger(_typeName);
     }
 
     /// <summary>
-    /// Gets the logger.
+    /// Gets the <see cref="ILogger"/> for this handler.
     /// </summary>
     /// <value>
-    /// The logger.
+    /// The <see cref="ILogger"/> for this handler.
     /// </value>
     protected ILogger Logger { get; }
 
@@ -45,13 +42,13 @@ public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequest
         var startTime = Stopwatch.GetTimestamp();
         try
         {
-            LogStart(Logger, _name, request);
+            LogStart(Logger, _typeName, request);
             return await Process(request, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             var elapsed = Stopwatch.GetElapsedTime(startTime);
-            LogFinish(Logger, _name, request, elapsed.TotalMilliseconds);
+            LogFinish(Logger, _typeName, request, elapsed.TotalMilliseconds);
         }
     }
 
@@ -60,7 +57,7 @@ public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequest
     /// </summary>
     /// <param name="request">The request to process.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Response from the request</returns>
+    /// <returns>Awaitable task returning the <typeparamref name="TResponse" /></returns>
     protected abstract ValueTask<TResponse?> Process(TRequest request, CancellationToken cancellationToken = default);
 
 

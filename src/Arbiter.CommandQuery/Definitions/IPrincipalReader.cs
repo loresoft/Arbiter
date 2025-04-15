@@ -11,27 +11,27 @@ public interface IPrincipalReader
     /// Gets the identifier claim from the specified <paramref name="principal"/>.
     /// </summary>
     /// <param name="principal">The principal to read the claim from.</param>
-    /// <returns>The identifier claim if found; otherwise <c>null</c>.</returns>
+    /// <returns>The identifier claim if found; otherwise <see langword="null"/>.</returns>
     string? GetIdentifier(IPrincipal? principal);
 
     /// <summary>
     /// Gets the name claim from the specified <paramref name="principal"/>.
     /// </summary>
     /// <param name="principal">The principal to read the claim from.</param>
-    /// <returns>The name claim if found; otherwise <c>null</c>.</returns>
+    /// <returns>The name claim if found; otherwise <see langword="null"/>.</returns>
     string? GetName(IPrincipal? principal);
 
     /// <summary>
     /// Gets the email claim from the specified <paramref name="principal"/>.
     /// </summary>
     /// <param name="principal">The principal to read the claim from.</param>
-    /// <returns>The email claim if found; otherwise <c>null</c>.</returns>
+    /// <returns>The email claim if found; otherwise <see langword="null"/>.</returns>
     string? GetEmail(IPrincipal? principal);
 
     /// <summary>
     /// Gets the object identifier claim from the specified <paramref name="principal"/>.
     /// </summary>
     /// <param name="principal">The principal to read the claim from.</param>
-    /// <returns>The object identifier claim if found; otherwise <c>null</c>.</returns>
+    /// <returns>The object identifier claim if found; otherwise <see langword="null"/>.</returns>
     Guid? GetObjectId(IPrincipal? principal);
 }
