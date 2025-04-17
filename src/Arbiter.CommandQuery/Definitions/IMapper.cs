@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Arbiter.CommandQuery.Definitions;
 
 /// <summary>
@@ -12,7 +14,8 @@ public interface IMapper
     /// <typeparam name="TDestination">Destination type to create</typeparam>
     /// <param name="source">Source object to map from</param>
     /// <returns>Mapped destination object</returns>
-    TDestination Map<TSource, TDestination>(TSource source);
+    [return: NotNullIfNotNull(nameof(source))]
+    TDestination? Map<TSource, TDestination>(TSource? source);
 
     /// <summary>
     /// Execute a mapping from the source object to the existing destination object.
@@ -21,8 +24,7 @@ public interface IMapper
     /// <typeparam name="TDestination">Destination type</typeparam>
     /// <param name="source">Source object to map from</param>
     /// <param name="destination">Destination object to map into</param>
-    /// <returns>The mapped destination object</returns>
-    TDestination Map<TSource, TDestination>(TSource source, TDestination destination);
+    void Map<TSource, TDestination>(TSource source, TDestination destination);
 
 
 

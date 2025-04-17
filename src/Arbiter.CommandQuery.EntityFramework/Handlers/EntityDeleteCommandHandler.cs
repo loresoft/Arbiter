@@ -41,7 +41,7 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
             .ConfigureAwait(false);
 
         if (entity == null)
-            return default!;
+            return default;
 
         // apply update metadata
         if (entity is ITrackUpdated updateEntity)

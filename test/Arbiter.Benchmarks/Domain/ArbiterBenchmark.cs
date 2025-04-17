@@ -1,5 +1,7 @@
 using System.ComponentModel;
 
+using Arbiter.Mediation;
+
 using BenchmarkDotNet.Attributes;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +12,7 @@ namespace Arbiter.Benchmarks.Domain;
 [Description("Arbiter")]
 public class ArbiterBenchmark
 {
-    private Arbiter.IMediator _mediator = null!;
+    private IMediator _mediator = null!;
     private readonly Ping _request = new() { Message = "Ping" };
     private readonly Pinged _notification = new();
 

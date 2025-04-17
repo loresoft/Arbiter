@@ -1,14 +1,14 @@
 using Arbiter.Mediation;
 
-namespace Arbiter.Benchmarks.Domain;
+namespace Arbiter.Tests.Domain;
 
-public class OuterBehavior(TextWriter writer) : IPipelineBehavior<Ping, Pong>
+public class InnerBehavior(Logger logger) : IPipelineBehavior<Ping, Pong>
 {
     public async ValueTask<Pong?> Handle(Ping request, RequestHandlerDelegate<Pong> next, CancellationToken cancellationToken)
     {
-        await writer.WriteLineAsync("Outer before");
+        logger.Messages.Add("Inner before");
         var response = await next(cancellationToken);
-        await writer.WriteLineAsync("Outer after");
+        logger.Messages.Add("Inner after");
 
         return response;
     }

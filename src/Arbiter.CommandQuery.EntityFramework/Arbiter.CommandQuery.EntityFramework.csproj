@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <Description>Command Query Responsibility Segregation (CQRS) framework based on mediator pattern using Entity Framework as the data store handler</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +13,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Arbiter.Mediation" />
+  </ItemGroup>
+
 
 </Project>

@@ -1,6 +1,8 @@
+using Arbiter.Mediation;
+
 namespace Arbiter.Benchmarks.Domain;
 
-public class PingHandler(TextWriter writer) : Arbiter.IRequestHandler<Ping, Pong>
+public class PingHandler(TextWriter writer) : IRequestHandler<Ping, Pong>
 {
     public async ValueTask<Pong?> Handle(Ping request, CancellationToken cancellationToken)
     {

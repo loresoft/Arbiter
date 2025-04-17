@@ -1,6 +1,8 @@
+using Arbiter.Mediation;
+
 namespace Arbiter.Benchmarks.Domain;
 
-public class PungNotificationHandler(TextWriter writer) : Arbiter.INotificationHandler<Pinged>
+public class PungNotificationHandler(TextWriter writer) : INotificationHandler<Pinged>
 {
     public async ValueTask Handle(Pinged notification, CancellationToken cancellationToken)
     {

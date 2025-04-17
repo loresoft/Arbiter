@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Command Query Responsibility Segregation (CQRS) framework based on mediator pattern</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,4 +13,9 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Arbiter.Mediation" />
+  </ItemGroup>
+
 </Project>

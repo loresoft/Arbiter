@@ -1,6 +1,6 @@
 using Arbiter.Mediation;
 
-namespace Arbiter.Benchmarks.Domain;
+namespace Arbiter.Tests.Domain;
 
 public class Ping : IRequest<Pong>
 {

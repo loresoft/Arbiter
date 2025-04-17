@@ -1,6 +1,8 @@
+using Arbiter.Mediation;
+
 namespace Arbiter.Benchmarks.Domain;
 
-public class InnerBehavior(TextWriter writer) : Arbiter.IPipelineBehavior<Ping, Pong>
+public class InnerBehavior(TextWriter writer) : IPipelineBehavior<Ping, Pong>
 {
     public async ValueTask<Pong?> Handle(Ping request, RequestHandlerDelegate<Pong> next, CancellationToken cancellationToken)
     {
