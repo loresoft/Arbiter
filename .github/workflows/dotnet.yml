@@ -42,7 +42,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run Test
-        run: dotnet test --no-build --configuration Release --coverage --report-trx
+        run: dotnet test --no-build --configuration Release
 
       - name: Create Packages
         if: success() && github.event_name != 'pull_request'
