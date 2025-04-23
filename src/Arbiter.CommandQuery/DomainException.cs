@@ -84,4 +84,9 @@ public class DomainException : Exception
     /// Gets the status code associated with the exception.
     /// </summary>
     public int StatusCode { get; }
+
+    /// <summary>
+    /// Gets or sets the errors associated with the domain exception. The dictionary key is the property name, and the value is an array of error messages.
+    /// </summary>
+    public IDictionary<string, string[]>? Errors { get; set; }
 }

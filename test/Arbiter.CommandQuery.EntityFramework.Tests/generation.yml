@@ -1,0 +1,84 @@
+project:
+  namespace: 'Arbiter.CommandQuery.EntityFramework.Tests'
+  directory: .\
+  nullable: true
+  fileScopedNamespace: true
+database:
+  provider: SqlServer
+  connectionString: Data Source=(local);Initial Catalog=TrackerCommandQuery;Integrated Security=True;TrustServerCertificate=True
+  schemas:
+    - dbo
+data:
+  context:
+    name: 'TrackerContext'
+    baseClass: DbContext
+    propertyNaming: Plural
+    namespace: '{Project.Namespace}.Data'
+    directory: '{Project.Directory}\Data'
+    document: false
+  entity:
+    namespace: '{Project.Namespace}.Data.Entities'
+    directory: '{Project.Directory}\Data\Entities'
+    baseClass: 'IHaveIdentifier<int>, ITrackCreated, ITrackUpdated'
+    document: false
+  mapping:
+    namespace: '{Project.Namespace}.Data.Mapping'
+    directory: '{Project.Directory}\Data\Mapping'
+    document: false
+    temporal: false
+    rowVersion: long
+  query:
+    generate: false
+model:
+  shared:
+    namespace: '{Project.Namespace}.Domain.Models'
+    directory: '{Project.Directory}\Domain\{Entity.Name}\Models'
+    exclude:
+      entities:
+        - 'UserRole'
+      properties:
+        - '\.Id$'
+        - '\.Created$'
+        - '\.CreatedBy$'
+        - '\.Updated$'
+        - '\.UpdatedBy$'
+        - '\.RowVersion$'
+  read:
+    generate: true
+    name: '{Entity.Name}ReadModel'
+    baseClass: 'EntityReadModel'
+    document: false
+  create:
+    generate: true
+    name: '{Entity.Name}CreateModel'
+    baseClass: 'EntityCreateModel'
+    document: false
+    exclude:
+      entities:
+        - 'UserLogin'
+  update:
+    generate: true
+    name: '{Entity.Name}UpdateModel'
+    baseClass: EntityUpdateModel
+    document: false
+    exclude:
+      entities:
+        - 'UserLogin'
+  mapper:
+    generate: false
+  validator:
+    generate: true
+    name: '{Model.Name}Validator'
+    baseClass: 'AbstractValidator<{Model.Name}>'
+    namespace: '{Project.Namespace}.Domain.Validation'
+    directory: '{Project.Directory}\Domain\{Entity.Name}\Validation'
+    attributes: '[RegisterSingleton<IValidator<{Model.Name}>>]'
+    document: false
+script:
+  entity:
+    - templatePath: '..\..\templates\DomainServiceRegistration.csx'
+      fileName: '{Entity.Name}ServiceRegistration.cs'
+      namespace: '{Project.Namespace}.Domain'
+      directory: '{Project.Directory}\Domain\{Entity.Name}'
+      parameters:
+        keyType: int

@@ -22,7 +22,7 @@ namespace Arbiter.CommandQuery;
 public static class MediatorServiceExtensions
 {
     /// <summary>
-    /// Adds the mediator services to the service collection.
+    /// Adds the mediator command query services to the service collection.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
@@ -31,7 +31,9 @@ public static class MediatorServiceExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddArbiter();
+
         services.TryAddSingleton<IPrincipalReader, PrincipalReader>();
+        services.TryAddSingleton<IMapper, ServiceProviderMapper>();
 
         return services;
     }
@@ -213,6 +215,7 @@ public static class MediatorServiceExtensions
         if (supportsTracking)
             services.AddTransient<IPipelineBehavior<EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>, TrackChangeCommandBehavior<TCreateModel, TReadModel>>();
 
+        services.AddTransient<IPipelineBehavior<EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>, ValidateEntityModelCommandBehavior<TCreateModel, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>, EntityChangeNotificationBehavior<TKey, TCreateModel, TReadModel>>();
 
         return services;
@@ -244,6 +247,7 @@ public static class MediatorServiceExtensions
         if (supportsTracking)
             services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, TrackChangeCommandBehavior<TUpdateModel, TReadModel>>();
 
+        services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, ValidateEntityModelCommandBehavior<TUpdateModel, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, EntityChangeNotificationBehavior<TKey, TUpdateModel, TReadModel>>();
 
         return services;
@@ -275,6 +279,7 @@ public static class MediatorServiceExtensions
         if (supportsTracking)
             services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, TrackChangeCommandBehavior<TUpdateModel, TReadModel>>();
 
+        services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, ValidateEntityModelCommandBehavior<TUpdateModel, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, EntityChangeNotificationBehavior<TKey, TUpdateModel, TReadModel>>();
 
         return services;

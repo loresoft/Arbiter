@@ -11,7 +11,7 @@ namespace Arbiter.CommandQuery.Services;
 /// <summary>
 /// A service to read claims from a principal.
 /// </summary>
-public partial class PrincipalReader : IPrincipalReader
+public sealed partial class PrincipalReader : IPrincipalReader
 {
     private readonly ILogger<PrincipalReader> _logger;
 

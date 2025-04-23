@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="8.1.0" />
+    <PackageReference Include="Bogus" Version="35.6.3" />
+    <PackageReference Include="TUnit" Version="0.19.86" />
+    <PackageReference Include="Verify.TUnit" Version="29.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Arbiter.CommandQuery" />
+    <Using Include="Bogus" />
+    <Using Include="FluentAssertions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Snapshots\" />
+  </ItemGroup>
+
+</Project>
