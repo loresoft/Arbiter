@@ -51,7 +51,6 @@ public class TestApplication : TestHostApplication, IAsyncInitializer
         var services = builder.Services;
 
         services.AddHostedService<DatabaseInitializer>();
-        services.AddAutoMapper(typeof(TestApplication).Assembly);
         services.AddMediator();
 
         services.AddServerDispatcher();

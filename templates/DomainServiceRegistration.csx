@@ -3,7 +3,10 @@ public string WriteCode()
     if (Entity.Models.Count == 0)
         return string.Empty;
 
+    var contextNamespace = Entity.Context.ContextNamespace;
+    var entityNamespace = Entity.EntityNamespace;
     var modelNamespace = Entity.Models.Select(m => m.ModelNamespace).FirstOrDefault();
+
     var readModel = string.Empty;
     var createModel = string.Empty;
     var updateModel = string.Empty;
@@ -29,22 +32,20 @@ public string WriteCode()
 
     CodeBuilder.Clear();
 
-    CodeBuilder.AppendLine("using System;");
-    CodeBuilder.AppendLine("using System.Collections.Generic;");
-    CodeBuilder.AppendLine("using MediatR.CommandQuery.EntityFrameworkCore;");
     CodeBuilder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+    CodeBuilder.AppendLine();
 
-    if (!string.IsNullOrEmpty(modelNamespace))
-        CodeBuilder.AppendLine($"using {modelNamespace};");
+
+    CodeBuilder.AppendLine($"using Context = {contextNamespace};");
+    CodeBuilder.AppendLine($"using Entities = {entityNamespace};");
+    CodeBuilder.AppendLine($"using Models = {modelNamespace};");
 
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine("// ReSharper disable once CheckNamespace");
+    CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
     CodeBuilder.AppendLine();
 
     GenerateClass(readModel, createModel, updateModel);
-
-    CodeBuilder.AppendLine();
 
     return CodeBuilder.ToString();
 }
@@ -82,23 +83,17 @@ private void GenerateRegister(string readModel, string createModel, string updat
     using (CodeBuilder.Indent())
     {
         CodeBuilder.AppendLine("#region Generated Register");
-
-        CodeBuilder.AppendLine($"services.AddEntityQueries<{contextNamespace}.{contextClass}, {entityNamespace}.{entityClass}, {keyType}, {readModel}>();");
-        CodeBuilder.AppendLine();
+        CodeBuilder.AppendLine($"services.AddEntityQueries<Context.{contextClass}, Entities.{entityClass}, {keyType}, Models.{readModel}>();");
 
         if (!string.IsNullOrEmpty(updateModel))
         {
-            CodeBuilder.AppendLine($"services.AddEntityCommands<{contextNamespace}.{contextClass}, {entityNamespace}.{entityClass}, {keyType}, {readModel}, {createModel}, {updateModel}>();");
-            CodeBuilder.AppendLine();
+            CodeBuilder.AppendLine($"services.AddEntityCommands<Context.{contextClass}, Entities.{entityClass}, {keyType}, Models.{readModel}, Models.{createModel}, Models.{updateModel}>();");
         }
 
         CodeBuilder.AppendLine("#endregion");
     }
 
     CodeBuilder.AppendLine("}");
-    CodeBuilder.AppendLine();
 }
-
-
 // run script
 WriteCode()

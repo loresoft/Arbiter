@@ -5,7 +5,7 @@ project:
   fileScopedNamespace: true
 database:
   provider: SqlServer
-  connectionString: Data Source=(local);Initial Catalog=TrackerCommandQuery;Integrated Security=True;TrustServerCertificate=True
+  connectionString: Data Source=(local);Initial Catalog=TrackerTest;Integrated Security=True;TrustServerCertificate=True
   schemas:
     - dbo
 data:
@@ -35,6 +35,7 @@ model:
     directory: '{Project.Directory}\Domain\{Entity.Name}\Models'
     exclude:
       entities:
+        - 'TaskExtended'
         - 'UserRole'
       properties:
         - '\.Id$'
@@ -46,12 +47,12 @@ model:
   read:
     generate: true
     name: '{Entity.Name}ReadModel'
-    baseClass: 'EntityReadModel'
+    baseClass: 'Arbiter.CommandQuery.Models.EntityCreateModel<int>'
     document: false
   create:
     generate: true
     name: '{Entity.Name}CreateModel'
-    baseClass: 'EntityCreateModel'
+    baseClass: 'Arbiter.CommandQuery.Models.EntityReadModel<int>'
     document: false
     exclude:
       entities:
@@ -59,7 +60,7 @@ model:
   update:
     generate: true
     name: '{Entity.Name}UpdateModel'
-    baseClass: EntityUpdateModel
+    baseClass: 'Arbiter.CommandQuery.Models.EntityUpdateModel'
     document: false
     exclude:
       entities:
@@ -72,7 +73,7 @@ model:
     baseClass: 'AbstractValidator<{Model.Name}>'
     namespace: '{Project.Namespace}.Domain.Validation'
     directory: '{Project.Directory}\Domain\{Entity.Name}\Validation'
-    attributes: '[RegisterSingleton<IValidator<{Model.Name}>>]'
+    attributes: '[RegisterSingleton<FluentValidation.IValidator<{Model.Name}>>]'
     document: false
 script:
   entity:
@@ -82,3 +83,7 @@ script:
       directory: '{Project.Directory}\Domain\{Entity.Name}'
       parameters:
         keyType: int
+    - templatePath: '..\..\templates\EntityMapping.csx'
+      fileName: '{Entity.Name}Mapper.cs'
+      namespace: '{Project.Namespace}.Domain.Mapping'
+      directory: '{Project.Directory}\Domain\{Entity.Name}\Mapping'

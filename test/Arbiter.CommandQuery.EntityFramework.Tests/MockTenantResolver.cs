@@ -1,6 +1,6 @@
 using System.Security.Principal;
 
-using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Constants;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests;
 
@@ -9,7 +9,7 @@ public class MockTenantResolver : ITenantResolver<int>
 {
     public ValueTask<int> GetTenantId(IPrincipal? principal)
     {
-        var id = 0; //TenantConstants.Test.Id;
+        var id = TenantConstants.Test;
         return ValueTask.FromResult(id);
     }
 }
