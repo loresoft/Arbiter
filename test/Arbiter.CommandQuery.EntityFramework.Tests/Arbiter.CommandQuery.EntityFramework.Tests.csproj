@@ -25,6 +25,7 @@
     <PackageReference Include="Injectio" Version="5.0.0-beta.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.6.3" />
     <PackageReference Include="Riok.Mapperly" Version="4.2.0" />
     <PackageReference Include="Testcontainers.MsSql" Version="4.4.0" />
