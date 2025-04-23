@@ -32,6 +32,10 @@ public string WriteCode()
         return string.Empty;
 
     CodeBuilder.Clear();
+    CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
+    CodeBuilder.AppendLine("#pragma warning disable RMG012 // Source member was not found for target member");
+    CodeBuilder.AppendLine("#pragma warning disable RMG020 // Source member is not mapped to any target member");
+    CodeBuilder.AppendLine();
 
     CodeBuilder.AppendLine("using System;");
     CodeBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
@@ -45,73 +49,52 @@ public string WriteCode()
     CodeBuilder.AppendLine($"using Models = {modelNamespace};");
 
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
     CodeBuilder.AppendLine();
 
-    GenerateClass(entityClass, readModel, createModel, updateModel);
+    TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
+
+    GenerateClass($"{readModel}To{createModel}Mapper", $"Models.{readModel}", $"Models.{createModel}");
+    GenerateClass($"{readModel}To{updateModel}Mapper", $"Models.{readModel}", $"Models.{updateModel}");
+    GenerateClass($"{updateModel}To{createModel}Mapper", $"Models.{updateModel}", $"Models.{createModel}");
+    GenerateClass($"{updateModel}To{readModel}Mapper", $"Models.{updateModel}", $"Models.{readModel}");
+
+    if (string.IsNullOrEmpty(excludeEntity))
+    {
+        GenerateClass($"{entityClass}To{readModel}Mapper", $"Entities.{entityClass}", $"Models.{readModel}");
+        GenerateClass($"{entityClass}To{updateModel}Mapper", $"Entities.{entityClass}", $"Models.{updateModel}");
+        GenerateClass($"{createModel}To{entityClass}Mapper", $"Models.{createModel}", $"Entities.{entityClass}");
+        GenerateClass($"{updateModel}To{entityClass}Mapper", $"Models.{updateModel}", $"Entities.{entityClass}");
+    }
 
     CodeBuilder.AppendLine();
 
     return CodeBuilder.ToString();
 }
 
-private void GenerateClass(string entityClass, string readModel, string createModel, string updateModel)
+private void GenerateClass(string className, string source, string destination)
 {
-    var className = System.IO.Path.GetFileNameWithoutExtension(TemplateOptions.FileName);
-    TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
-
     CodeBuilder.AppendLine("[Mapper]");
-    CodeBuilder.AppendLine("[RegisterSingleton]");
-    CodeBuilder.AppendLine($"public partial class {className}");
-    CodeBuilder.IncrementIndent();
-
-    CodeBuilder.AppendLine($": IMapper<Models.{readModel}, Models.{createModel}>");
-    CodeBuilder.AppendLine($", IMapper<Models.{readModel}, Models.{updateModel}>");
-    CodeBuilder.AppendLine($", IMapper<Models.{updateModel}, Models.{createModel}>");
-    CodeBuilder.AppendLine($", IMapper<Models.{updateModel}, Models.{readModel}>");
-
-    if (string.IsNullOrEmpty(excludeEntity))
-    {
-        CodeBuilder.AppendLine($", IMapper<Entities.{entityClass}, Models.{readModel}>");
-        CodeBuilder.AppendLine($", IMapper<Entities.{entityClass}, Models.{updateModel}>");
-        CodeBuilder.AppendLine($", IMapper<Models.{createModel}, Entities.{entityClass}>");
-        CodeBuilder.AppendLine($", IMapper<Models.{updateModel}, Entities.{entityClass}>");
-    }
-
-    CodeBuilder.DecrementIndent();
-
+    CodeBuilder.AppendLine($"[RegisterSingleton<IMapper<{source}, {destination}>>]");
+    CodeBuilder.AppendLine($"internal sealed partial class {className} : IMapper<{source}, {destination}>");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
-    WriteMapper($"Models.{readModel}", $"Models.{createModel}");
-    WriteMapper($"Models.{readModel}", $"Models.{updateModel}");
-    WriteMapper($"Models.{updateModel}", $"Models.{createModel}");
-    WriteMapper($"Models.{updateModel}", $"Models.{readModel}");
-
-    if (string.IsNullOrEmpty(excludeEntity))
-    {
-        WriteMapper($"Entities.{entityClass}", $"Models.{readModel}");
-        WriteMapper($"Entities.{entityClass}", $"Models.{updateModel}");
-        WriteMapper($"Models.{createModel}", $"Entities.{entityClass}");
-        WriteMapper($"Models.{updateModel}", $"Entities.{entityClass}");
-    }
+    WriteMapper(source, destination);
 
     CodeBuilder.DecrementIndent();
     CodeBuilder.AppendLine("}");
+    CodeBuilder.AppendLine();
 }
 
 private void WriteMapper(string source, string destination)
 {
-    CodeBuilder.AppendLine($"#region Mapper {source} -> {destination}");
     CodeBuilder.AppendLine($"[return: NotNullIfNotNull(nameof(source))]");
     CodeBuilder.AppendLine($"public partial {destination}? Map({source}? source);");
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine($"public partial void Map({source} source, {destination} destination);");
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine($"public partial IQueryable<{destination}> ProjectTo(IQueryable<{source}> source);");
-    CodeBuilder.AppendLine("#endregion");
-    CodeBuilder.AppendLine();
 }
 
 // run script

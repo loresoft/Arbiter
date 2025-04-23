@@ -1,10 +1,8 @@
-using Arbiter.CommandQuery.EntityFramework.Tests.Data;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Data;
+namespace Arbiter.CommandQuery.EntityFramework.Tests.Data;
 
 public static class DataServiceRegistration
 {

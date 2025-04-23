@@ -1,19 +1,12 @@
 using Arbiter.CommandQuery.Dispatcher;
-using Arbiter.CommandQuery.EntityFramework.Tests;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Dispatcher;
+namespace Arbiter.CommandQuery.EntityFramework.Tests.Dispatcher;
 
-public class DispatcherDataServiceTests
+public class DispatcherDataServiceTests : DatabaseTestBase
 {
-    [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]
-    public required TestApplication Application { get; init; }
-
-    public IServiceProvider ServiceProvider => Application.Services;
-
-
     [Test]
     public async Task FullTest()
     {

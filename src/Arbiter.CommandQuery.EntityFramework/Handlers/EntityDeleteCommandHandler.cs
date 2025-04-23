@@ -43,6 +43,10 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
         if (entity == null)
             return default;
 
+        // read the entity before deleting it
+        var readModel = await Read(request.Id, cancellationToken)
+            .ConfigureAwait(false);
+
         // apply update metadata
         if (entity is ITrackUpdated updateEntity)
         {
@@ -74,7 +78,7 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
             .ConfigureAwait(false);
 
         // convert deleted entity to read model
-        return Mapper.Map<TEntity, TReadModel>(entity);
+        return readModel;
     }
 
 }

@@ -1,7 +1,6 @@
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.EntityFramework.Tests;
+using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
-using Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Constants;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
@@ -12,15 +11,10 @@ using SystemTextJsonPatch.Operations;
 
 using Task = System.Threading.Tasks.Task;
 
-namespace Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Acceptance;
+namespace Arbiter.CommandQuery.EntityFramework.Tests.Acceptance;
 
-public class TaskTests
+public class TaskTests : DatabaseTestBase
 {
-    [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]
-    public required TestApplication Application { get; init; }
-
-    public IServiceProvider ServiceProvider => Application.Services;
-
     [Test]
     public async Task FullTest()
     {

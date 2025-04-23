@@ -4,8 +4,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +28,7 @@
     <PackageReference Include="Riok.Mapperly" Version="4.2.0" />
     <PackageReference Include="Testcontainers.MsSql" Version="4.4.0" />
     <PackageReference Include="TestHost.Abstracts" Version="1.2.0" />
-    <PackageReference Include="TUnit" Version="0.19.84" />
+    <PackageReference Include="TUnit" Version="0.19.86" />
   </ItemGroup>
 
   <ItemGroup>

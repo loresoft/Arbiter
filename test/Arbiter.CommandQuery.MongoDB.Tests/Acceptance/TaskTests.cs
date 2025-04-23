@@ -17,13 +17,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Arbiter.CommandQuery.MongoDB.Tests.Acceptance;
 
-public class TaskTests
+public class TaskTests : DatabaseTestBase
 {
-    [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]
-    public required TestApplication Application { get; init; }
-
-    public IServiceProvider ServiceProvider => Application.Services;
-
     [Test]
     public async Task FullTest()
     {

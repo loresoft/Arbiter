@@ -1,20 +1,14 @@
-using Arbiter.CommandQuery.EntityFramework.Tests;
+using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
-using Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Constants;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Acceptance;
+namespace Arbiter.CommandQuery.EntityFramework.Tests.Acceptance;
 
-public class PriorityTests
+public class PriorityTests : DatabaseTestBase
 {
-    [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]
-    public required TestApplication Application { get; init; }
-
-    public IServiceProvider ServiceProvider => Application.Services;
-
     [Test]
     public async Task EntityIdentifierQuery()
     {
@@ -102,7 +96,7 @@ public class PriorityTests
     }
 
     [Test]
-    public async Task EntityQueryDescriptionNOtNull()
+    public async Task EntityQueryDescriptionNotNull()
     {
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();

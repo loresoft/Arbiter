@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class TaskUpdateModel
-    : Arbiter.CommandQuery.Models.EntityUpdateModel
+    : Arbiter.CommandQuery.Models.EntityUpdateModel, IHaveTenant<int>
 {
     #region Generated Properties
     public int StatusId { get; set; }

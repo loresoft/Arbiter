@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Constants;
+namespace Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 
 public static class StatusConstants
 {

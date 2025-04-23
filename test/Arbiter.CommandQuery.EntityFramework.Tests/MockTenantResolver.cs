@@ -1,6 +1,6 @@
 using System.Security.Principal;
 
-using Arbiter.CommandQuery.EntityFrameworkCore.SqlServer.Tests.Constants;
+using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests;
 

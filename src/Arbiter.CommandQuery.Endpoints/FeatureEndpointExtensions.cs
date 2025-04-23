@@ -17,7 +17,6 @@ public static class FeatureEndpointExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddFeatureEndpoints(this IServiceCollection services)
     {
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IFeatureEndpoint, DispatcherEndpoint>());
         services.Add(ServiceDescriptor.Transient<IFeatureEndpoint, DispatcherEndpoint>());
 
         return services;

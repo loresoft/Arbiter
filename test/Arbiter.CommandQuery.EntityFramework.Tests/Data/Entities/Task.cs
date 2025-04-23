@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 public partial class Task
-    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
+    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated, IHaveTenant<int>
 {
     public Task()
     {

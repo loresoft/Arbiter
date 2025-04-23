@@ -12,13 +12,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Acceptance;
 
-public class AuditTests
-{
-    [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]
-    public required TestApplication Application { get; init; }
-
-    public IServiceProvider ServiceProvider => Application.Services;
-
+public class AuditTests : DatabaseTestBase
+{   
     [Test]
     public async Task FullTest()
     {
