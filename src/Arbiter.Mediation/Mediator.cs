@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,9 +9,10 @@ namespace Arbiter.Mediation;
 /// <summary>
 /// A default implementation of the <see cref="IMediator"/> interface.
 /// </summary>
-/// <param name="serviceProvider">Service provider to resolve handlers and behaviors</param>
+/// <param name="serviceProvider">Service provider to resolve handlers and behaviors.</param>
+/// <param name="diagnostic">An optional diagnostic service for logging activities and metrics.</param>
 /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is null</exception>
-public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
+public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnostic? diagnostic = null) : IMediator
 {
     private static readonly ConcurrentDictionary<Type, IHandler> _handlerCache = new();
 
@@ -28,32 +27,25 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var requestType = typeof(TRequest);
-        var responseType = typeof(TResponse);
-
-        using var activity = Diagnostics.ActivitySource.StartActivity(Diagnostics.Activties.SendName, ActivityKind.Internal);
-        activity?.SetTag(Diagnostics.Tags.RequestType, requestType.FullName);
-        activity?.SetTag(Diagnostics.Tags.ResponseType, responseType.FullName);
+        using var activity = diagnostic?.StartSend<TRequest, TResponse>();
 
         try
         {
-            Diagnostics.Metrics.SendCounter.Increment(1, requestType.FullName, responseType.FullName);
-
-            var handler = (IHandler<TResponse>)_handlerCache.GetOrAdd(requestType, _
+            var handler = (IHandler<TResponse>)_handlerCache.GetOrAdd(typeof(TRequest), _
                 => new RequestHandler<TRequest, TResponse>());
 
-            using var serviceScope = _serviceProvider.CreateScope();
-
-            return await handler
-                .Handle(request, serviceScope.ServiceProvider, cancellationToken)
-                .ConfigureAwait(false);
+            // create a new scope for each request to make sure handlers are disposed
+            var serviceScope = _serviceProvider.CreateAsyncScope();
+            await using (serviceScope.ConfigureAwait(false))
+            {
+                return await handler
+                    .Handle(request, serviceScope.ServiceProvider, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
-            Diagnostics.Metrics.ErrorsCounter.Increment(1, requestType.FullName, responseType.FullName);
-
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag("exception", ex.ToString());
+            diagnostic?.ActivityError(activity, ex, request);
             throw;
         }
     }
@@ -69,14 +61,10 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         var requestType = request.GetType();
         var responseType = typeof(TResponse);
 
-        using var activity = Diagnostics.ActivitySource.StartActivity(Diagnostics.Activties.SendName, ActivityKind.Internal);
-        activity?.SetTag(Diagnostics.Tags.RequestType, requestType.FullName);
-        activity?.SetTag(Diagnostics.Tags.ResponseType, responseType.FullName);
+        using var activity = diagnostic?.StartSend(request);
 
         try
         {
-            Diagnostics.Metrics.SendCounter.Increment(1, requestType.FullName, responseType.FullName);
-
             var handler = (IHandler<TResponse>)_handlerCache.GetOrAdd(requestType, _ =>
             {
                 var wrapperType = typeof(RequestHandler<,>).MakeGenericType(requestType, responseType);
@@ -86,18 +74,18 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
                 return (IHandler)wrapper;
             });
 
-            using var serviceScope = _serviceProvider.CreateScope();
-
-            return await handler
-                .Handle(request, serviceScope.ServiceProvider, cancellationToken)
-                .ConfigureAwait(false);
+            // create a new scope for each request to make sure handlers are disposed
+            var serviceScope = _serviceProvider.CreateAsyncScope();
+            await using (serviceScope.ConfigureAwait(false))
+            {
+                return await handler
+                    .Handle(request, serviceScope.ServiceProvider, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
-            Diagnostics.Metrics.ErrorsCounter.Increment(1, requestType.FullName, responseType.FullName);
-
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag("exception", ex.ToString());
+            diagnostic?.ActivityError(activity, ex, request);
             throw;
         }
     }
@@ -112,13 +100,10 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
 
         var requestType = request.GetType();
 
-        using var activity = Diagnostics.ActivitySource.StartActivity(Diagnostics.Activties.SendName, ActivityKind.Internal);
-        activity?.SetTag(Diagnostics.Tags.RequestType, requestType.FullName);
+        using var activity = diagnostic?.StartSend(request);
 
         try
         {
-            Diagnostics.Metrics.SendCounter.Increment(1, requestType.FullName);
-
             var handler = _handlerCache.GetOrAdd(requestType, _ =>
             {
                 // Get the generic response type
@@ -143,18 +128,18 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
                 return (IHandler)wrapper;
             });
 
-            using var serviceScope = _serviceProvider.CreateScope();
-
-            return await handler
-                .Handle(request, serviceScope.ServiceProvider, cancellationToken)
-                .ConfigureAwait(false);
+            // create a new scope for each request to make sure handlers are disposed
+            var serviceScope = _serviceProvider.CreateAsyncScope();
+            await using (serviceScope.ConfigureAwait(false))
+            {
+                return await handler
+                    .Handle(request, serviceScope.ServiceProvider, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
-            Diagnostics.Metrics.ErrorsCounter.Increment(1, requestType.FullName);
-
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag("exception", ex.ToString());
+            diagnostic?.ActivityError(activity, ex, request);
             throw;
         }
     }
@@ -168,33 +153,27 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
     {
         ArgumentNullException.ThrowIfNull(notification);
 
-        var notificationType = typeof(TNotification);
-
-        using var activity = Diagnostics.ActivitySource.StartActivity(Diagnostics.Activties.PublishName, ActivityKind.Internal);
-        activity?.SetTag(Diagnostics.Tags.NotificationType, notificationType.FullName);
+        using var activity = diagnostic?.StartPublish<TNotification>();
 
         try
         {
-            Diagnostics.Metrics.PublishedCounter.Increment(1, notificationType: notificationType.FullName);
+            // create a new scope to make sure handlers are disposed
+            var serviceScope = _serviceProvider.CreateAsyncScope();
+            await using (serviceScope.ConfigureAwait(false))
+            {
+                var handlers = serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>().ToArray();
+                if (handlers.Length == 0)
+                    return;
 
-            using var serviceScope = _serviceProvider.CreateScope();
-
-            var handlers = serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>().ToArray();
-            if (handlers.Length == 0)
-                return;
-
-            // start all handlers then await them
-            var tasks = handlers.Select(handler => handler.Handle(notification, cancellationToken)).ToArray();
-            for (var i = 0; i < tasks.Length; i++)
-                await tasks[i].ConfigureAwait(false);
-
+                // start all handlers then await them
+                var tasks = handlers.Select(handler => handler.Handle(notification, cancellationToken)).ToArray();
+                for (var i = 0; i < tasks.Length; i++)
+                    await tasks[i].ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
-            Diagnostics.Metrics.ErrorsCounter.Increment(1, notificationType: notificationType.FullName);
-
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag("exception", ex.ToString());
+            diagnostic?.ActivityError(activity, ex, notification);
             throw;
         }
     }

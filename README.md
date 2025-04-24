@@ -5,7 +5,8 @@ Mediator pattern and Command Query Responsibility Segregation (CQRS) implementat
 | Library                                                                     | Package                                                                                                                                                                                  | Description                                                       |
 | :-------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
 | [Arbiter.Mediation](#arbitermediation)                                      | [![Arbiter.Mediation](https://img.shields.io/nuget/v/Arbiter.Mediation.svg)](https://www.nuget.org/packages/Arbiter.Mediation/)                                                          | Lightweight and extensible implementation of the Mediator pattern |
-| [Arbiter.CommandQuery](#arbitercommandquery)                                | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)                                                 | Base package for Commands, Queries and Behaviours                 |
+| [Arbiter.Mediation.OpenTelemetry](#arbitermediationopentelemetry)           | [![Arbiter.Mediation.OpenTelemetry](https://img.shields.io/nuget/v/Arbiter.Mediation.OpenTelemetry.svg)](https://www.nuget.org/packages/Arbiter.Mediation.OpenTelemetry/)                | OpenTelemetry support for Arbiter.Mediation library               |
+| [Arbiter.CommandQuery](#arbitercommandquery)                                | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)                                                 | Base package for Commands, Queries and Behaviors                  |
 | [Arbiter.CommandQuery.EntityFramework](#arbitercommandqueryentityframework) | [![Arbiter.CommandQuery.EntityFramework](https://img.shields.io/nuget/v/Arbiter.CommandQuery.EntityFramework.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.EntityFramework/) | Entity Framework Core handlers for the base Commands and Queries  |
 | [Arbiter.CommandQuery.MongoDB](#arbitercommandquerymongodb)                 | [![Arbiter.CommandQuery.MongoDB](https://img.shields.io/nuget/v/Arbiter.CommandQuery.MongoDB.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.MongoDB/)                         | Mongo DB handlers for the base Commands and Queries               |
 | [Arbiter.CommandQuery.Endpoints](#arbitercommandqueryendpoints)             | [![Arbiter.CommandQuery.Endpoints](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Endpoints.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Endpoints/)                   | Minimal API endpoints for base Commands and Queries               |
@@ -35,7 +36,8 @@ dotnet add package Arbiter.Mediation
 - Request with response handling using `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>`
 - Notifications (Events) using `INotification` and `INotificationHandler<TNotification>`
 - Pipeline Behaviors, like middleware, using `IPipelineBehavior<TRequest, TResponse>`
-- Dependence Injection based
+- Dependence Injection based resolution of handlers and behaviors via scoped `IServiceProvider`
+- Supports OpenTelemetry tracing and meters via `Arbiter.Mediation.OpenTelemetry`
 
 ### Define Request
 
@@ -124,6 +126,40 @@ public class PingController : ControllerBase
         return Ok(response);
     }
 }
+```
+
+## Arbiter.Mediation.OpenTelemetry
+
+OpenTelemetry support for Arbiter.Mediation library
+
+### OpenTelemetry Installation
+
+```powershell
+Install-Package Arbiter.Mediation.OpenTelemetry
+```
+
+OR
+
+```shell
+dotnet add package Arbiter.Mediation.OpenTelemetry
+```
+
+### OpenTelemetry Usage
+
+Register via dependency injection
+
+```c#
+services.AddMediatorDiagnostics();
+
+services.AddOpenTelemetry()
+  .WithTracing(tracing => tracing
+    .AddMediatorInstrumentation()
+    .AddConsoleExporter()
+  )
+  .WithMetrics(metrics => metrics
+    .AddMediatorInstrumentation()
+    .AddConsoleExporter()
+  );
 ```
 
 ## Arbiter.CommandQuery
