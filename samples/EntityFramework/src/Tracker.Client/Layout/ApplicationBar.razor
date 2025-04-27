@@ -1,0 +1,92 @@
+<header class="d-print-none">
+    <nav id="navbar-main"
+         class="navbar navbar-expand-lg navbar-light navbar-default fixed-top shadow-sm">
+
+        <div class="container-fluid">
+            <a class="navbar-brand p-0"
+               href="@RouteLinks.Home()">
+                Tracker
+            </a>
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbar-main-menu"
+                    aria-controls="navbar-main-menu"
+                    aria-expanded="false"
+                    aria-label="Toggle Navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse"
+                 id="navbar-main-menu">
+
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           title="Tasks"
+                           href="@RouteLinks.Tasks.List()">
+                            Tasks
+                        </a>
+                    </li>
+                    <!-- Administrative Menu -->
+                    <li class="nav-item dropdown">
+                        <a id="navbar-dropdown-administrative"
+                           class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            Administrative
+                        </a>
+                        <ul class="dropdown-menu"
+                            aria-labelledby="navbar-dropdown-administrative">
+                            <li>
+                                <a id="navbar-item-administrative-priorities-link"
+                                   class="dropdown-item"
+                                   title="Priorities"
+                                   href="/priorities">
+                                    Priorities
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-administrative-statuses-link"
+                                   class="dropdown-item"
+                                   title="Statuses"
+                                   href="/statuses">
+                                    Statuses
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-administrative-tenants-link"
+                                   class="dropdown-item"
+                                   title="Tenants"
+                                   href="/tenants">
+                                    Tenants
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-administrative-users-link"
+                                   class="dropdown-item"
+                                   title="Users"
+                                   href="/users">
+                                    Users
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav me-4">
+                    <ProfileMenu />
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+</header>
+
+@code {
+
+}
+

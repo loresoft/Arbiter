@@ -1,0 +1,108 @@
+@page "/users"
+
+@inherits ListPageBase<UserReadModel, UserReadModel>
+
+<PageTitle>Users</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb d-print-none">
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Home()">Home</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Users
+            </li>
+        </ol>
+    </nav>
+    <div class="card shadow">
+        <div class="card-header d-flex align-items-center">
+            <h5 class="me-auto">
+                Users
+            </h5>
+            <DataGridToolbar TReadModel="UserReadModel"
+                             DataGrid="DataGrid">
+                <ActionTemplate>
+                    <a href="@RouteLinks.Users.Edit(0)"
+                       title="Add User"
+                       class="btn btn-primary mx-1">
+                        Add
+                    </a>
+                </ActionTemplate>
+            </DataGridToolbar>
+        </div>
+
+        <div class="card-body">
+            <DataGrid TItem="UserReadModel"
+                      DataProvider="LoadData"
+                      class="table"
+                      Filterable="true"
+                      Sortable="true"
+                      @ref="DataGrid">
+                <DataColumns>
+                    <DataColumn Property="x => x.DisplayName"
+                                Title="Display Name"
+                                SortIndex="0">
+                        <Template Context="item">
+                            <a href="@RouteLinks.Users.Edit(item.Id)"
+                               class="d-block"
+                               title="Edit User @item.DisplayName">
+                                @item.DisplayName
+                            </a>
+                        </Template>
+                    </DataColumn>
+
+                    <DataColumn Property="x => x.EmailAddress"
+                                Title="Email Address" />
+
+                    <DataColumn Property="x => x.IsDeleted"
+                                Title="Deleted"
+                                Width="180px" />
+
+                    <DataColumn Property="x => x.Updated"
+                                Title="Updated"
+                                Width="180px"
+                                Format="g" />
+
+                    <DataColumn Property="x => x.Id"
+                                Title="Action"
+                                Filterable="false"
+                                Width="100px">
+                        <Template Context="item">
+                            <a href="@RouteLinks.Users.Edit(item.Id)"
+                               class="btn btn-sm"
+                               title="Edit User @item.DisplayName">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm"
+                                    title="Delete User @item.DisplayName"
+                                    @onclick="() => HandleDelete(item)">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </Template>
+                    </DataColumn>
+                </DataColumns>
+                <DataPagination Context="grid">
+                    <DataPager PageSize="10" />
+                    <DataSizer />
+                    <div>@grid.Pager.StartItem - @grid.Pager.EndItem of @grid.Pager.Total</div>
+                </DataPagination>
+            </DataGrid>
+        </div>
+
+        <div class="card-footer">
+            <a class="btn btn-sm btn-primary"
+               title="Add User"
+               href="@RouteLinks.Users.Edit(0)">
+                Add User
+            </a>
+        </div>
+    </div>
+</div>
+
+@code
+{
+
+}
+

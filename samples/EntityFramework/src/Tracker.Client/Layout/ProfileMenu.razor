@@ -1,0 +1,57 @@
+@using Microsoft.Extensions.Options
+@using Tracker.Options
+
+<!-- User Menu -->
+<AuthorizeView Context="user">
+    <Authorized>
+        <li class="nav-item dropdown">
+            <a id="navbar-dropdown-user"
+               href="#"
+               class="nav-link dropdown-toggle"
+               data-bs-toggle="dropdown"
+               aria-haspopup="true"
+               aria-expanded="false">
+                <i class="fas fa-user-circle fa-lg"></i>
+                <span id="navbar-identity-username">@user.User.GetName()</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end"
+                 aria-labelledby="navbar-dropdown-user">
+                <a id="navbar-identity-logout-link"
+                   class="dropdown-item"
+                   href="@AuthenticationEndpointOptions.Value.SignOutUrl(NavigationManager.Uri)">
+                    <i class="fas fa-power-off"></i> Logout
+                </a>
+            </div>
+        </li>
+    </Authorized>
+    <NotAuthorized>
+        <li class="nav-item">
+            <a id="navbar-identity-login-link"
+               class="nav-link"
+               href="@AuthenticationEndpointOptions.Value.SignInUrl(NavigationManager.Uri)">
+                <i class="fas fa-user-circle fa-lg"></i>
+                Sign In
+            </a>
+        </li>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Inject]
+    public required NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public required IOptions<AuthenticationOptions> AuthenticationEndpointOptions { get; set; }
+
+    protected void NavigateSignIn()
+    {
+        var url = AuthenticationEndpointOptions.Value.SignInUrl(NavigationManager.Uri);
+        NavigationManager.NavigateTo(url, forceLoad: true);
+    }
+
+    protected void NavigateSignOut()
+    {
+        var url = AuthenticationEndpointOptions.Value.SignOutUrl(NavigationManager.Uri);
+        NavigationManager.NavigateTo(url, forceLoad: true);
+    }
+}

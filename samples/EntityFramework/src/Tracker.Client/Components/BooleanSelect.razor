@@ -1,0 +1,43 @@
+@using System.Linq.Expressions
+
+@typeparam TValue
+
+<InputSelect TValue="TValue"
+             DisplayName="@DisplayName"
+             @attributes="AdditionalAttributes"
+             @bind-Value:get="Value"
+             @bind-Value:set="OnValueChanged">
+    <option value="">- select -</option>
+    <option value="true">@TrueLabel</option>
+    <option value="false">@FalseLabel</option>
+</InputSelect>
+
+@code {
+    [Parameter]
+    public string TrueLabel { get; set; } = "True";
+
+    [Parameter]
+    public string FalseLabel { get; set; } = "False";
+
+    [Parameter]
+    public string? DisplayName { get; set; }
+
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<TValue>>? ValueExpression { get; set; }
+
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task OnValueChanged(TValue? value)
+    {
+        if (ValueChanged.HasDelegate)
+            await this.ValueChanged.InvokeAsync(value);
+    }
+}

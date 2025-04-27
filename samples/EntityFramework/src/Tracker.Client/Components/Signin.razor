@@ -1,0 +1,13 @@
+@using Microsoft.Extensions.Options
+@using Tracker.Options
+
+@inject NavigationManager NavigationManager
+@inject IOptions<AuthenticationOptions> AuthenticationEndpointOptions
+
+@code {
+    protected override void OnInitialized()
+    {
+        var signinUrl = AuthenticationEndpointOptions.Value.SignInUrl(NavigationManager.Uri);
+        NavigationManager.NavigateTo(signinUrl, forceLoad: true);
+    }
+}

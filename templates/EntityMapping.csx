@@ -31,6 +31,9 @@ public string WriteCode()
     if (string.IsNullOrEmpty(updateModel))
         return string.Empty;
 
+    TemplateOptions.Parameters.TryGetValue("excludeDomain", out var excludeDomain);
+    TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
+
     CodeBuilder.Clear();
     CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
     CodeBuilder.AppendLine("#pragma warning disable RMG012 // Source member was not found for target member");
@@ -41,23 +44,30 @@ public string WriteCode()
     CodeBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
     CodeBuilder.AppendLine();
 
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.Definitions;");
+    CodeBuilder.AppendLine();
+
     CodeBuilder.AppendLine("using Injectio.Attributes;");
     CodeBuilder.AppendLine("using Riok.Mapperly.Abstractions;");
     CodeBuilder.AppendLine();
 
-    CodeBuilder.AppendLine($"using Entities = {entityNamespace};");
+    if (string.IsNullOrEmpty(excludeEntity))
+    {
+        CodeBuilder.AppendLine($"using Entities = {entityNamespace};");
+    }
     CodeBuilder.AppendLine($"using Models = {modelNamespace};");
 
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
     CodeBuilder.AppendLine();
 
-    TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
-
-    GenerateClass($"{readModel}To{createModel}Mapper", $"Models.{readModel}", $"Models.{createModel}");
-    GenerateClass($"{readModel}To{updateModel}Mapper", $"Models.{readModel}", $"Models.{updateModel}");
-    GenerateClass($"{updateModel}To{createModel}Mapper", $"Models.{updateModel}", $"Models.{createModel}");
-    GenerateClass($"{updateModel}To{readModel}Mapper", $"Models.{updateModel}", $"Models.{readModel}");
+    if (string.IsNullOrEmpty(excludeDomain))
+    {
+        GenerateClass($"{readModel}To{createModel}Mapper", $"Models.{readModel}", $"Models.{createModel}");
+        GenerateClass($"{readModel}To{updateModel}Mapper", $"Models.{readModel}", $"Models.{updateModel}");
+        GenerateClass($"{updateModel}To{createModel}Mapper", $"Models.{updateModel}", $"Models.{createModel}");
+        GenerateClass($"{updateModel}To{readModel}Mapper", $"Models.{updateModel}", $"Models.{readModel}");
+    }
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
@@ -66,8 +76,6 @@ public string WriteCode()
         GenerateClass($"{createModel}To{entityClass}Mapper", $"Models.{createModel}", $"Entities.{entityClass}");
         GenerateClass($"{updateModel}To{entityClass}Mapper", $"Models.{updateModel}", $"Entities.{entityClass}");
     }
-
-    CodeBuilder.AppendLine();
 
     return CodeBuilder.ToString();
 }

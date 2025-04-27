@@ -1,0 +1,21 @@
+@using Microsoft.Extensions.Options
+@using Tracker.Options
+
+@inject IOptions<EnvironmentOptions> EnvironmentOptions
+
+<footer class="border-top footer text-muted d-print-none">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md text-center">
+                <span class="mx-1">@EnvironmentOptions.Value.EnvironmentName</span>
+                <span class="mx-1">@RendererInfo.Name</span>
+            </div>
+            <div class="col-md-6 text-center">
+                Copyright © @DateTime.Now.Year. All Rights Reserved.
+            </div>
+            <div class="col-md text-center" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <span title="@ThisAssembly.InformationalVersion">Version @ThisAssembly.FileVersion</span>
+            </div>
+        </div>
+    </div>
+</footer>

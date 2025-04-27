@@ -1,0 +1,211 @@
+@page "/tasks/{id:int}"
+
+@inherits EditPageBase<TaskStore, TaskReadModel, TaskUpdateModel>
+
+<PageTitle>@PageTitle()</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Home()">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Tasks.List()">Tasks</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                @PageTitle()
+            </li>
+        </ol>
+    </nav>
+</div>
+<div class="container">
+    <LoadingContainer IsLoading="EditContext == null || Store.Model == null" Title="@ModelTypeName">
+        <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
+            <FluentValidationValidator />
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <h5>
+                        @PageTitle()
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <ValidationSummary />
+                        </div>
+                    </div>
+
+                    <!-- Edit Form -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="Title" class="form-label">
+                                    Title: <span class="text-danger" title="Required Field">*</span>
+                                </label>
+                                <InputText @bind-Value="Store.Model!.Title"
+                                           DisplayName="Title"
+                                           id="Title"
+                                           name="Title"
+                                           class="form-control"
+                                           placeholder="Title" />
+                                <ValidationMessage For="@(() => Store.Model.Title)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="TenantId" class="form-label">
+                                    Tenant: <span class="text-danger" title="Required Field">*</span>
+                                </label>
+
+                                <EntitySelect TModel="TenantReadModel"
+                                              TValue="int"
+                                              @bind-Value="Store.Model!.TenantId"
+                                              DisplayName="Tenant"
+                                              id="TenantId"
+                                              name="TenantId"
+                                              class="form-select"
+                                              placeholder="Tenant" />
+                                <ValidationMessage For="@(() => Store.Model.TenantId)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="StatusId" class="form-label">
+                                    Status: <span class="text-danger" title="Required Field">*</span>
+                                </label>
+                                <EntitySelect TModel="StatusReadModel"
+                                              TValue="int"
+                                              @bind-Value="Store.Model!.StatusId"
+                                              DisplayName="Status"
+                                              id="StatusId"
+                                              name="StatusId"
+                                              class="form-select"
+                                              placeholder="Status" />
+                                <ValidationMessage For="@(() => Store.Model.StatusId)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="PriorityId" class="form-label">
+                                    Priority:
+                                </label>
+                                <EntitySelect TModel="PriorityReadModel"
+                                              TValue="int?"
+                                              @bind-Value="Store.Model!.PriorityId"
+                                              DisplayName="Priority"
+                                              id="PriorityId"
+                                              name="PriorityId"
+                                              class="form-select"
+                                              placeholder="Priority" />
+                                <ValidationMessage For="@(() => Store.Model.PriorityId)" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="AssignedId" class="form-label">
+                                    Assigned:
+                                </label>
+                                <EntitySelect TModel="UserReadModel"
+                                              TValue="int?"
+                                              @bind-Value="Store.Model!.AssignedId"
+                                              DisplayName="Assigned"
+                                              id="AssignedId"
+                                              name="AssignedId"
+                                              class="form-select"
+                                              placeholder="Assigned" />
+                                <ValidationMessage For="@(() => Store.Model.AssignedId)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="StartDate" class="form-label">
+                                    Start Date:
+                                </label>
+                                <InputDate @bind-Value="Store.Model!.StartDate"
+                                           DisplayName="Start Date"
+                                           id="StartDate"
+                                           name="StartDate"
+                                           class="form-control"
+                                           placeholder="Start Date" />
+                                <ValidationMessage For="@(() => Store.Model.StartDate)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="DueDate" class="form-label">
+                                    Due Date:
+                                </label>
+                                <InputDate @bind-Value="Store.Model!.DueDate"
+                                           DisplayName="Due Date"
+                                           id="DueDate"
+                                           name="DueDate"
+                                           class="form-control"
+                                           placeholder="Due Date" />
+                                <ValidationMessage For="@(() => Store.Model.DueDate)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="CompleteDate" class="form-label">
+                                    Complete Date:
+                                </label>
+                                <InputDate @bind-Value="Store.Model!.CompleteDate"
+                                           DisplayName="Complete Date"
+                                           id="CompleteDate"
+                                           name="CompleteDate"
+                                           class="form-control"
+                                           placeholder="Complete Date" />
+                                <ValidationMessage For="@(() => Store.Model.CompleteDate)" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Description" class="form-label">
+                                    Description:
+                                </label>
+                                <InputTextArea @bind-Value="Store.Model!.Description"
+                                               DisplayName="Description"
+                                               rows="10"
+                                               id="Description"
+                                               name="Description"
+                                               class="form-control"
+                                               placeholder="Description" />
+                                <ValidationMessage For="@(() => Store.Model.Description)" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col">
+                            <BusyButton id="save-button"
+                                        type="submit"
+                                        Busy="Store.IsBusy"
+                                        Disabled="Store.IsClean"
+                                        class="btn btn-primary">
+                                Save
+                            </BusyButton>
+                        </div>
+                        <div class="col">
+                            <Conditional Condition="!IsCreate">
+                                <button id="delete-button"
+                                        type="button"
+                                        @onclick="HandleDelete"
+                                        disabled="@Store.IsBusy"
+                                        class="btn btn-danger float-end">
+                                    Delete
+                                </button>
+                            </Conditional>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </LoadingContainer>
+
+</div>
+
+@code
+{
+    protected override string Redirect => RouteLinks.Tasks.List();
+
+    protected override string ModelTypeName => "Task";
+
+    protected override string? ModelInstanceName => Store?.Original?.Title;
+}

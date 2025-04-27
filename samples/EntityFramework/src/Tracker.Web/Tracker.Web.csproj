@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Mediation.OpenTelemetry\Arbiter.Mediation.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\Tracker.Client\Tracker.Client.csproj" />
+    <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />
+    <ProjectReference Include="..\Tracker.Shared\Tracker.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.2.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.4" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
+  </ItemGroup>
+
+</Project>

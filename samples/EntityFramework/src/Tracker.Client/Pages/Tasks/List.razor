@@ -1,0 +1,122 @@
+@page "/tasks"
+
+@inherits ListPageBase<TaskReadModel, TaskReadModel>
+
+<PageTitle>Tasks</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb d-print-none">
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Home()">Home</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Tasks
+            </li>
+        </ol>
+    </nav>
+    <div class="card shadow">
+        <div class="card-header d-flex align-items-center">
+            <h5 class="me-auto">
+                Tasks
+            </h5>
+            <DataGridToolbar TReadModel="TaskReadModel"
+                             DataGrid="DataGrid">
+                <ActionTemplate>
+                    <a href="@RouteLinks.Tasks.Edit(0)"
+                       title="Add Task"
+                       class="btn btn-primary mx-1">
+                        Add
+                    </a>
+                </ActionTemplate>
+            </DataGridToolbar>
+        </div>
+
+        <div class="card-body">
+            <DataGrid TItem="TaskReadModel"
+                      DataProvider="LoadData"
+                      class="table"
+                      Filterable="true"
+                      Sortable="true"
+                      @ref="DataGrid">
+                <DataColumns>
+                    <DataColumn Property="x => x.Title"
+                                Title="Title"
+                                Width="280px"
+                                SortIndex="0">
+                        <Template Context="item">
+                            <a href="@RouteLinks.Tasks.Edit(item.Id)"
+                               class="d-block"
+                               title="Edit Task @item.Title">
+                                @item.Title
+                            </a>
+                        </Template>
+                    </DataColumn>
+
+                    <DataColumn Property="x => x.TenantName"
+                                Title="Tenant"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.StatusName"
+                                Title="Status"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.PriorityName"
+                                Title="Priority"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.Description"
+                                Title="Description" />
+
+                    <DataColumn Property="x => x.DueDate"
+                                Title="Due Date"
+                                Width="180px"
+                                Format="g" />
+
+                    <DataColumn Property="x => x.Updated"
+                                Title="Updated"
+                                Width="180px"
+                                Format="g" />
+
+                    <DataColumn Property="x => x.Id"
+                                Title="Action"
+                                Filterable="false"
+                                Width="100px">
+                        <Template Context="item">
+                            <a href="@RouteLinks.Tasks.Edit(item.Id)"
+                               class="btn btn-sm"
+                               title="Edit Task @item.Title">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm"
+                                    title="Delete Task @item.Title"
+                                    @onclick="() => HandleDelete(item)">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </Template>
+                    </DataColumn>
+                </DataColumns>
+                <DataPagination Context="grid">
+                    <DataPager PageSize="10" />
+                    <DataSizer />
+                    <div>@grid.Pager.StartItem - @grid.Pager.EndItem of @grid.Pager.Total</div>
+                </DataPagination>
+            </DataGrid>
+        </div>
+
+        <div class="card-footer">
+            <a class="btn btn-sm btn-primary"
+               title="Add Task"
+               href="@RouteLinks.Tasks.Edit(0)">
+                Add Task
+            </a>
+        </div>
+    </div>
+</div>
+
+@code
+{
+
+}
+

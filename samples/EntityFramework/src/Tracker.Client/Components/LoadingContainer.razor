@@ -1,0 +1,41 @@
+@if (IsLoading)
+{
+    if (LoadingTemplate != null)
+    {
+        @LoadingTemplate
+    }
+    else if(!string.IsNullOrEmpty(Title))
+    {
+        <div class="card shadow mb-5">
+            <div class="card-header">
+                @Title - Loading ...
+            </div>
+            <div class="card-body">
+                <Loading />
+            </div>
+        </div>
+    }
+    else
+    {
+        <Loading />
+    }
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public required RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? LoadingTemplate { get; set; }
+
+}

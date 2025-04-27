@@ -32,6 +32,10 @@ public string WriteCode()
 
     CodeBuilder.Clear();
 
+    CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
+    CodeBuilder.AppendLine();
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.EntityFramework;");
+    CodeBuilder.AppendLine();
     CodeBuilder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
     CodeBuilder.AppendLine();
 
@@ -41,7 +45,6 @@ public string WriteCode()
     CodeBuilder.AppendLine($"using Models = {modelNamespace};");
 
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
     CodeBuilder.AppendLine();
 

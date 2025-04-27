@@ -17,12 +17,12 @@ public class MediatorDiagnostic : IMediatorDiagnostic
     /// <summary>
     /// The name of the activity for sending requests.
     /// </summary>
-    public const string SendActivity = "Mediator.Send";
+    public const string SendActivity = "Arbiter.Mediator.Send";
 
     /// <summary>
     /// The name of the activity for publishing notifications.
     /// </summary>
-    public const string PublishActivity = "Mediator.Publish";
+    public const string PublishActivity = "Arbiter.Mediator.Publish";
 
     /// <summary>
     /// The name of the meter for the mediator.

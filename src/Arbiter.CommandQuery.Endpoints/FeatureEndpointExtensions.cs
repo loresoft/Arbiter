@@ -29,7 +29,7 @@ public static class FeatureEndpointExtensions
     /// <param name="prefix">Optional route prefix.  Default is "/api"</param>
     /// <param name="serviceKey">Optional service key to get list of <see cref="IFeatureEndpoint"/> instances from the service provider</param>
     /// <returns>A <see cref="IEndpointConventionBuilder"/> that can be used to further customize the endpoint.</returns>
-    public static IEndpointConventionBuilder MapFeatureFeatureEndpoints(
+    public static IEndpointConventionBuilder MapFeatureEndpoints(
         this IEndpointRouteBuilder endpoints,
         string prefix = "/api",
         string? serviceKey = null)

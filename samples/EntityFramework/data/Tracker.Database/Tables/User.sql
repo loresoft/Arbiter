@@ -1,0 +1,19 @@
+CREATE TABLE [dbo].[User]
+(
+    [Id] INT IDENTITY (1000, 1) NOT NULL,
+
+    [DisplayName] NVARCHAR(256) NOT NULL,
+    [EmailAddress] NVARCHAR(256) NOT NULL,
+
+    [IsDeleted] BIT NOT NULL CONSTRAINT [DF_User_IsDeleted] DEFAULT (0),
+
+    [Created] DATETIMEOFFSET NOT NULL CONSTRAINT [DF_User_Created] DEFAULT (SYSUTCDATETIME()),
+    [CreatedBy] NVARCHAR(100) NULL,
+    [Updated] DATETIMEOFFSET NOT NULL CONSTRAINT [DF_User_Updated] DEFAULT (SYSUTCDATETIME()),
+    [UpdatedBy] NVARCHAR(100) NULL,
+    [RowVersion] ROWVERSION NOT NULL,
+
+    CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED ([Id] ASC),
+
+    INDEX [UX_User_EmailAddress] UNIQUE NONCLUSTERED ([EmailAddress] ASC),
+);

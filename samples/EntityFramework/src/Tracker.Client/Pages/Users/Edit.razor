@@ -1,0 +1,112 @@
+@page "/users/{id:int}"
+
+@inherits EditPageBase<UserStore, UserReadModel, UserUpdateModel>
+
+<PageTitle>@PageTitle()</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Home()">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Users.List()">Users</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                @PageTitle()
+            </li>
+        </ol>
+    </nav>
+</div>
+<div class="container">
+    <LoadingContainer IsLoading="EditContext == null || Store.Model == null" Title="@ModelTypeName">
+        <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
+            <FluentValidationValidator />
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <h5>
+                        @PageTitle()
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <ValidationSummary />
+                        </div>
+                    </div>
+
+                    <!-- Edit Form -->
+                    <div class="row">
+                        <div class="col-6">
+
+                            <div class="mb-3">
+                                <label for="DisplayName" class="form-label">
+                                    Display Name: <span class="text-danger" title="Required Field">*</span>
+                                </label>
+                                <InputText @bind-Value="Store.Model!.DisplayName"
+                                           DisplayName="Display Name"
+                                           id="DisplayName"
+                                           name="DisplayName"
+                                           class="form-control"
+                                           placeholder="Display Name" />
+                                <ValidationMessage For="@(() => Store.Model.DisplayName)" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="EmailAddress" class="form-label">
+                                    Email Address: <span class="text-danger" title="Required Field">*</span>
+                                </label>
+                                <InputText @bind-Value="Store.Model!.EmailAddress"
+                                           DisplayName="Email Address"
+                                           id="EmailAddress"
+                                           name="EmailAddress"
+                                           type="email"
+                                           class="form-control"
+                                           placeholder="Email Address" />
+                                <ValidationMessage For="@(() => Store.Model.EmailAddress)" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col">
+                            <BusyButton id="save-button"
+                                        type="submit"
+                                        Busy="Store.IsBusy"
+                                        Disabled="Store.IsClean"
+                                        class="btn btn-primary">
+                                Save
+                            </BusyButton>
+                        </div>
+                        <div class="col">
+                            <Conditional Condition="!IsCreate">
+                                <button id="delete-button"
+                                        type="button"
+                                        @onclick="HandleDelete"
+                                        disabled="@Store.IsBusy"
+                                        class="btn btn-danger float-end">
+                                    Delete
+                                </button>
+                            </Conditional>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </LoadingContainer>
+
+</div>
+
+@code
+{
+    protected override string Redirect => RouteLinks.Users.List();
+
+    protected override string ModelTypeName => "User";
+
+    protected override string? ModelInstanceName => Store?.Original?.DisplayName;
+}

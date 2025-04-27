@@ -1,0 +1,89 @@
+@typeparam TReadModel where TReadModel : class
+
+@using System.Globalization
+
+<div class="mx-1">
+    <input type="search"
+           class="form-control"
+           placeholder="Search"
+           @bind-value="SearchText.Value"
+           @bind-value:event="oninput" />
+</div>
+
+@if (FilterTemplate != null)
+{
+    @FilterTemplate(DataGrid)
+}
+
+<button id="button-refresh"
+        title="Refresh Data"
+        class="btn btn-outline-secondary mx-1"
+        type="button"
+        @onclick="HandelRefresh">
+    <i class="bi bi-arrow-clockwise"></i>
+</button>
+
+<button id="button-filter"
+        title="Filter Data"
+        class="btn btn-outline-secondary mx-1"
+        type="button"
+        @onclick="ToggleFilter">
+    <i class="bi bi-funnel"></i>
+</button>
+
+@if (ActionTemplate != null)
+{
+    @ActionTemplate(DataGrid)
+}
+
+@code {
+    public DataGridToolbar()
+    {
+        SearchText = new DebounceValue<string>(HandleSearch);
+    }
+
+
+    [Inject]
+    public required DataService DataService { get; set; }
+
+    [Inject]
+    public required NotificationService Notification { get; set; }
+
+    [Inject]
+    public required IJSRuntime JavaScript { get; set; }
+
+    [Parameter]
+    public DataGrid<TReadModel>? DataGrid { get; set; }
+
+    [Parameter]
+    public RenderFragment<DataGrid<TReadModel>?>? FilterTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<DataGrid<TReadModel>?>? ActionTemplate { get; set; }
+
+    protected DebounceValue<string> SearchText { get; }
+
+    protected void HandleSearch(string? searchText)
+    {
+        if (DataGrid == null)
+            return;
+
+        InvokeAsync(async () => await DataGrid.QuickSearch(searchText));
+    }
+
+    protected async Task HandelRefresh()
+    {
+        if (DataGrid == null)
+            return;
+
+        await DataGrid.RefreshAsync();
+    }
+
+    protected void ToggleFilter()
+    {
+        if (DataGrid == null)
+            return;
+
+        DataGrid.ShowFilter();
+    }
+}
