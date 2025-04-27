@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.4" />
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0.2" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.4" />
     <PackageReference Include="SystemTextJsonPatch" Version="4.2.0" />
   </ItemGroup>
