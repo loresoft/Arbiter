@@ -44,6 +44,7 @@ public static class Program
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
+                    .AddSqlClientInstrumentation()
                     .AddMediatorInstrumentation()
             )
             .WithTracing(tracing =>
@@ -51,6 +52,7 @@ public static class Program
                     .AddSource(builder.Environment.ApplicationName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
+                    .AddSqlClientInstrumentation()
                     .AddMediatorInstrumentation()
             );
 

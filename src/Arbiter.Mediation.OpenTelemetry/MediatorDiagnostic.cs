@@ -144,6 +144,7 @@ public class MediatorDiagnostic : IMediatorDiagnostic
         var tagList = new TagList
         {
             { RequestTypeTag, requestType },
+            { CallerTag, memberName },
         };
 
         _errorsCounter.Add(1, tagList);
