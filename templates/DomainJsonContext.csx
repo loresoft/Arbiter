@@ -5,7 +5,7 @@ public string WriteCode()
     CodeBuilder.AppendLine("using System;");
     CodeBuilder.AppendLine("using System.Collections.Generic;");
     CodeBuilder.AppendLine("using System.Text.Json.Serialization;");
-    CodeBuilder.AppendLine("using MediatR.CommandQuery.Queries;");
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.Queries;");
 
     var names = EntityContext.Entities
         .SelectMany(e => e.Models.Select(m => m.ModelNamespace))

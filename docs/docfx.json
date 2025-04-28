@@ -1,0 +1,52 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**"
+          ],
+          "src": "../src"
+        }
+      ],
+      "dest": "reference",
+      "properties": {
+        "TargetFramework": "net9.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      "**/*.{md,yml}"
+    ],
+    "resource": [
+      "**/assets/**"
+    ],
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
+    "globalMetadata": {
+      "_appTitle": "Arbiter",
+      "_appName": "Arbiter",
+      "_appFooter": "Copyright &copy; 2025 LoreSoft",
+      "_appLogoPath": "assets/logo.png",
+      "_appFaviconPath": "assets/logo.png",
+      "_enableSearch": true
+    },
+    "sitemap": {
+      "baseUrl": "https://loresoft.com/Arbiter",
+      "priority": 0.5,
+      "changefreq": "daily"
+    },
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ]
+  }
+}

@@ -30,8 +30,8 @@ public string WriteCode()
     CodeBuilder.Clear();
 
     CodeBuilder.AppendLine("using System;");
-    CodeBuilder.AppendLine("using MediatR;");
-    CodeBuilder.AppendLine("using MediatR.CommandQuery.Endpoints;");
+    CodeBuilder.AppendLine("using Arbiter;");
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.Endpoints;");
 
     if (!string.IsNullOrEmpty(modelNamespace))
         CodeBuilder.AppendLine($"using {modelNamespace};");
