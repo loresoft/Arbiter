@@ -7,21 +7,25 @@ using Arbiter.CommandQuery.Queries;
 namespace Arbiter.CommandQuery.Dispatcher;
 
 /// <summary>
-/// A data service for dispatching common data requests to a data store.
+/// Provides a data service for dispatching common data requests to a data store.
 /// </summary>
+/// <remarks>
+/// This service acts as an abstraction for sending queries and commands to a dispatcher, enabling operations
+/// such as retrieving, creating, updating, and deleting entities in a consistent manner.
+/// </remarks>
 public class DispatcherDataService : IDispatcherDataService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DispatcherDataService"/> class.
     /// </summary>
-    /// <param name="dispatcher">The dispatcher used to send requests</param>
+    /// <param name="dispatcher">The dispatcher used to send requests.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="dispatcher"/> is <see langword="null"/>.</exception>
     public DispatcherDataService(IDispatcher dispatcher)
     {
         ArgumentNullException.ThrowIfNull(dispatcher);
 
         Dispatcher = dispatcher;
     }
-
 
     /// <inheritdoc/>
     public IDispatcher Dispatcher { get; }
@@ -122,7 +126,6 @@ public class DispatcherDataService : IDispatcherDataService
         return result ?? new EntityPagedResult<TModel>();
     }
 
-
     /// <inheritdoc/>
     public async ValueTask<IEnumerable<TModel>> Search<TModel>(
         string searchText,
@@ -147,7 +150,6 @@ public class DispatcherDataService : IDispatcherDataService
 
         return result ?? [];
     }
-
 
     /// <inheritdoc/>
     public async ValueTask<TReadModel?> Save<TKey, TUpdateModel, TReadModel>(
@@ -212,7 +214,6 @@ public class DispatcherDataService : IDispatcherDataService
             .Send<EntityDeleteCommand<TKey, TReadModel>, TReadModel>(command, cancellationToken)
             .ConfigureAwait(false);
     }
-
 
     /// <inheritdoc/>
     public virtual ValueTask<ClaimsPrincipal?> GetUser(CancellationToken cancellationToken = default)

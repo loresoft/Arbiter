@@ -47,7 +47,7 @@ public abstract record EntityModelCommand<TEntityModel, TReadModel>
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="model">The model containing the data for the operation.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
     protected EntityModelCommand(ClaimsPrincipal? principal, [NotNull] TEntityModel model)
         : base(principal)
     {

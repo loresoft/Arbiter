@@ -43,7 +43,7 @@ public record EntityCreateCommand<TCreateModel, TReadModel>
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user for whom this command is executed.</param>
     /// <param name="model">The create model containing the data for the new entity.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
     public EntityCreateCommand(ClaimsPrincipal? principal, [NotNull] TCreateModel model)
         : base(principal, model)
     {
@@ -52,13 +52,7 @@ public record EntityCreateCommand<TCreateModel, TReadModel>
     /// <summary>
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.
     /// </summary>
-    /// <returns>The cache tag for the <typeparamref name="TReadModel"/>, or <c>null</c> if no tag is available.</returns>
-    /// <example>
-    /// The following example demonstrates how to retrieve the cache tag:
-    /// <code>
-    /// var cacheTag = command.GetCacheTag();
-    /// </code>
-    /// </example>
+    /// <returns>The cache tag for the <typeparamref name="TReadModel"/>, or <see langword="null"/> if no tag is available.</returns>
     string? ICacheExpire.GetCacheTag()
         => CacheTagger.GetTag<TReadModel>();
 }

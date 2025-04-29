@@ -72,7 +72,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     /// The user name of the individual who activated this command.
     /// </value>
     /// <remarks>
-    /// If the <see cref="Principal"/> is <c>null</c>, the value defaults to "system".
+    /// If the <see cref="Principal"/> is <see langword="null"/>, the value defaults to "system".
     /// </remarks>
     /// <see cref="ClaimsIdentity.Name"/>
     public string? ActivatedBy { get; }

@@ -36,7 +36,7 @@ public class EntitySort
     /// Gets or sets the direction of the sort (e.g., "asc" for ascending or "desc" for descending).
     /// </summary>
     /// <value>
-    /// The direction of the sort. If <c>null</c>, the default sort direction is used.
+    /// The direction of the sort. If <see langword="null"/>, the default sort direction is used.
     /// </value>
     [JsonPropertyName("direction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -47,7 +47,7 @@ public class EntitySort
     /// </summary>
     /// <param name="sortString">The sort expression in the format "PropertyName:Direction".</param>
     /// <returns>
-    /// An instance of <see cref="EntitySort"/> for the parsed sort expression, or <c>null</c> if the input is invalid.
+    /// An instance of <see cref="EntitySort"/> for the parsed sort expression, or <see langword="null"/> if the input is invalid.
     /// </returns>
     /// <example>
     /// The following example demonstrates how to parse a sort string:

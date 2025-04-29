@@ -40,7 +40,7 @@ public abstract record EntityIdentifiersCommand<TKey, TResponse>
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="ids">The collection of identifiers for this command.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
     protected EntityIdentifiersCommand(ClaimsPrincipal? principal, [NotNull] IReadOnlyCollection<TKey> ids)
         : base(principal)
     {

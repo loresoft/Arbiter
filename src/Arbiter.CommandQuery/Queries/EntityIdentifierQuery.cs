@@ -34,7 +34,7 @@ public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TRead
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the query.</param>
     /// <param name="id">The identifier of the entity to retrieve.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
     public EntityIdentifierQuery(ClaimsPrincipal? principal, [NotNull] TKey id)
         : base(principal)
     {
@@ -66,7 +66,7 @@ public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TRead
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.
     /// </summary>
     /// <returns>
-    /// The cache tag for the <typeparamref name="TReadModel"/>, or <c>null</c> if no tag is available.
+    /// The cache tag for the <typeparamref name="TReadModel"/>, or <see langword="null"/> if no tag is available.
     /// </returns>
     public override string? GetCacheTag()
         => CacheTagger.GetTag<TReadModel>();

@@ -110,7 +110,7 @@ public record EntitySelectQuery<TReadModel> : CacheableQueryBase<IReadOnlyCollec
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.
     /// </summary>
     /// <returns>
-    /// The cache tag for the <typeparamref name="TReadModel"/>, or <c>null</c> if no tag is available.
+    /// The cache tag for the <typeparamref name="TReadModel"/>, or <see langword="null"/> if no tag is available.
     /// </returns>
     public override string? GetCacheTag()
         => CacheTagger.GetTag<TReadModel>();

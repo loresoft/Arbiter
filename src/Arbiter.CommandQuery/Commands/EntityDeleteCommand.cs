@@ -42,13 +42,7 @@ public record EntityDeleteCommand<TKey, TReadModel>
     /// <summary>
     /// Gets the cache tag for the entity associated with this command.
     /// </summary>
-    /// <returns>The cache tag for the entity, or <c>null</c> if no tag is available.</returns>
-    /// <example>
-    /// The following example demonstrates how to retrieve the cache tag:
-    /// <code>
-    /// var cacheTag = command.GetCacheTag();
-    /// </code>
-    /// </example>
+    /// <returns>The cache tag for the entity, or <see langword="null"/> if no tag is available.</returns>
     string? ICacheExpire.GetCacheTag()
         => CacheTagger.GetTag<TReadModel>();
 }
