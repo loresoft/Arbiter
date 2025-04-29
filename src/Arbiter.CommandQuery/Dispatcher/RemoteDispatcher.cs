@@ -46,10 +46,18 @@ public class RemoteDispatcher : IDispatcher
     }
 
     /// <inheritdoc />
-    public async ValueTask<TResponse?> Send<TRequest, TResponse>(
+    public ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>
+    {
+        return Send(request, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<TResponse?> Send<TResponse>(
+        IRequest<TResponse> request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 

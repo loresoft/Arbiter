@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Arbiter.CommandQuery.Dispatcher;
 
 /// <summary>
@@ -22,4 +24,16 @@ public interface IDispatcher
         TRequest request,
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>;
+
+    /// <summary>
+    /// Sends a request to the message dispatcher.
+    /// </summary>
+    /// <typeparam name="TResponse"> The type of response from the dispatcher</typeparam>
+    /// <param name="request">The request being sent</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
+    [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    ValueTask<TResponse?> Send<TResponse>(
+        IRequest<TResponse> request,
+        CancellationToken cancellationToken = default);
 }

@@ -30,7 +30,7 @@ public string WriteCode()
     CodeBuilder.Clear();
 
     CodeBuilder.AppendLine("using System;");
-    CodeBuilder.AppendLine("using Arbiter;");
+    CodeBuilder.AppendLine("using Arbiter.Mediation;");
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Endpoints;");
 
     if (!string.IsNullOrEmpty(modelNamespace))

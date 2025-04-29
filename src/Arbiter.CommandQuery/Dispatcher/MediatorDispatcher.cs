@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Arbiter.CommandQuery.Dispatcher;
 
 /// <summary>
@@ -24,5 +26,14 @@ public class MediatorDispatcher : IDispatcher
         where TRequest : IRequest<TResponse>
     {
         return await _mediator.Send<TRequest, TResponse>(request, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    public async ValueTask<TResponse?> Send<TResponse>(
+        IRequest<TResponse> request,
+        CancellationToken cancellationToken = default)
+    {
+        return await _mediator.Send(request, cancellationToken).ConfigureAwait(false);
     }
 }
