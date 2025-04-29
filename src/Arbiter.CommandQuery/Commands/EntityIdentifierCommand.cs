@@ -5,19 +5,42 @@ using System.Text.Json.Serialization;
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
-/// A base command for commands that use an identifier
+/// Represents a base command for operations that require an identifier.
 /// </summary>
-/// <typeparam name="TKey">The type of the key.</typeparam>
-/// <typeparam name="TResponse">The type of the response.</typeparam>
+/// <typeparam name="TKey">The type of the key used to identify the entity.</typeparam>
+/// <typeparam name="TResponse">The type of the response returned by the command.</typeparam>
+/// <remarks>
+/// This class is typically used in a CQRS (Command Query Responsibility Segregation) pattern to define commands
+/// that operate on a specific entity identified by a key.
+/// </remarks>
+/// <example>
+/// The following example demonstrates how to use the <see cref="EntityIdentifierCommand{TKey, TResponse}"/>:
+/// <code>
+/// public record GetEntityByIdCommand : EntityIdentifierCommand&lt;int, ProductReadModel&gt;
+/// {
+///     public GetEntityByIdCommand(ClaimsPrincipal principal, int id)
+///         : base(principal, id)
+///     {
+///     }
+/// }
+///
+/// var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "JohnDoe") }));
+/// var command = new GetEntityByIdCommand(principal, 123);
+///
+/// // Pass the command to a handler or mediator
+/// var result = await mediator.Send(command);
+/// Console.WriteLine($"Entity Name: {result?.Name}");
+/// </code>
+/// </example>
 public abstract record EntityIdentifierCommand<TKey, TResponse>
     : PrincipalCommandBase<TResponse>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifierCommand{TKey, TResponse}"/> class.
     /// </summary>
-    /// <param name="principal">the <see cref="ClaimsPrincipal"/> this command is run for</param>
-    /// <param name="id">The identifier for this command.</param>
-    /// <exception cref="ArgumentNullException">When <paramref name="id"/> is null</exception>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
+    /// <param name="id">The identifier of the entity for this command.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
     protected EntityIdentifierCommand(ClaimsPrincipal? principal, [NotNull] TKey id)
         : base(principal)
     {
@@ -30,7 +53,7 @@ public abstract record EntityIdentifierCommand<TKey, TResponse>
     /// Gets the identifier for this command.
     /// </summary>
     /// <value>
-    /// The identifier for this command.
+    /// The identifier of the entity for this command.
     /// </value>
     [NotNull]
     [JsonPropertyName("id")]

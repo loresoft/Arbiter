@@ -6,15 +6,37 @@ using Arbiter.CommandQuery.Converters;
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
-/// A base command type using the specified <see cref="ClaimsPrincipal"/>.
+/// Represents a base command type that uses a specified <see cref="ClaimsPrincipal"/> to execute operations.
 /// </summary>
-/// <typeparam name="TResponse">The type of the response.</typeparam>
+/// <typeparam name="TResponse">The type of the response returned by the command.</typeparam>
+/// <remarks>
+/// This class is typically used in a CQRS (Command Query Responsibility Segregation) pattern to define commands
+/// that require user context, such as authentication or authorization, provided by a <see cref="ClaimsPrincipal"/>.
+/// </remarks>
+/// <example>
+/// The following example demonstrates how to use the <see cref="PrincipalCommandBase{TResponse}"/>:
+/// <code>
+/// public record GetUserDetailsCommand : PrincipalCommandBase&lt;UserDetails&gt;
+/// {
+///     public GetUserDetailsCommand(ClaimsPrincipal principal) : base(principal)
+///     {
+///     }
+/// }
+///
+/// var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "JohnDoe") }));
+/// var command = new GetUserDetailsCommand(principal);
+///
+/// // Pass the command to a handler or mediator
+/// var result = await mediator.Send(command);
+/// Console.WriteLine($"User Name: {result?.Name}");
+/// </code>
+/// </example>
 public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
     /// </summary>
-    /// <param name="principal">The <see cref="ClaimsPrincipal"/> this command is run for</param>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     protected PrincipalCommandBase(ClaimsPrincipal? principal)
     {
         Principal = principal;
@@ -24,10 +46,10 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     }
 
     /// <summary>
-    /// Gets the <see cref="ClaimsPrincipal"/> this command is run for.
+    /// Gets the <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </summary>
     /// <value>
-    /// The <see cref="ClaimsPrincipal"/> this command is run for.
+    /// The <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </value>
     [JsonPropertyName("principal")]
     [JsonConverter(typeof(ClaimsPrincipalConverter))]
@@ -35,19 +57,23 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     public ClaimsPrincipal? Principal { get; }
 
     /// <summary>
-    /// Gets the timestamp this command was activated on.
+    /// Gets the timestamp indicating when this command was activated.
     /// </summary>
     /// <value>
-    /// The timestamp this command was activated on.
+    /// The timestamp indicating when this command was activated.
     /// </value>
     public DateTimeOffset Activated { get; }
 
     /// <summary>
-    /// Gets the user name this command was activated by.  Extracted from the specified <see cref="Principal"/>.
+    /// Gets the user name of the individual who activated this command.
+    /// Extracted from the specified <see cref="Principal"/>.
     /// </summary>
     /// <value>
-    /// The user name this command was activated by
+    /// The user name of the individual who activated this command.
     /// </value>
+    /// <remarks>
+    /// If the <see cref="Principal"/> is <c>null</c>, the value defaults to "system".
+    /// </remarks>
     /// <see cref="ClaimsIdentity.Name"/>
     public string? ActivatedBy { get; }
 }
