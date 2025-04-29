@@ -87,20 +87,14 @@ public class PingBehavior : IPipelineBehavior<Ping, Pong>
 ### Register Handlers
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        // Register Arbiter services
-        services.AddArbiter();
+// Register Mediator services
+services.AddMediator();
 
-        // Register handlers
-        services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
+// Register handlers
+services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
 
-        // Optionally register pipeline behaviors, supports multiple behaviors
-        services.AddTransient<IPipelineBehavior<Ping, Pong>, PingBehavior>();
-    }
-}
+// Optionally register pipeline behaviors, supports multiple behaviors
+services.AddTransient<IPipelineBehavior<Ping, Pong>, PingBehavior>();
 ```
 
 ### Send Request
@@ -191,6 +185,55 @@ dotnet add package Arbiter.CommandQuery
 - Entity Framework Core handlers for common CRUD operations
 - MongoDB handlers for common CRUD operations
 
+### CommandQuery Usage
+
+Register Command Query services via dependency injection
+
+```csharp
+services.AddCommandQuery();
+```
+
+### Query By ID
+
+```csharp
+// sample user claims
+var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "JohnDoe") }));
+
+var query = new EntityIdentifierQuery<int, ProductReadModel>(principal, 123);
+
+// Send the query to the mediator for execution
+var result = await mediator.Send(query);
+```
+
+### Query By Filter
+
+```csharp
+var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
+var sort = new EntitySort { Name = "Name", Direction = "asc" };
+
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter, sort);
+
+// Send the query to the mediator for execution
+var result = await mediator.Send(query);
+```
+
+### Update Command
+
+```csharp
+var id = 123; // The ID of the entity to update
+var updateModel = new ProductUpdateModel
+{
+    Name = "Updated Product",
+    Description = "Updated description of the product",
+    Price = 29.99m
+};
+
+var command = new EntityUpdateCommand<int, ProductUpdateModel, ProductReadModel>(principal, id, updateModel);
+
+// Send the command to the mediator for execution
+var result = await mediator.Send(command);
+```
+
 ## Arbiter.CommandQuery.EntityFramework
 
 Entity Framework Core handlers for the base Commands and Queries
@@ -205,6 +248,30 @@ OR
 
 ```shell
 dotnet add package Arbiter.CommandQuery.EntityFramework
+```
+
+### EntityFramework Usage
+
+Register via dependency injection
+
+```csharp
+// Add Entity Framework Core services
+services.AddDbContext<TrackerContext>(options =>
+    options.UseSqlServer(Configuration.GetConnectionString("TrackerConnection"))
+);
+
+// Register Command Query services
+services.AddCommandQuery();
+
+// Implement and register IMapper
+services.AddSingleton<IMapper, MyMapper>();
+
+// Implement and register IValidator
+services.AddSingleton<IValidator, MyValidator>();
+
+// Register Entity Framework Core handlers for each Entity
+services.AddEntityQueries<TrackerContext, Product, int, ProductReadModel>();
+services.AddEntityCommands<TrackerContext, Product, int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
 ```
 
 ## Arbiter.CommandQuery.MongoDB
@@ -223,6 +290,28 @@ OR
 dotnet add package Arbiter.CommandQuery.MongoDB
 ```
 
+### MongoDB Usage
+
+Register via dependency injection
+
+```csharp
+// Add MongoDB Repository services
+services.AddMongoRepository("Tracker");
+
+// Register Command Query services
+services.AddCommandQuery();
+
+// Implement and register IMapper
+services.AddSingleton<IMapper, MyMapper>();
+
+// Implement and register IValidator
+services.AddSingleton<IValidator, MyValidator>();
+
+// Register MongoDB handlers for each Entity
+services.AddEntityQueries<IMongoEntityRepository<Product>, Product, string, ProductReadModel>();
+services.AddEntityCommands<IMongoEntityRepository<Product>, Product, string, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+```
+
 ## Arbiter.CommandQuery.Endpoints
 
 Minimal API endpoints for base Commands and Queries
@@ -237,4 +326,35 @@ OR
 
 ```shell
 dotnet add package Arbiter.CommandQuery.Endpoints
+```
+
+### Endpoints Usage
+
+Register via dependency injection
+
+```csharp
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// add endpoints services
+builder.Services.AddFeatureEndpoints();
+
+var app = builder.Build();
+
+// map endpoint routes
+app.MapFeatureEndpoints();
+```
+
+### Example Endpoint
+
+```csharp
+public class ProductEndpoint : EntityCommandEndpointBase<int, ProductReadModel, ProductReadModel, ProductCreateModel, ProductUpdateModel>
+{
+    public ProductEndpoint(ILoggerFactory loggerFactory)
+        : base(loggerFactory, "Product")
+    {
+    }
+}
+
+// Register endpoint, must support duplicate (IEnumerable) IFeatureEndpoint registrations
+builder.Services.AddTransient<IFeatureEndpoint, ProductEndpoint>();
 ```

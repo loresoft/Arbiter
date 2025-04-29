@@ -9,7 +9,7 @@ internal static class ServiceRegistration
     [RegisterServices]
     public static void Register(IServiceCollection services)
     {
-        services.AddMediator();
+        services.AddCommandQuery();
         services.AddHybridCache();
     }
 }

@@ -14,7 +14,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
@@ -33,7 +33,7 @@ public class MediatorTests
     public async Task SendWithException()
     {
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingExceptionHandler>();
 
@@ -54,7 +54,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
@@ -84,7 +84,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
@@ -114,7 +114,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
@@ -147,7 +147,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
         services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
@@ -176,7 +176,7 @@ public class MediatorTests
         var logger = new Logger();
 
         var services = new ServiceCollection();
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton(logger);
 

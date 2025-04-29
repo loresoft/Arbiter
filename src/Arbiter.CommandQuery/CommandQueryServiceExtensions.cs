@@ -19,18 +19,18 @@ namespace Arbiter.CommandQuery;
 /// <summary>
 /// Extensions for adding mediator services to the service collection.
 /// </summary>
-public static class MediatorServiceExtensions
+public static class CommandQueryServiceExtensions
 {
     /// <summary>
     /// Adds the mediator command query services to the service collection.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-    public static IServiceCollection AddMediator(this IServiceCollection services)
+    public static IServiceCollection AddCommandQuery(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddArbiter();
+        services.AddMediator();
 
         services.TryAddSingleton<IPrincipalReader, PrincipalReader>();
         services.TryAddSingleton<IMapper, ServiceProviderMapper>();

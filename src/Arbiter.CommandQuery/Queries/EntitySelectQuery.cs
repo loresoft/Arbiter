@@ -29,7 +29,7 @@ namespace Arbiter.CommandQuery.Queries;
 ///     Name = "Name",
 ///     Direction = "asc"
 /// };
-/// var query = new EntitySelectQuery&lt;MyReadModel&gt;(principal, filter, sort);
+/// var query = new EntitySelectQuery&lt;ProductReadModel&gt;(principal, filter, sort);
 ///
 /// // Send the query to the mediator instance
 /// var result = await mediator.Send(query);
