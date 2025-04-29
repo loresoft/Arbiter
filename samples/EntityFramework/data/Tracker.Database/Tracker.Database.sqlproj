@@ -7,6 +7,7 @@
     <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Tables" />
