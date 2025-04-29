@@ -1,7 +1,10 @@
 items:
   - name: Quick Start
     href: quickStart.md
-
+  - name: Patterns
+    href: patterns.md
+  - name: Mediation
+    href: mediation.md
   - name: Queries
     items:
       - name: Identifier Query

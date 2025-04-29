@@ -64,7 +64,7 @@ public record EntitySelectQuery<TReadModel> : CacheableQueryBase<IReadOnlyCollec
     /// <param name="filter">The <see cref="EntityFilter"/> to create an <see cref="EntitySelect"/> from.</param>
     /// <param name="sort">The <see cref="EntitySort"/> to create an <see cref="EntitySelect"/> from.</param>
     public EntitySelectQuery(ClaimsPrincipal? principal, EntityFilter filter, EntitySort sort)
-        : this(principal, filter, new[] { sort })
+        : this(principal, filter, [sort])
     {
     }
 

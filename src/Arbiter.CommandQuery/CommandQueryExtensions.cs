@@ -19,7 +19,7 @@ namespace Arbiter.CommandQuery;
 /// <summary>
 /// Extensions for adding mediator services to the service collection.
 /// </summary>
-public static class CommandQueryServiceExtensions
+public static class CommandQueryExtensions
 {
     /// <summary>
     /// Adds the mediator command query services to the service collection.
