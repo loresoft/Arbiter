@@ -43,7 +43,7 @@
   <ItemGroup>
     <PackageReference Include="AssemblyMetadata.Generators" Version="2.1.0" PrivateAssets="All" />
     <PackageReference Include="Equatable.Generator" Version="2.0.0" PrivateAssets="all" />
-    <PackageReference Include="Injectio" Version="5.0.0-beta.2" PrivateAssets="All" />
+    <PackageReference Include="Injectio" Version="5.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
