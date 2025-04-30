@@ -3,19 +3,17 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <Description>Command Query Responsibility Segregation (CQRS) framework based on mediator pattern using Minimal API endpoints</Description>
+    <Description>Command Query Responsibility Segregation (CQRS) framework based on mediator pattern using ASP.NET MVC Controllers</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Arbiter.Mediation" />
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
   </ItemGroup>
-
 </Project>

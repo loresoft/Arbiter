@@ -34,6 +34,7 @@
   <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />
   <Project Path="src/Arbiter.CommandQuery.EntityFramework/Arbiter.CommandQuery.EntityFramework.csproj" />
   <Project Path="src/Arbiter.CommandQuery.MongoDB/Arbiter.CommandQuery.MongoDB.csproj" />
+  <Project Path="src/Arbiter.CommandQuery.Mvc/Arbiter.CommandQuery.Mvc.csproj" Id="2b53d754-a9d9-498e-91d1-f2f3810b8c42" />
   <Project Path="src/Arbiter.CommandQuery/Arbiter.CommandQuery.csproj" />
   <Project Path="src/Arbiter.Mediation.OpenTelemetry/Arbiter.Mediation.OpenTelemetry.csproj" Id="b28ea0e4-e239-4846-a3d5-d184da2d39b1" />
   <Project Path="src/Arbiter.Mediation/Arbiter.Mediation.csproj" />
