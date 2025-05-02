@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -218,17 +217,13 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
             : IRequestHandler<TRequest, TResponse>
             where TRequest : IRequest<TResponse>
     {
-        private readonly IPipelineBehavior<TRequest, TResponse> _behavior = behavior;
-        private readonly IRequestHandler<TRequest, TResponse> _next = next;
-
         public readonly ValueTask<TResponse?> Handle(TRequest request, CancellationToken cancellationToken = default)
         {
-            var child = _next;
-            ValueTask<TResponse?> handler(CancellationToken token) => child.Handle(request, token);
+            var child = next;
 
-            return _behavior.Handle(
+            return behavior.Handle(
                 request,
-                handler,
+                token => child.Handle(request, token),
                 cancellationToken);
         }
     }
