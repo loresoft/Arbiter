@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg baseProfile="full" height="235px" version="1.1" width="305px" xmlns="http://www.w3.org/2000/svg">
+  <rect height="50" width="300" style="fill: rgb(240, 240, 240); stroke: rgb(51, 51, 51); stroke-width: 2px;" y="2" x="2"/>
+  <text style="fill: rgb(51, 51, 51); font-family:Sans,Arial; font-size: 20px; text-anchor: middle; white-space: pre;" x="152" y="32">Presentation</text>
+  <rect height="50" width="300" y="62" style="fill: rgb(217, 237, 247); stroke: rgb(49, 112, 143); stroke-width: 2px;" x="2"/>
+  <text style="fill: rgb(51, 51, 51); font-family:Sans,Arial; font-size: 20px; text-anchor: middle; white-space: pre;" x="152.172" y="92">Application</text>
+  <rect height="50" width="300" y="122" style="fill: rgb(223, 240, 216); stroke: rgb(60, 118, 61); stroke-width: 2px;" x="2"/>
+  <text style="fill: rgb(51, 51, 51); font-family:Sans,Arial; font-size: 20px; text-anchor: middle; white-space: pre;" x="152" y="152">Domain</text>
+  <rect height="50" width="300" y="182" style="fill: rgb(247, 236, 181); paint-order: fill; stroke: rgb(138, 109, 59); stroke-width: 2px;" x="2"/>
+  <text style="fill: rgb(51, 51, 51); font-family:Sans,Arial; font-size: 20px; text-anchor: middle; white-space: pre;" x="152" y="212">Database</text>
+  <rect height="230" width="50" x="9.19" style="fill: rgb(242, 222, 222); stroke: rgb(169, 68, 66); stroke-width: 2px;" y="2"/>
+  <text transform="matrix(0, -1, 1, 0, -73.84079, 152)" style="fill: rgb(51, 51, 51); font-family:Sans,Arial; font-size: 20px; text-anchor: middle; white-space: pre;" x="35" y="115">Feature</text>
+</svg>
