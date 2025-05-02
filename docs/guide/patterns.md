@@ -65,7 +65,7 @@ References
 The Vertical Slice Architecture is a design approach that structures an application into vertical slices, where each slice represents a complete feature or functionality. Each slice contains all the layers required to implement the feature, such as the user 
 interface, business logic, and data access, minimizing dependencies between slices. This approach promotes modularity, maintainability, and scalability by isolating features and reducing cross-cutting concerns.
 
-![Vertical Slice Architecture](/assets/VerticalSliceArchitecture.svg)
+![Vertical Slice Architecture](../assets/VerticalSliceArchitecture.svg)
 
 References
 
