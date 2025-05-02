@@ -5,6 +5,8 @@ items:
     href: patterns.md
   - name: Mediation
     href: mediation.md
+  - name: Command Query
+    href: commandQuery.md
   - name: Queries
     items:
       - name: Identifier Query

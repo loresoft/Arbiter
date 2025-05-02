@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Net.Mail;
 
 using Arbiter.CommandQuery.Definitions;
 

@@ -1,10 +1,11 @@
+using Arbiter.CommandQuery.Endpoints;
+
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Arbiter.CommandQuery.Endpoints;
 
 namespace Tracker.Web.Endpoints;
 
@@ -18,9 +19,9 @@ public class AuthenticationEndpoint : IFeatureEndpoint
         _options = options.Value;
     }
 
-    public void AddRoutes(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder endpoints)
     {
-        var group = app
+        var group = endpoints
             .MapGroup(_options.RoutePrefix);
 
         group
