@@ -31,6 +31,11 @@ public static class ClaimNames
     public const string EmailsClaim = "emails";
 
     /// <summary>
+    /// The claim name for the display name of the user.
+    /// </summary>
+    public const string DisplayName = "display_name";
+
+    /// <summary>
     /// The claim name for the security provider.
     /// </summary>
     public const string ProviderClaim = "idp";
@@ -54,6 +59,11 @@ public static class ClaimNames
     /// The claim name for the user identifier.
     /// </summary>
     public const string UserId = "uid";
+
+    /// <summary>
+    /// The claim name for the tenant identifier.
+    /// </summary>
+    public const string TenantId = "tenant_id";
 
     /// <summary>
     /// The claim name for the user employee number.

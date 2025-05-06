@@ -1,0 +1,121 @@
+@baseAddress = https://localhost:7003
+@apiKey = 681a501ea926338477bd580b
+
+# Low Status
+@blockedStatusId = 607a27d17d1e32895e494a7d
+
+
+### Get Entity by Id
+
+GET {{baseAddress}}/api/Status/{{blockedStatusId}}
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get a page of entities
+
+GET {{baseAddress}}/api/Status/page?sort=Name:desc&size=100
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get a page of entities
+POST {{baseAddress}}/api/Status/page
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "page": 1,
+  "pageSize": 100,
+  "sort": [
+    {
+      "name": "DisplayOrder",
+      "direction": "desc"
+    }
+  ]
+}
+
+### Get entities by query
+
+GET {{baseAddress}}/api/Status
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get entities by query
+
+POST {{baseAddress}}/api/Status/query
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "sort": [
+    {
+      "name": "Name",
+      "direction": "desc"
+    }
+  ]
+}
+
+
+### Create new entity
+
+POST {{baseAddress}}/api/Status
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Status {{$timestamp}}",
+  "description": "Create {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+### Upsert Entity
+
+POST {{baseAddress}}/api/Status/681a7d96b6717f656bee7057
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Status {{$timestamp}}",
+  "description": "Upsert {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+### Update Entity
+
+PUT {{baseAddress}}/api/Status/681a7d96b6717f656bee7057
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Status {{$timestamp}}",
+  "description": "Update {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+
+### Patch Entity
+
+PATCH {{baseAddress}}/api/Status/681a7d96b6717f656bee7057
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+[
+  {
+    "op": "replace",
+    "path": "/Description",
+    "value": "Patch {{$timestamp}}"
+  }
+]
+
+### Delete Entity
+DELETE {{baseAddress}}/api/Status/681a7d96b6717f656bee7057
+X-API-KEY: {{apiKey}}
+Accept: application/json

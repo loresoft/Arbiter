@@ -1,0 +1,120 @@
+@baseAddress = https://localhost:7003
+@apiKey = 681a501ea926338477bd580b
+
+# Low Priority
+@lowPriorityId = 607a27d77d1e32895e494a95
+
+
+### Get an entity by id
+
+GET {{baseAddress}}/api/Priority/{{lowPriorityId}}
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get a page of entities
+
+GET {{baseAddress}}/api/Priority/page?sort=Name:desc&size=100
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get a page of entities
+POST {{baseAddress}}/api/Priority/page
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "page": 1,
+  "pageSize": 100,
+  "sort": [
+    {
+      "name": "DisplayOrder",
+      "direction": "desc"
+    }
+  ]
+}
+
+### Get entities by query
+
+GET {{baseAddress}}/api/Priority
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+### Get entities by query
+
+POST {{baseAddress}}/api/Priority/query
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "sort": [
+    {
+      "name": "Name",
+      "direction": "desc"
+    }
+  ]
+}
+
+
+### Create new entity
+
+POST {{baseAddress}}/api/Priority
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Priority {{$timestamp}}",
+  "description": "Create {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+### Upsert Entity
+
+POST {{baseAddress}}/api/Priority/681a7a45b6717f656bee700a
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Priority {{$timestamp}}",
+  "description": "Upsert {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+### Update Entity
+
+PUT {{baseAddress}}/api/Priority/681a7a45b6717f656bee700a
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Priority {{$timestamp}}",
+  "description": "Update {{$timestamp}}",
+  "displayOrder": {{$randomInt 1000 9999}},
+  "isActive": true
+}
+
+
+### Patch Entity
+PATCH {{baseAddress}}/api/Priority/681a7a45b6717f656bee700a
+X-API-KEY: {{apiKey}}
+Accept: application/json
+Content-Type: application/json
+
+[
+  {
+    "op": "replace",
+    "path": "/Description",
+    "value": "Patch {{$timestamp}}"
+  }
+]
+
+### Delete Entity
+DELETE {{baseAddress}}/api/Priority/681a7a45b6717f656bee700a
+X-API-KEY: {{apiKey}}
+Accept: application/json

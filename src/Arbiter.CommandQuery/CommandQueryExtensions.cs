@@ -34,6 +34,7 @@ public static class CommandQueryExtensions
 
         services.TryAddSingleton<IPrincipalReader, PrincipalReader>();
         services.TryAddSingleton<IMapper, ServiceProviderMapper>();
+        services.TryAddSingleton(typeof(ITenantResolver<>), typeof(TenantResolver<>));
 
         return services;
     }

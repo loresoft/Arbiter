@@ -84,10 +84,11 @@ public interface IMediator
     /// <summary>
     /// Sends a request to the appropriate handler and returns the response.
     /// </summary>
-    /// <param name="request">The request to send to the handler.</param>
+    /// <param name="request">The request to send to the handler. The request object must implement <see cref="IRequest{TResponse}"/> <see langword="interface"/>.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Awaitable task returning the handler response.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="request"/> does not implement <see cref="IRequest{TResponse}"/> interface.</exception>
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
     ValueTask<object?> Send(
         object request,

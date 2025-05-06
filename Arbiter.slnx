@@ -17,6 +17,9 @@
     <Project Path="samples/EntityFramework/src/Tracker.Shared/Tracker.Shared.csproj" />
     <Project Path="samples/EntityFramework/src/Tracker.Web/Tracker.Web.csproj" />
   </Folder>
+  <Folder Name="/Samples/MongoDB/" Id="6ec40f75-d5b6-41e3-ad01-3dcc502cbe98">
+    <Project Path="samples/MongoDB/Tracker.WebService/Tracker.WebService.csproj" Id="54fb10f5-89a3-421f-8288-8a110c9dc9b9" />
+  </Folder>
   <Folder Name="/Templates/" Id="02ea681e-c7d8-13c7-8484-4ac65e1b71e8">
     <File Path="templates/DomainJsonContext.csx" />
     <File Path="templates/DomainServiceRegistration.csx" />

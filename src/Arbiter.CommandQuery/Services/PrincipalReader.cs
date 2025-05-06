@@ -74,6 +74,18 @@ public sealed partial class PrincipalReader : IPrincipalReader
     }
 
     /// <inheritdoc />
+    public string? GetDisplayName(ClaimsPrincipal? claimsPrincipal)
+    {
+        var claim = claimsPrincipal?.FindFirst(ClaimNames.DisplayName)
+            ?? claimsPrincipal?.FindFirst(ClaimNames.NameClaim)
+            ?? claimsPrincipal?.FindFirst(ClaimTypes.Name)
+            ?? claimsPrincipal?.FindFirst(ClaimNames.PreferredUserName)
+            ?? claimsPrincipal?.FindFirst(ClaimNames.Subject);
+
+        return claim?.Value ?? claimsPrincipal?.Identity?.Name;
+    }
+
+    /// <inheritdoc />
     public Guid? GetObjectId(IPrincipal? principal)
     {
         if (principal is null)
@@ -86,6 +98,19 @@ public sealed partial class PrincipalReader : IPrincipalReader
 
         return Guid.TryParse(claim?.Value, out var oid) ? oid : null;
     }
+
+    /// <inheritdoc />
+    public string? GetTenantId(IPrincipal? principal)
+    {
+        if (principal is null)
+            return null;
+
+        var claimPrincipal = principal as ClaimsPrincipal;
+        var claim = claimPrincipal?.FindFirst(ClaimNames.TenantId);
+
+        return claim?.Value;
+    }
+
 
     [LoggerMessage(1, LogLevel.Trace, "Resolved principal claim {Type}: {Value}")]
     static partial void LogPrincipal(ILogger logger, string type, string? value);
