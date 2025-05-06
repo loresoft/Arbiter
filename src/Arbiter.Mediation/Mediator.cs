@@ -97,13 +97,13 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var requestType = request.GetType();
+        var typeKey = request.GetType();
 
         using var activity = diagnostic?.StartSend(request);
 
         try
         {
-            var handler = _handlerCache.GetOrAdd(requestType, _ =>
+            var handler = _handlerCache.GetOrAdd(typeKey, requestType =>
             {
                 // Get the generic response type
                 var requestInterfaceType = requestType
