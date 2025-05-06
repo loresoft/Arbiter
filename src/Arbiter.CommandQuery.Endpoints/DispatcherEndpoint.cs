@@ -47,7 +47,8 @@ public class DispatcherEndpoint : IFeatureEndpoint
             .WithEntityMetadata("Dispatcher")
             .WithName("Send")
             .WithSummary("Send Mediator command")
-            .WithDescription("Send Mediator command");
+            .WithDescription("Send Mediator command")
+            .ExcludeFromDescription();
     }
 
     /// <summary>
