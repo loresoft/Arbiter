@@ -12,7 +12,7 @@
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.6.3" />
-    <PackageReference Include="TUnit" Version="0.19.116" />
+    <PackageReference Include="TUnit" Version="0.19.143" />
     <PackageReference Include="Verify.TUnit" Version="30.0.0" />
   </ItemGroup>
 
