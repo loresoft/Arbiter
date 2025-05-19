@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Principal;
 
 using Arbiter.CommandQuery.Definitions;
@@ -37,7 +38,7 @@ public class TenantResolver<TKey>(IPrincipalReader principalReader) : ITenantRes
         if (tenantId is null)
             return ValueTask.FromResult<TKey?>(default);
 
-        var result = Convert.ChangeType(tenantId, typeof(TKey));
+        var result = Convert.ChangeType(tenantId, typeof(TKey), CultureInfo.InvariantCulture);
 
         if (result is TKey key)
             return ValueTask.FromResult<TKey?>(key);
