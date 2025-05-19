@@ -53,7 +53,7 @@ private void GenerateClass(string readModel, string createModel, string updateMo
     var className = System.IO.Path.GetFileNameWithoutExtension(TemplateOptions.FileName);
     var keyType = TemplateOptions.Parameters["keyType"];
 
-    CodeBuilder.AppendLine("[RegisterTransient<IFeatureEndpoint>(Duplicate = DuplicateStrategy.Append)]");
+    CodeBuilder.AppendLine("[RegisterTransient<IEndpointRoute>(Duplicate = DuplicateStrategy.Append)]");
 
     if (string.IsNullOrEmpty(updateModel))
         CodeBuilder.AppendLine($"public class {className} : EntityQueryEndpointBase<{keyType}, {readModel}, {readModel}>");

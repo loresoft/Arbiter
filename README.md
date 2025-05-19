@@ -337,12 +337,12 @@ Register via dependency injection
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // add endpoints services
-builder.Services.AddFeatureEndpoints();
+builder.Services.AddEndpointRoutes();
 
 var app = builder.Build();
 
 // map endpoint routes
-app.MapFeatureEndpoints();
+app.MapEndpointRoutes();
 ```
 
 ### Example Endpoint
@@ -356,8 +356,8 @@ public class ProductEndpoint : EntityCommandEndpointBase<int, ProductReadModel, 
     }
 }
 
-// Register endpoint, must support duplicate (IEnumerable) IFeatureEndpoint registrations
-builder.Services.AddTransient<IFeatureEndpoint, ProductEndpoint>();
+// Register endpoint, must support duplicate (IEnumerable) IEndpointRoute registrations
+builder.Services.AddSingleton<IEndpointRoute, ProductEndpoint>();
 ```
 
 ## Arbiter.CommandQuery.Mvc

@@ -98,7 +98,7 @@ public static class Program
             .AddTrackerWeb();
 
         services
-            .AddFeatureEndpoints();
+            .AddEndpointRoutes();
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions());
@@ -150,7 +150,7 @@ public static class Program
             .AddInteractiveWebAssemblyRenderMode()
             .AddAdditionalAssemblies(typeof(Client.Routes).Assembly);
 
-        app.MapFeatureEndpoints();
+        app.MapEndpointRoutes();
 
     }
 }

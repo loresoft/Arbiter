@@ -17,7 +17,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// <typeparam name="TKey">The type of the key for entity</typeparam>
 /// <typeparam name="TListModel">The type of the list model</typeparam>
 /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IFeatureEndpoint
+public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IEndpointRoute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityQueryEndpointBase{TKey, TListModel, TReadModel}"/> class.

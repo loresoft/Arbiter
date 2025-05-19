@@ -112,7 +112,7 @@ public static class Program
             );
 
         services
-            .AddFeatureEndpoints();
+            .AddEndpointRoutes();
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions());
@@ -144,7 +144,7 @@ public static class Program
         app.MapOpenApi();
         app.MapScalarApiReference();
 
-        app.MapFeatureEndpoints().RequireAuthorization();
+        app.MapEndpointRoutes().RequireAuthorization();
     }
 
     private static string GetLoggingPath()

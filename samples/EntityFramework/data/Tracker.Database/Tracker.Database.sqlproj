@@ -24,4 +24,11 @@
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\Priority.sql" />
+    <Build Include="Tables\Status.sql" />
+    <Build Include="Tables\Task.sql" />
+    <Build Include="Tables\Tenant.sql" />
+    <Build Include="Tables\User.sql" />
+  </ItemGroup>
 </Project>

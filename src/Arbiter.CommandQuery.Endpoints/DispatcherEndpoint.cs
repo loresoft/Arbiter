@@ -15,7 +15,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// <summary>
 /// Defines an endpoint for dispatching commands using the Mediator pattern.
 /// </summary>
-public class DispatcherEndpoint : IFeatureEndpoint
+public class DispatcherEndpoint : IEndpointRoute
 {
     private readonly DispatcherOptions _dispatcherOptions;
     private readonly ILogger<DispatcherEndpoint> _logger;

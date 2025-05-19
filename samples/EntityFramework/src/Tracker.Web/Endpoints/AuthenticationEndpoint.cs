@@ -9,8 +9,8 @@ using Microsoft.Extensions.Options;
 
 namespace Tracker.Web.Endpoints;
 
-[RegisterTransient<IFeatureEndpoint>(Duplicate = DuplicateStrategy.Append)]
-public class AuthenticationEndpoint : IFeatureEndpoint
+[RegisterSingleton<IEndpointRoute>(Duplicate = DuplicateStrategy.Append)]
+public class AuthenticationEndpoint : IEndpointRoute
 {
     private readonly Options.AuthenticationOptions _options;
 

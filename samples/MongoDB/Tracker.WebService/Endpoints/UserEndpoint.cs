@@ -4,7 +4,7 @@ using Tracker.WebService.Domain.Models;
 
 namespace Tracker.WebService.Endpoints;
 
-[RegisterSingleton<IFeatureEndpoint>(Duplicate = DuplicateStrategy.Append)]
+[RegisterSingleton<IEndpointRoute>(Duplicate = DuplicateStrategy.Append)]
 public class UserEndpoint : EntityCommandEndpointBase<string, UserReadModel, UserReadModel, UserCreateModel, UserUpdateModel>
 {
     public UserEndpoint(ILoggerFactory loggerFactory)
