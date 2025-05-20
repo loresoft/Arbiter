@@ -17,8 +17,3 @@ When the `TrackChangeCommandBehavior<TEntityModel, TResponse>` is applied, it wi
 
 To use `TrackChangeCommandBehavior<TEntityModel, TResponse>`, register it in your service configuration using the `AddEntityCommands` extension method. This ensures the behavior is applied to relevant entity commands.
 
-### Example
-
-````csharp
-services.AddEntityCommands<Context.TrackerContext, Entities.Priority, int, Models.PriorityReadModel, Models.PriorityCreateModel, Models.PriorityUpdateModel>();
-````
