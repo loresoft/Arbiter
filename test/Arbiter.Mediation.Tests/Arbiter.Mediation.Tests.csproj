@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.0" />
-    <PackageReference Include="TUnit" Version="0.21.13" />
+    <PackageReference Include="TUnit" Version="0.21.16" />
   </ItemGroup>
 
   <ItemGroup>
