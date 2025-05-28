@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="AwesomeAssertions" />
     <Using Include="Bogus" />
-    <Using Include="FluentAssertions" />
   </ItemGroup>
 
   <ItemGroup>

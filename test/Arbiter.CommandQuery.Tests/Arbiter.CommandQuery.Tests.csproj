@@ -22,8 +22,8 @@
 
   <ItemGroup>
     <Using Include="Arbiter.CommandQuery" />
+    <Using Include="AwesomeAssertions" />
     <Using Include="Bogus" />
-    <Using Include="FluentAssertions" />
   </ItemGroup>
 
   <ItemGroup>
