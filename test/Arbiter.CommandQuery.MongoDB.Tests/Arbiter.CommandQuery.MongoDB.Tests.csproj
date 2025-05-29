@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.1" />
     <PackageReference Include="Testcontainers.MongoDb" Version="4.4.0" />
     <PackageReference Include="TestHost.Abstracts" Version="1.2.0" />
-    <PackageReference Include="TUnit" Version="0.22.20" />
+    <PackageReference Include="TUnit" Version="0.22.24" />
   </ItemGroup>
 
   <ItemGroup>
