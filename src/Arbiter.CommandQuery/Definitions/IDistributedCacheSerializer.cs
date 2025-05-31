@@ -1,5 +1,3 @@
-// Ignore Spelling: Serializer
-
 namespace Arbiter.CommandQuery.Definitions;
 
 /// <summary>

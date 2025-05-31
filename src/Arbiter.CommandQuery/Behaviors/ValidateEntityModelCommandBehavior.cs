@@ -1,5 +1,3 @@
-// Ignore Spelling: validator
-
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 

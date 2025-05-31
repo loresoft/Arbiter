@@ -1,0 +1,1 @@
+message: Your verification code{% if ProductName != blank %} for {{ ProductName }}{% endif %} is {{ Code }}.

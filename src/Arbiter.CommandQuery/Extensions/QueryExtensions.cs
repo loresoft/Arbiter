@@ -1,5 +1,3 @@
-// Ignore Spelling: queryable
-
 using System.Linq.Dynamic.Core;
 using System.Text;
 

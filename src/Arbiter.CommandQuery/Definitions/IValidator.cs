@@ -1,7 +1,3 @@
-// Ignore Spelling: Validator
-
-using System.ComponentModel.DataAnnotations;
-
 namespace Arbiter.CommandQuery.Definitions;
 
 /// <summary>

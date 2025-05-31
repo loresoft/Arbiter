@@ -1,5 +1,3 @@
-// Ignore Spelling: Upsert
-
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Handlers;

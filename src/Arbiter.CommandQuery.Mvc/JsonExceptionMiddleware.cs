@@ -1,5 +1,3 @@
-// Ignore Spelling: Middleware
-
 using System.Diagnostics;
 using System.Text.Json;
 

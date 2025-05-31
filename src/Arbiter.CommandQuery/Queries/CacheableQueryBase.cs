@@ -1,5 +1,3 @@
-// Ignore Spelling: Cacheable
-
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;

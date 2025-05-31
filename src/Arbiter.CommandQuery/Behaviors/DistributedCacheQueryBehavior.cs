@@ -1,5 +1,3 @@
-// Ignore Spelling: Serializer
-
 using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.Extensions.Caching.Distributed;

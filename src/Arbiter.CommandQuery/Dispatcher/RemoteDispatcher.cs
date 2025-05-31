@@ -1,5 +1,3 @@
-// Ignore Spelling: serializer
-
 using System.Net.Http.Json;
 using System.Text.Json;
 

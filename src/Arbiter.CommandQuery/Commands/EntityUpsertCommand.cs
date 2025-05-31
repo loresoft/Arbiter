@@ -1,5 +1,3 @@
-// Ignore Spelling: Upsert
-
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
@@ -35,7 +33,7 @@ namespace Arbiter.CommandQuery.Commands;
 ///
 /// // Pass the command to a handler or mediator
 /// var result = await mediator.Send(command);
-/// Console.WriteLine($"Upserted product name: {result?.Name}");
+/// Console.WriteLine($"Upsert product name: {result?.Name}");
 /// </code>
 /// </example>
 public record EntityUpsertCommand<TKey, TUpdateModel, TReadModel>

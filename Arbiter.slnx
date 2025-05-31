@@ -4,6 +4,9 @@
     <File Path="README.md" />
     <File Path="src/Directory.Build.props" />
   </Folder>
+  <Folder Name="/Communication/">
+    <Project Path="src/Arbiter.Communication/Arbiter.Communication.csproj" Id="8a6f4ddc-987c-4e96-9cc0-b9f03e149160" />
+  </Folder>
   <Folder Name="/Samples/" Id="7881efe6-0fba-4ce6-a4ee-f6cc56395fc7" />
   <Folder Name="/Samples/EntityFramework/" Id="f36d2018-e642-4d30-a508-10bc237d649e">
     <File Path="samples/EntityFramework/src/Directory.Build.props" />
@@ -32,6 +35,7 @@
     <Project Path="test/Arbiter.CommandQuery.EntityFramework.Tests/Arbiter.CommandQuery.EntityFramework.Tests.csproj" Id="dbcd6c95-6bf3-4786-81d2-a94fff7b9956" />
     <Project Path="test/Arbiter.CommandQuery.MongoDB.Tests/Arbiter.CommandQuery.MongoDB.Tests.csproj" Id="a664a030-159e-403f-8063-5a36616687b7" />
     <Project Path="test/Arbiter.CommandQuery.Tests/Arbiter.CommandQuery.Tests.csproj" Id="ea445280-2bc1-4030-b0c2-e454ce5c4aa6" />
+    <Project Path="test/Arbiter.Communication.Tests/Arbiter.Communication.Tests.csproj" Id="9da5eada-3069-46ed-900a-c319b7858690" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
   </Folder>
   <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />
