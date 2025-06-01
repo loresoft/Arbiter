@@ -93,8 +93,20 @@ public class EmailConfiguration
     /// </param>
     /// <returns>The current <see cref="EmailConfiguration"/> instance for chaining.</returns>
     public EmailConfiguration AddTemplateAssembly<T>(string? templateResourceFormat = null)
+        => AddTemplateAssembly(typeof(T).Assembly, templateResourceFormat);
+
+    /// <summary>
+    /// Configures the email system to use the specified assembly for email templates.
+    /// </summary>
+    /// <param name="assembly">The assembly containing the email templates. This parameter cannot be <see langword="null"/>.</param>
+    /// <param name="templateResourceFormat">An optional format string used to locate template resources within the assembly.  If not specified, a default
+    /// format may be used.</param>
+    /// <returns>The current <see cref="EmailConfiguration"/> instance, allowing for method chaining.</returns>
+    public EmailConfiguration AddTemplateAssembly(Assembly assembly, string? templateResourceFormat = null)
     {
-        TemplateAssembly = typeof(T).Assembly;
+        ArgumentNullException.ThrowIfNull(assembly);
+
+        TemplateAssembly = assembly;
 
         if (templateResourceFormat is not null)
             TemplateResourceFormat = templateResourceFormat;

@@ -1,5 +1,6 @@
 using System.Reflection;
 
+using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Template;
 
 using Microsoft.Extensions.Logging;
@@ -45,10 +46,12 @@ public class EmailTemplateService : IEmailTemplateService
     /// <typeparam name="TModel">The type of the model used for template binding.</typeparam>
     /// <param name="templateName">The name of the template to use for the email.</param>
     /// <param name="emailModel">The model containing data to bind to the template.</param>
-    /// <param name="recipients">The recipients of the email.</param>
+    /// <param name="recipients">The recipients of the email, including To, Cc, and Bcc addresses.</param>
+    /// <param name="senders">The sender and optional reply-to addresses for the email. If null, default senders from configuration are used.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
-    /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation.
+    /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation,
+    /// including success status, message, and any exception details.
     /// </returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="templateName"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is null.</exception>
@@ -56,6 +59,7 @@ public class EmailTemplateService : IEmailTemplateService
         string templateName,
         TModel emailModel,
         EmailRecipients recipients,
+        EmailSenders? senders = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(templateName);
@@ -77,7 +81,7 @@ public class EmailTemplateService : IEmailTemplateService
                 return EmailResult.Fail($"Could not find template '{templateName}'");
             }
 
-            return await Send(emailTemplate.Value, emailModel, recipients, cancellationToken).ConfigureAwait(false);
+            return await Send(emailTemplate.Value, emailModel, recipients, senders, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -92,16 +96,19 @@ public class EmailTemplateService : IEmailTemplateService
     /// <typeparam name="TModel">The type of the model used for template binding.</typeparam>
     /// <param name="emailTemplate">The email template to use for the message.</param>
     /// <param name="emailModel">The model containing data to bind to the template.</param>
-    /// <param name="recipients">The recipients of the email.</param>
+    /// <param name="recipients">The recipients of the email, including To, Cc, and Bcc addresses.</param>
+    /// <param name="senders">The sender and optional reply-to addresses for the email. If null, default senders from configuration are used.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
-    /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation.
+    /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation,
+    /// including success status, message, and any exception details.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is null.</exception>
     public async Task<EmailResult> Send<TModel>(
         EmailTemplate emailTemplate,
         TModel emailModel,
         EmailRecipients recipients,
+        EmailSenders? senders = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(emailModel);
@@ -117,15 +124,16 @@ public class EmailTemplateService : IEmailTemplateService
             var fromName = options.FromName;
             var fromEmail = options.FromAddress;
 
-            if (string.IsNullOrEmpty(fromEmail))
+            var localSenders = senders ?? new EmailSenders(new EmailAddress(fromEmail, fromName));
+
+            if (localSenders.From.Address.IsNullOrWhiteSpace())
             {
                 _logger.LogError("From address is not configured in EmailOptions.");
                 return EmailResult.Fail("From address is not configured.");
             }
 
-            var senders = new EmailSenders(new EmailAddress(fromEmail, fromName));
             var content = new EmailContent(subject, htmlBody, textBody);
-            var message = new EmailMessage(senders, recipients, content);
+            var message = new EmailMessage(localSenders, recipients, content);
 
             return await _deliveryService.Send(message, cancellationToken).ConfigureAwait(false);
         }
