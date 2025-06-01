@@ -42,4 +42,20 @@ public class TemplateServiceTests : TestBase
 
         return Task.CompletedTask;
     }
+
+    [Test]
+    public Task GetResourceTemplateNotFound()
+    {
+        var templateService = Services.GetRequiredService<ITemplateService>();
+        templateService.Should().NotBeNull();
+
+        var resourceName = TemplateNames.GetResourceName("non-existent-template");
+        var template = templateService.GetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName);
+
+        template.Subject.Should().BeNull();
+        template.HtmlBody.Should().BeNull();
+        template.TextBody.Should().BeNull();
+
+        return Task.CompletedTask;
+    }
 }

@@ -26,8 +26,4 @@
     <Using Include="Bogus" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Snapshots\" />
-  </ItemGroup>
-
 </Project>

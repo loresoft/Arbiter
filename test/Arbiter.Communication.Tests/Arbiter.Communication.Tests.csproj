@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <UserSecretsId>7665db88-2f4f-4457-af40-4dd4106e257b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +25,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Arbiter.Communication.Azure\Arbiter.Communication.Azure.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Communication.Twilio\Arbiter.Communication.Twilio.csproj" />
     <ProjectReference Include="..\..\src\Arbiter.Communication\Arbiter.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

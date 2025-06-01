@@ -1,4 +1,5 @@
 using Arbiter.Communication.Email;
+using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Sms;
 using Arbiter.Communication.Template;
 
@@ -47,9 +48,12 @@ public static class DependencyInjectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddOptions<EmailConfiguration>();
+        services
+            .AddOptions<EmailConfiguration>()
+            .BindConfiguration(EmailConfiguration.ConfigurationName);
+
         if (configureOptions != null)
-            services.Configure(configureOptions);
+            services.PostConfigure(configureOptions);
 
         services.AddTemplateServices();
         services.TryAddSingleton<IEmailTemplateService, EmailTemplateService>();
@@ -114,7 +118,7 @@ public static class DependencyInjectionExtensions
     /// </param>
     /// <returns>The <see cref="IServiceCollection"/> for chaining.</returns>
     /// <remarks>
-    /// Registers <see cref="SmtpEmailDeliverService"/> as a singleton implementation of <see cref="IEmailDeliveryService"/>.
+    /// Registers <see cref="SmtpEmailDeliveryService"/> as a singleton implementation of <see cref="IEmailDeliveryService"/>.
     /// </remarks>
     public static IServiceCollection AddSmtpEmailDeliver(
         this IServiceCollection services,
@@ -123,7 +127,7 @@ public static class DependencyInjectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddEmailServices(configureOptions);
-        services.TryAddSingleton<IEmailDeliveryService, SmtpEmailDeliverService>();
+        services.TryAddSingleton<IEmailDeliveryService, SmtpEmailDeliveryService>();
 
         return services;
     }
@@ -143,9 +147,12 @@ public static class DependencyInjectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddOptions<SmsConfiguration>();
+        services
+            .AddOptions<SmsConfiguration>()
+            .BindConfiguration(SmsConfiguration.ConfigurationName);
+
         if (configureOptions != null)
-            services.Configure(configureOptions);
+            services.PostConfigure(configureOptions);
 
         services.AddTemplateServices();
         services.TryAddSingleton<ISmsTemplateService, SmsTemplateService>();

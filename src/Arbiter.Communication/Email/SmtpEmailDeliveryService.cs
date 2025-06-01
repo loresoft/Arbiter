@@ -1,3 +1,5 @@
+using Arbiter.Communication.Extensions;
+
 using MailKit;
 
 using Microsoft.Extensions.Logging;
@@ -14,17 +16,17 @@ namespace Arbiter.Communication.Email;
 /// This service composes and sends email messages using SMTP configuration options. It supports attachments, custom headers,
 /// and logs protocol details for diagnostics. The service will attempt to authenticate if credentials are provided and will accept all SSL certificates.
 /// </remarks>
-public sealed class SmtpEmailDeliverService : IEmailDeliveryService
+public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
 {
-    private readonly ILogger<SmtpEmailDeliverService> _logger;
+    private readonly ILogger<SmtpEmailDeliveryService> _logger;
     private readonly IOptions<EmailConfiguration> _options;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmtpEmailDeliverService"/> class.
+    /// Initializes a new instance of the <see cref="SmtpEmailDeliveryService"/> class.
     /// </summary>
     /// <param name="logger">The logger used for diagnostic and error messages.</param>
     /// <param name="emailOptions">The email configuration options.</param>
-    public SmtpEmailDeliverService(ILogger<SmtpEmailDeliverService> logger, IOptions<EmailConfiguration> emailOptions)
+    public SmtpEmailDeliveryService(ILogger<SmtpEmailDeliveryService> logger, IOptions<EmailConfiguration> emailOptions)
     {
         _logger = logger;
         _options = emailOptions;
@@ -51,15 +53,17 @@ public sealed class SmtpEmailDeliverService : IEmailDeliveryService
         var userName = emailServer.UserName;
         var password = emailServer.Password;
 
-        var mimeMessage = ConvertMessage(emailMessage);
+        var recipients = emailMessage.Recipients.ToString();
+        var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
 
-        var to = mimeMessage.To.ToString();
-        var subject = mimeMessage.Subject[..20];
+        _logger.LogDebug("Sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
 
         await using var logStream = new MemoryStream();
 
         try
         {
+            var mimeMessage = ConvertMessage(emailMessage);
+
             // make sure there is a from address
             if (mimeMessage.From.Count == 0)
                 mimeMessage.From.Add(CreateAddress(emailServer.FromAddress, emailServer.FromName));
@@ -78,12 +82,12 @@ public sealed class SmtpEmailDeliverService : IEmailDeliveryService
             await client.SendAsync(mimeMessage, cancellationToken).ConfigureAwait(false);
             await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogDebug("Sent email to '{ToAddress}' with subject '{EmailSubject}' using Host '{SmtpHost}'", to, subject, host);
+            _logger.LogInformation("Sent email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
             return EmailResult.Success("Email sent successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email to '{ToAddress}' with subject '{EmailSubject}' using Host '{SmtpHost}'", to, subject, host);
+            _logger.LogError(ex, "Error sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
             return EmailResult.Fail("An error occurred while sending the email", ex);
         }
         finally

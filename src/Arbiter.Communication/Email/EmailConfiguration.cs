@@ -9,6 +9,11 @@ namespace Arbiter.Communication.Email;
 public class EmailConfiguration
 {
     /// <summary>
+    /// Represents the configuration name used for email-related settings.
+    /// </summary>
+    public const string ConfigurationName = "Email";
+
+    /// <summary>
     /// Gets or sets the display name of the sender.
     /// </summary>
     public string? FromName { get; set; }
@@ -52,6 +57,11 @@ public class EmailConfiguration
     /// Gets or sets the password for authenticating with the SMTP server.
     /// </summary>
     public string? Password { get; set; }
+
+    /// <summary>
+    /// Gets or sets the service key used to authenticate or identify the service.
+    /// </summary>
+    public string? ServiceKey { get; set; }
 
     /// <summary>
     /// Gets or sets the assembly containing embedded email templates.

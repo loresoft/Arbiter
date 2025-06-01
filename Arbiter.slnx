@@ -5,6 +5,8 @@
     <File Path="src/Directory.Build.props" />
   </Folder>
   <Folder Name="/Communication/">
+    <Project Path="src/Arbiter.Communication.Azure/Arbiter.Communication.Azure.csproj" Id="355338f7-37fb-4c18-9ccd-2fd585dda5e9" />
+    <Project Path="src/Arbiter.Communication.Twilio/Arbiter.Communication.Twilio.csproj" Id="9b55db94-d979-45f0-8566-8e0c8059523e" />
     <Project Path="src/Arbiter.Communication/Arbiter.Communication.csproj" Id="8a6f4ddc-987c-4e96-9cc0-b9f03e149160" />
   </Folder>
   <Folder Name="/Samples/" Id="7881efe6-0fba-4ce6-a4ee-f6cc56395fc7" />
