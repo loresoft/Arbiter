@@ -4,7 +4,7 @@ using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.CommandQuery.Mapping;
 
 /// <summary>
 /// A default mapper that uses a service provider to resolve the mapping.

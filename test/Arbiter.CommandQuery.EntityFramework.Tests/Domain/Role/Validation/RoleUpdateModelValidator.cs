@@ -13,6 +13,7 @@ public partial class RoleUpdateModelValidator
         #region Generated Constructor
         RuleFor(p => p.Name).NotEmpty();
         RuleFor(p => p.Name).MaximumLength(256);
+        RuleFor(p => p.UpdatedBy).MaximumLength(100);
         #endregion
     }
 

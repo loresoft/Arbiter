@@ -4,9 +4,11 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class AuditCreateModel
-    : Arbiter.CommandQuery.Models.EntityReadModel<int>
+    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
 {
     #region Generated Properties
+    public int Id { get; set; }
+
     public DateTime Date { get; set; }
 
     public int? UserId { get; set; }
@@ -16,6 +18,14 @@ public partial class AuditCreateModel
     public string Content { get; set; } = null!;
 
     public string Username { get; set; } = null!;
+
+    public DateTimeOffset Created { get; set; }
+
+    public string? CreatedBy { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
 
     #endregion
 

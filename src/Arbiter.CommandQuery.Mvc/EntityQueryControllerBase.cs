@@ -41,7 +41,7 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     /// </summary>
     /// <param name="id">The identifier of the entity to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The entity read model if found; otherwise, <c>null</c>.</returns>
+    /// <returns>The entity read model if found; otherwise, <see langword="null"/>.</returns>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -204,7 +204,7 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     /// </summary>
     /// <param name="id">The identifier of the entity to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The entity read model if found; otherwise, <c>null</c>.</returns>
+    /// <returns>The entity read model if found; otherwise, <see langword="null"/>.</returns>
     protected virtual async Task<TReadModel?> GetQuery(TKey id, CancellationToken cancellationToken = default)
     {
         var command = new EntityIdentifierQuery<TKey, TReadModel>(User, id);

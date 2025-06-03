@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class TenantUpdateModel
-    : Arbiter.CommandQuery.Models.EntityUpdateModel
+    : ITrackUpdated, ITrackConcurrency
 {
     #region Generated Properties
     public string Name { get; set; } = null!;
@@ -12,6 +12,12 @@ public partial class TenantUpdateModel
     public string? Description { get; set; }
 
     public bool IsActive { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
+
+    public long RowVersion { get; set; }
 
     #endregion
 

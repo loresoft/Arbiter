@@ -11,7 +11,7 @@ public interface ITemplateService
     /// Applies the specified template source to the given model and returns the rendered result.
     /// </summary>
     /// <typeparam name="TModel">The type of the model to use for template binding.</typeparam>
-    /// <param name="source">The template source as a string. If <c>null</c>, an empty string is returned.</param>
+    /// <param name="source">The template source as a string. If <see langword="null"/>, an empty string is returned.</param>
     /// <param name="model">The model to bind to the template.</param>
     /// <returns>The rendered template as a string.</returns>
     string ApplyTemplate<TModel>(string? source, TModel model);
@@ -23,7 +23,7 @@ public interface ITemplateService
     /// <param name="assembly">The assembly containing the embedded resource.</param>
     /// <param name="resourceName">The name of the embedded resource.</param>
     /// <returns>
-    /// The resource template as <typeparamref name="TTemplate"/> if found and successfully loaded; otherwise, <c>null</c>.
+    /// The resource template as <typeparamref name="TTemplate"/> if found and successfully loaded; otherwise, <see langword="null"/>.
     /// </returns>
     TTemplate? GetResourceTemplate<TTemplate>(Assembly assembly, string resourceName);
 }

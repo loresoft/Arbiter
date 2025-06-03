@@ -42,7 +42,7 @@ public abstract class EntityCommandControllerBase<TKey, TListModel, TReadModel, 
     /// </summary>
     /// <param name="id">The identifier of the entity to retrieve the update model for.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The update model for the entity if found; otherwise, <c>null</c>.</returns>
+    /// <returns>The update model for the entity if found; otherwise, <see langword="null"/>.</returns>
     [HttpGet("{id}/update")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -152,7 +152,7 @@ public abstract class EntityCommandControllerBase<TKey, TListModel, TReadModel, 
     /// </summary>
     /// <param name="id">The identifier of the entity to retrieve the update model for.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The update model for the entity if found; otherwise, <c>null</c>.</returns>
+    /// <returns>The update model for the entity if found; otherwise, <see langword="null"/>.</returns>
     protected virtual async Task<TUpdateModel?> GetUpdateQuery(TKey id, CancellationToken cancellationToken = default)
     {
         var command = new EntityIdentifierQuery<TKey, TUpdateModel>(User, id);

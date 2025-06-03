@@ -1,112 +1,301 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
-using Injectio.Attributes;
-using Riok.Mapperly.Abstractions;
+using Arbiter.CommandQuery.Definitions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.StatusReadModel, Models.StatusCreateModel>>]
-internal sealed partial class StatusReadModelToStatusCreateModelMapper : IMapper<Models.StatusReadModel, Models.StatusCreateModel>
+internal sealed class StatusReadModelToStatusCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.StatusReadModel, Models.StatusCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusCreateModel? Map(Models.StatusReadModel? source);
+    public override void Map(Models.StatusReadModel source, Models.StatusCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.StatusReadModel source, Models.StatusCreateModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusReadModel> source);
+    public override IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.StatusCreateModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.StatusReadModel, Models.StatusUpdateModel>>]
-internal sealed partial class StatusReadModelToStatusUpdateModelMapper : IMapper<Models.StatusReadModel, Models.StatusUpdateModel>
+internal sealed class StatusReadModelToStatusUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.StatusReadModel, Models.StatusUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusUpdateModel? Map(Models.StatusReadModel? source);
+    public override void Map(Models.StatusReadModel source, Models.StatusUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.StatusReadModel source, Models.StatusUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Models.StatusReadModel> source);
+    public override IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Models.StatusReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.StatusUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.StatusUpdateModel, Models.StatusCreateModel>>]
-internal sealed partial class StatusUpdateModelToStatusCreateModelMapper : IMapper<Models.StatusUpdateModel, Models.StatusCreateModel>
+internal sealed class StatusUpdateModelToStatusCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.StatusUpdateModel, Models.StatusCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusCreateModel? Map(Models.StatusUpdateModel? source);
+    public override void Map(Models.StatusUpdateModel source, Models.StatusCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.StatusUpdateModel source, Models.StatusCreateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
+    public override IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.StatusCreateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.StatusUpdateModel, Models.StatusReadModel>>]
-internal sealed partial class StatusUpdateModelToStatusReadModelMapper : IMapper<Models.StatusUpdateModel, Models.StatusReadModel>
-{
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusReadModel? Map(Models.StatusUpdateModel? source);
-
-    public partial void Map(Models.StatusUpdateModel source, Models.StatusReadModel destination);
-
-    public partial IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
-}
-
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Status, Models.StatusReadModel>>]
-internal sealed partial class StatusToStatusReadModelMapper : IMapper<Entities.Status, Models.StatusReadModel>
+internal sealed class StatusToStatusReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Status, Models.StatusReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusReadModel? Map(Entities.Status? source);
+    public override void Map(Entities.Status source, Models.StatusReadModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Status source, Models.StatusReadModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Entities.Status> source);
+    public override IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Entities.Status> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.StatusReadModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Status, Models.StatusUpdateModel>>]
-internal sealed partial class StatusToStatusUpdateModelMapper : IMapper<Entities.Status, Models.StatusUpdateModel>
+internal sealed class StatusToStatusUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Status, Models.StatusUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusUpdateModel? Map(Entities.Status? source);
+    public override void Map(Entities.Status source, Models.StatusUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Status source, Models.StatusUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Entities.Status> source);
+    public override IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Entities.Status> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.StatusUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.StatusCreateModel, Entities.Status>>]
-internal sealed partial class StatusCreateModelToStatusMapper : IMapper<Models.StatusCreateModel, Entities.Status>
+internal sealed class StatusCreateModelToStatusMapper : CommandQuery.Mapping.MapperBase<Models.StatusCreateModel, Entities.Status>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Status? Map(Models.StatusCreateModel? source);
+    public override void Map(Models.StatusCreateModel source, Entities.Status destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.StatusCreateModel source, Entities.Status destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusCreateModel> source);
+    public override IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusCreateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Status
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.StatusUpdateModel, Entities.Status>>]
-internal sealed partial class StatusUpdateModelToStatusMapper : IMapper<Models.StatusUpdateModel, Entities.Status>
+internal sealed class StatusUpdateModelToStatusMapper : CommandQuery.Mapping.MapperBase<Models.StatusUpdateModel, Entities.Status>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Status? Map(Models.StatusUpdateModel? source);
+    public override void Map(Models.StatusUpdateModel source, Entities.Status destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.StatusUpdateModel source, Entities.Status destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
+    public override IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Status
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
-
 

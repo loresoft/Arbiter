@@ -13,6 +13,7 @@ public partial class TenantReadModel
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
+
     #endregion
 
     public override string ToString()

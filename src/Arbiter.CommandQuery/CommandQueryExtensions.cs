@@ -3,6 +3,7 @@ using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Dispatcher;
 using Arbiter.CommandQuery.Extensions;
+using Arbiter.CommandQuery.Mapping;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 

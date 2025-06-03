@@ -1,112 +1,287 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
-using Injectio.Attributes;
-using Riok.Mapperly.Abstractions;
+using Arbiter.CommandQuery.Definitions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantCreateModel>>]
-internal sealed partial class TenantReadModelToTenantCreateModelMapper : IMapper<Models.TenantReadModel, Models.TenantCreateModel>
+internal sealed class TenantReadModelToTenantCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TenantReadModel, Models.TenantCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantCreateModel? Map(Models.TenantReadModel? source);
+    public override void Map(Models.TenantReadModel source, Models.TenantCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.TenantReadModel source, Models.TenantCreateModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantReadModel> source);
+    public override IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.TenantCreateModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantUpdateModel>>]
-internal sealed partial class TenantReadModelToTenantUpdateModelMapper : IMapper<Models.TenantReadModel, Models.TenantUpdateModel>
+internal sealed class TenantReadModelToTenantUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.TenantReadModel, Models.TenantUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantUpdateModel? Map(Models.TenantReadModel? source);
+    public override void Map(Models.TenantReadModel source, Models.TenantUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.TenantReadModel source, Models.TenantUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.TenantUpdateModel> ProjectTo(IQueryable<Models.TenantReadModel> source);
+    public override IQueryable<Models.TenantUpdateModel> ProjectTo(IQueryable<Models.TenantReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.TenantUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.TenantUpdateModel, Models.TenantCreateModel>>]
-internal sealed partial class TenantUpdateModelToTenantCreateModelMapper : IMapper<Models.TenantUpdateModel, Models.TenantCreateModel>
+internal sealed class TenantUpdateModelToTenantCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TenantUpdateModel, Models.TenantCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantCreateModel? Map(Models.TenantUpdateModel? source);
+    public override void Map(Models.TenantUpdateModel source, Models.TenantCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.TenantUpdateModel source, Models.TenantCreateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantUpdateModel> source);
+    public override IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.TenantCreateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TenantUpdateModel, Models.TenantReadModel>>]
-internal sealed partial class TenantUpdateModelToTenantReadModelMapper : IMapper<Models.TenantUpdateModel, Models.TenantReadModel>
-{
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantReadModel? Map(Models.TenantUpdateModel? source);
-
-    public partial void Map(Models.TenantUpdateModel source, Models.TenantReadModel destination);
-
-    public partial IQueryable<Models.TenantReadModel> ProjectTo(IQueryable<Models.TenantUpdateModel> source);
-}
-
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Tenant, Models.TenantReadModel>>]
-internal sealed partial class TenantToTenantReadModelMapper : IMapper<Entities.Tenant, Models.TenantReadModel>
+internal sealed class TenantToTenantReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Tenant, Models.TenantReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantReadModel? Map(Entities.Tenant? source);
+    public override void Map(Entities.Tenant source, Models.TenantReadModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Tenant source, Models.TenantReadModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.TenantReadModel> ProjectTo(IQueryable<Entities.Tenant> source);
+    public override IQueryable<Models.TenantReadModel> ProjectTo(IQueryable<Entities.Tenant> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.TenantReadModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Tenant, Models.TenantUpdateModel>>]
-internal sealed partial class TenantToTenantUpdateModelMapper : IMapper<Entities.Tenant, Models.TenantUpdateModel>
+internal sealed class TenantToTenantUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Tenant, Models.TenantUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TenantUpdateModel? Map(Entities.Tenant? source);
+    public override void Map(Entities.Tenant source, Models.TenantUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Tenant source, Models.TenantUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.TenantUpdateModel> ProjectTo(IQueryable<Entities.Tenant> source);
+    public override IQueryable<Models.TenantUpdateModel> ProjectTo(IQueryable<Entities.Tenant> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.TenantUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.TenantCreateModel, Entities.Tenant>>]
-internal sealed partial class TenantCreateModelToTenantMapper : IMapper<Models.TenantCreateModel, Entities.Tenant>
+internal sealed class TenantCreateModelToTenantMapper : CommandQuery.Mapping.MapperBase<Models.TenantCreateModel, Entities.Tenant>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Tenant? Map(Models.TenantCreateModel? source);
+    public override void Map(Models.TenantCreateModel source, Entities.Tenant destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.TenantCreateModel source, Entities.Tenant destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Tenant> ProjectTo(IQueryable<Models.TenantCreateModel> source);
+    public override IQueryable<Entities.Tenant> ProjectTo(IQueryable<Models.TenantCreateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Tenant
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.TenantUpdateModel, Entities.Tenant>>]
-internal sealed partial class TenantUpdateModelToTenantMapper : IMapper<Models.TenantUpdateModel, Entities.Tenant>
+internal sealed class TenantUpdateModelToTenantMapper : CommandQuery.Mapping.MapperBase<Models.TenantUpdateModel, Entities.Tenant>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Tenant? Map(Models.TenantUpdateModel? source);
+    public override void Map(Models.TenantUpdateModel source, Entities.Tenant destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.TenantUpdateModel source, Entities.Tenant destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Tenant> ProjectTo(IQueryable<Models.TenantUpdateModel> source);
+    public override IQueryable<Entities.Tenant> ProjectTo(IQueryable<Models.TenantUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Tenant
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
-
 

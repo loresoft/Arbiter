@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class TaskUpdateModel
-    : Arbiter.CommandQuery.Models.EntityUpdateModel, IHaveTenant<int>
+    : ITrackUpdated, ITrackConcurrency, IHaveTenant<int>
 {
     #region Generated Properties
     public int StatusId { get; set; }
@@ -26,6 +26,12 @@ public partial class TaskUpdateModel
     public int TenantId { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
+
+    public long RowVersion { get; set; }
 
     #endregion
 

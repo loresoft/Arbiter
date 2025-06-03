@@ -1,112 +1,301 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
-using Injectio.Attributes;
-using Riok.Mapperly.Abstractions;
+using Arbiter.CommandQuery.Definitions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.PriorityReadModel, Models.PriorityCreateModel>>]
-internal sealed partial class PriorityReadModelToPriorityCreateModelMapper : IMapper<Models.PriorityReadModel, Models.PriorityCreateModel>
+internal sealed class PriorityReadModelToPriorityCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.PriorityReadModel, Models.PriorityCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityCreateModel? Map(Models.PriorityReadModel? source);
+    public override void Map(Models.PriorityReadModel source, Models.PriorityCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.PriorityReadModel source, Models.PriorityCreateModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.PriorityCreateModel> ProjectTo(IQueryable<Models.PriorityReadModel> source);
+    public override IQueryable<Models.PriorityCreateModel> ProjectTo(IQueryable<Models.PriorityReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.PriorityCreateModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.PriorityReadModel, Models.PriorityUpdateModel>>]
-internal sealed partial class PriorityReadModelToPriorityUpdateModelMapper : IMapper<Models.PriorityReadModel, Models.PriorityUpdateModel>
+internal sealed class PriorityReadModelToPriorityUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.PriorityReadModel, Models.PriorityUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityUpdateModel? Map(Models.PriorityReadModel? source);
+    public override void Map(Models.PriorityReadModel source, Models.PriorityUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.PriorityReadModel source, Models.PriorityUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.PriorityUpdateModel> ProjectTo(IQueryable<Models.PriorityReadModel> source);
+    public override IQueryable<Models.PriorityUpdateModel> ProjectTo(IQueryable<Models.PriorityReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.PriorityUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.PriorityUpdateModel, Models.PriorityCreateModel>>]
-internal sealed partial class PriorityUpdateModelToPriorityCreateModelMapper : IMapper<Models.PriorityUpdateModel, Models.PriorityCreateModel>
+internal sealed class PriorityUpdateModelToPriorityCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.PriorityUpdateModel, Models.PriorityCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityCreateModel? Map(Models.PriorityUpdateModel? source);
+    public override void Map(Models.PriorityUpdateModel source, Models.PriorityCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.PriorityUpdateModel source, Models.PriorityCreateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.PriorityCreateModel> ProjectTo(IQueryable<Models.PriorityUpdateModel> source);
+    public override IQueryable<Models.PriorityCreateModel> ProjectTo(IQueryable<Models.PriorityUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.PriorityCreateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Models.PriorityReadModel>>]
-internal sealed partial class PriorityUpdateModelToPriorityReadModelMapper : IMapper<Models.PriorityUpdateModel, Models.PriorityReadModel>
-{
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityReadModel? Map(Models.PriorityUpdateModel? source);
-
-    public partial void Map(Models.PriorityUpdateModel source, Models.PriorityReadModel destination);
-
-    public partial IQueryable<Models.PriorityReadModel> ProjectTo(IQueryable<Models.PriorityUpdateModel> source);
-}
-
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Priority, Models.PriorityReadModel>>]
-internal sealed partial class PriorityToPriorityReadModelMapper : IMapper<Entities.Priority, Models.PriorityReadModel>
+internal sealed class PriorityToPriorityReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityReadModel? Map(Entities.Priority? source);
+    public override void Map(Entities.Priority source, Models.PriorityReadModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Priority source, Models.PriorityReadModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.PriorityReadModel> ProjectTo(IQueryable<Entities.Priority> source);
+    public override IQueryable<Models.PriorityReadModel> ProjectTo(IQueryable<Entities.Priority> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.PriorityReadModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Entities.Priority, Models.PriorityUpdateModel>>]
-internal sealed partial class PriorityToPriorityUpdateModelMapper : IMapper<Entities.Priority, Models.PriorityUpdateModel>
+internal sealed class PriorityToPriorityUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.PriorityUpdateModel? Map(Entities.Priority? source);
+    public override void Map(Entities.Priority source, Models.PriorityUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.Priority source, Models.PriorityUpdateModel destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.PriorityUpdateModel> ProjectTo(IQueryable<Entities.Priority> source);
+    public override IQueryable<Models.PriorityUpdateModel> ProjectTo(IQueryable<Entities.Priority> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.PriorityUpdateModel
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.PriorityCreateModel, Entities.Priority>>]
-internal sealed partial class PriorityCreateModelToPriorityMapper : IMapper<Models.PriorityCreateModel, Entities.Priority>
+internal sealed class PriorityCreateModelToPriorityMapper : CommandQuery.Mapping.MapperBase<Models.PriorityCreateModel, Entities.Priority>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Priority? Map(Models.PriorityCreateModel? source);
+    public override void Map(Models.PriorityCreateModel source, Entities.Priority destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.PriorityCreateModel source, Entities.Priority destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityCreateModel> source);
+    public override IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityCreateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Priority
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.PriorityUpdateModel, Entities.Priority>>]
-internal sealed partial class PriorityUpdateModelToPriorityMapper : IMapper<Models.PriorityUpdateModel, Entities.Priority>
+internal sealed class PriorityUpdateModelToPriorityMapper : CommandQuery.Mapping.MapperBase<Models.PriorityUpdateModel, Entities.Priority>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Priority? Map(Models.PriorityUpdateModel? source);
+    public override void Map(Models.PriorityUpdateModel source, Entities.Priority destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.PriorityUpdateModel source, Entities.Priority destination);
+        #region Generated Copied Properties
+        destination.Name = source.Name;
+        destination.Description = source.Description;
+        destination.DisplayOrder = source.DisplayOrder;
+        destination.IsActive = source.IsActive;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityUpdateModel> source);
+    public override IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.Priority
+            {
+                #region Generated Query Properties
+                Name = p.Name,
+                Description = p.Description,
+                DisplayOrder = p.DisplayOrder,
+                IsActive = p.IsActive,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
-
 

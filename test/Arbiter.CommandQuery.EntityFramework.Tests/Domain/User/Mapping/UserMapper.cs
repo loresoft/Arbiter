@@ -1,112 +1,399 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
-using Injectio.Attributes;
-using Riok.Mapperly.Abstractions;
+using Arbiter.CommandQuery.Definitions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.UserReadModel, Models.UserCreateModel>>]
-internal sealed partial class UserReadModelToUserCreateModelMapper : IMapper<Models.UserReadModel, Models.UserCreateModel>
+internal sealed class UserReadModelToUserCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.UserReadModel, Models.UserCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserCreateModel? Map(Models.UserReadModel? source);
+    public override void Map(Models.UserReadModel source, Models.UserCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.UserReadModel source, Models.UserCreateModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.UserCreateModel> ProjectTo(IQueryable<Models.UserReadModel> source);
+    public override IQueryable<Models.UserCreateModel> ProjectTo(IQueryable<Models.UserReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.UserCreateModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.UserReadModel, Models.UserUpdateModel>>]
-internal sealed partial class UserReadModelToUserUpdateModelMapper : IMapper<Models.UserReadModel, Models.UserUpdateModel>
+internal sealed class UserReadModelToUserUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.UserReadModel, Models.UserUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserUpdateModel? Map(Models.UserReadModel? source);
+    public override void Map(Models.UserReadModel source, Models.UserUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.UserReadModel source, Models.UserUpdateModel destination);
+        #region Generated Copied Properties
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.UserUpdateModel> ProjectTo(IQueryable<Models.UserReadModel> source);
+    public override IQueryable<Models.UserUpdateModel> ProjectTo(IQueryable<Models.UserReadModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.UserUpdateModel
+            {
+                #region Generated Query Properties
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.UserUpdateModel, Models.UserCreateModel>>]
-internal sealed partial class UserUpdateModelToUserCreateModelMapper : IMapper<Models.UserUpdateModel, Models.UserCreateModel>
+internal sealed class UserUpdateModelToUserCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.UserUpdateModel, Models.UserCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserCreateModel? Map(Models.UserUpdateModel? source);
+    public override void Map(Models.UserUpdateModel source, Models.UserCreateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.UserUpdateModel source, Models.UserCreateModel destination);
+        #region Generated Copied Properties
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Models.UserCreateModel> ProjectTo(IQueryable<Models.UserUpdateModel> source);
+    public override IQueryable<Models.UserCreateModel> ProjectTo(IQueryable<Models.UserUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.UserCreateModel
+            {
+                #region Generated Query Properties
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.UserUpdateModel, Models.UserReadModel>>]
-internal sealed partial class UserUpdateModelToUserReadModelMapper : IMapper<Models.UserUpdateModel, Models.UserReadModel>
-{
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserReadModel? Map(Models.UserUpdateModel? source);
-
-    public partial void Map(Models.UserUpdateModel source, Models.UserReadModel destination);
-
-    public partial IQueryable<Models.UserReadModel> ProjectTo(IQueryable<Models.UserUpdateModel> source);
-}
-
-[Mapper]
 [RegisterSingleton<IMapper<Entities.User, Models.UserReadModel>>]
-internal sealed partial class UserToUserReadModelMapper : IMapper<Entities.User, Models.UserReadModel>
+internal sealed class UserToUserReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.User, Models.UserReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserReadModel? Map(Entities.User? source);
+    public override void Map(Entities.User source, Models.UserReadModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.User source, Models.UserReadModel destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.UserReadModel> ProjectTo(IQueryable<Entities.User> source);
+    public override IQueryable<Models.UserReadModel> ProjectTo(IQueryable<Entities.User> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.UserReadModel
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Entities.User, Models.UserUpdateModel>>]
-internal sealed partial class UserToUserUpdateModelMapper : IMapper<Entities.User, Models.UserUpdateModel>
+internal sealed class UserToUserUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.User, Models.UserUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.UserUpdateModel? Map(Entities.User? source);
+    public override void Map(Entities.User source, Models.UserUpdateModel destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Entities.User source, Models.UserUpdateModel destination);
+        #region Generated Copied Properties
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Models.UserUpdateModel> ProjectTo(IQueryable<Entities.User> source);
+    public override IQueryable<Models.UserUpdateModel> ProjectTo(IQueryable<Entities.User> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Models.UserUpdateModel
+            {
+                #region Generated Query Properties
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.UserCreateModel, Entities.User>>]
-internal sealed partial class UserCreateModelToUserMapper : IMapper<Models.UserCreateModel, Entities.User>
+internal sealed class UserCreateModelToUserMapper : CommandQuery.Mapping.MapperBase<Models.UserCreateModel, Entities.User>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.User? Map(Models.UserCreateModel? source);
+    public override void Map(Models.UserCreateModel source, Entities.User destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.UserCreateModel source, Entities.User destination);
+        #region Generated Copied Properties
+        destination.Id = source.Id;
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Created = source.Created;
+        destination.CreatedBy = source.CreatedBy;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserCreateModel> source);
+    public override IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserCreateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.User
+            {
+                #region Generated Query Properties
+                Id = p.Id,
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Created = p.Created,
+                CreatedBy = p.CreatedBy,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                #endregion
+            }
+        );
+    }
 }
 
-[Mapper]
 [RegisterSingleton<IMapper<Models.UserUpdateModel, Entities.User>>]
-internal sealed partial class UserUpdateModelToUserMapper : IMapper<Models.UserUpdateModel, Entities.User>
+internal sealed class UserUpdateModelToUserMapper : CommandQuery.Mapping.MapperBase<Models.UserUpdateModel, Entities.User>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.User? Map(Models.UserUpdateModel? source);
+    public override void Map(Models.UserUpdateModel source, Entities.User destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
 
-    public partial void Map(Models.UserUpdateModel source, Entities.User destination);
+        #region Generated Copied Properties
+        destination.EmailAddress = source.EmailAddress;
+        destination.IsEmailAddressConfirmed = source.IsEmailAddressConfirmed;
+        destination.DisplayName = source.DisplayName;
+        destination.PasswordHash = source.PasswordHash;
+        destination.ResetHash = source.ResetHash;
+        destination.InviteHash = source.InviteHash;
+        destination.AccessFailedCount = source.AccessFailedCount;
+        destination.LockoutEnabled = source.LockoutEnabled;
+        destination.LockoutEnd = source.LockoutEnd;
+        destination.LastLogin = source.LastLogin;
+        destination.IsDeleted = source.IsDeleted;
+        destination.Updated = source.Updated;
+        destination.UpdatedBy = source.UpdatedBy;
+        destination.RowVersion = source.RowVersion;
+        #endregion
+    }
 
-    public partial IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserUpdateModel> source);
+    public override IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserUpdateModel> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.Select(p =>
+            new Entities.User
+            {
+                #region Generated Query Properties
+                EmailAddress = p.EmailAddress,
+                IsEmailAddressConfirmed = p.IsEmailAddressConfirmed,
+                DisplayName = p.DisplayName,
+                PasswordHash = p.PasswordHash,
+                ResetHash = p.ResetHash,
+                InviteHash = p.InviteHash,
+                AccessFailedCount = p.AccessFailedCount,
+                LockoutEnabled = p.LockoutEnabled,
+                LockoutEnd = p.LockoutEnd,
+                LastLogin = p.LastLogin,
+                IsDeleted = p.IsDeleted,
+                Updated = p.Updated,
+                UpdatedBy = p.UpdatedBy,
+                RowVersion = p.RowVersion,
+                #endregion
+            }
+        );
+    }
 }
-
 

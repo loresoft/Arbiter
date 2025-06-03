@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class UserUpdateModel
-    : Arbiter.CommandQuery.Models.EntityUpdateModel
+    : ITrackUpdated, ITrackConcurrency
 {
     #region Generated Properties
     public string EmailAddress { get; set; } = null!;
@@ -28,6 +28,12 @@ public partial class UserUpdateModel
     public DateTimeOffset? LastLogin { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
+
+    public long RowVersion { get; set; }
 
     #endregion
 

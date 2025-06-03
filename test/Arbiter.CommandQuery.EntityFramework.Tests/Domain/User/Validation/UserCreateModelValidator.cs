@@ -15,6 +15,8 @@ public partial class UserCreateModelValidator
         RuleFor(p => p.EmailAddress).MaximumLength(256);
         RuleFor(p => p.DisplayName).NotEmpty();
         RuleFor(p => p.DisplayName).MaximumLength(256);
+        RuleFor(p => p.CreatedBy).MaximumLength(100);
+        RuleFor(p => p.UpdatedBy).MaximumLength(100);
         #endregion
     }
 

@@ -8,27 +8,27 @@ public string WriteCode()
     var entityNamespace = Entity.EntityNamespace;
     var modelNamespace = Entity.Models.Select(m => m.ModelNamespace).FirstOrDefault();
 
-    var readModel = string.Empty;
-    var createModel = string.Empty;
-    var updateModel = string.Empty;
+    Model? readModel = null;
+    Model? createModel = null;
+    Model? updateModel = null;
 
     foreach (var model in Entity.Models)
     {
         switch (model.ModelType)
         {
             case ModelType.Read:
-                readModel = model.ModelClass.ToSafeName();
+                readModel = model;
                 break;
             case ModelType.Create:
-                createModel = model.ModelClass.ToSafeName();
+                createModel = model;
                 break;
             case ModelType.Update:
-                updateModel = model.ModelClass.ToSafeName();
+                updateModel = model;
                 break;
         }
     }
 
-    if (string.IsNullOrEmpty(updateModel))
+    if (updateModel == null)
         return string.Empty;
 
     TemplateOptions.Parameters.TryGetValue("excludeDomain", out var excludeDomain);
@@ -36,20 +36,11 @@ public string WriteCode()
 
     CodeBuilder.Clear();
     CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
-    CodeBuilder.AppendLine("#pragma warning disable RMG012 // Source member was not found for target member");
-    CodeBuilder.AppendLine("#pragma warning disable RMG020 // Source member is not mapped to any target member");
-    CodeBuilder.AppendLine();
-
-    CodeBuilder.AppendLine("using System;");
-    CodeBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
     CodeBuilder.AppendLine();
 
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Definitions;");
     CodeBuilder.AppendLine();
 
-    CodeBuilder.AppendLine("using Injectio.Attributes;");
-    CodeBuilder.AppendLine("using Riok.Mapperly.Abstractions;");
-    CodeBuilder.AppendLine();
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
@@ -63,46 +54,136 @@ public string WriteCode()
 
     if (string.IsNullOrEmpty(excludeDomain))
     {
-        GenerateClass($"{readModel}To{createModel}Mapper", $"Models.{readModel}", $"Models.{createModel}");
-        GenerateClass($"{readModel}To{updateModel}Mapper", $"Models.{readModel}", $"Models.{updateModel}");
-        GenerateClass($"{updateModel}To{createModel}Mapper", $"Models.{updateModel}", $"Models.{createModel}");
-        GenerateClass($"{updateModel}To{readModel}Mapper", $"Models.{updateModel}", $"Models.{readModel}");
+        GenerateClass(readModel, createModel);
+        GenerateClass(readModel, updateModel);
+        GenerateClass(updateModel, createModel);
     }
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
-        GenerateClass($"{entityClass}To{readModel}Mapper", $"Entities.{entityClass}", $"Models.{readModel}");
-        GenerateClass($"{entityClass}To{updateModel}Mapper", $"Entities.{entityClass}", $"Models.{updateModel}");
-        GenerateClass($"{createModel}To{entityClass}Mapper", $"Models.{createModel}", $"Entities.{entityClass}");
-        GenerateClass($"{updateModel}To{entityClass}Mapper", $"Models.{updateModel}", $"Entities.{entityClass}");
+        GenerateClass(Entity, readModel);
+        GenerateClass(Entity, updateModel);
+        GenerateClass(createModel, Entity);
+        GenerateClass(updateModel, Entity);
     }
 
     return CodeBuilder.ToString();
 }
 
-private void GenerateClass(string className, string source, string destination)
+private void GenerateClass(object? source, object? destination)
 {
-    CodeBuilder.AppendLine("[Mapper]");
-    CodeBuilder.AppendLine($"[RegisterSingleton<IMapper<{source}, {destination}>>]");
-    CodeBuilder.AppendLine($"internal sealed partial class {className} : IMapper<{source}, {destination}>");
+    if (source == null || destination == null)
+        return;
+
+    var (sourceNamespace, sourceClass, sourceProperties) = GetNames(source);
+    var (destinationNamespace, destinationClass, destinationProperties) = GetNames(destination);
+
+    if (sourceNamespace == null
+        || destinationNamespace == null
+        || sourceClass == null
+        || destinationClass == null
+        || sourceProperties == null
+        || destinationProperties == null)
+    {
+        return;
+    }
+
+    var className = $"{sourceClass}To{destinationClass}Mapper";
+
+    var sourceName = $"{sourceNamespace}.{sourceClass}";
+    var destinationName = $"{destinationNamespace}.{destinationClass}";
+
+    CodeBuilder.AppendLine($"[RegisterSingleton<IMapper<{sourceName}, {destinationName}>>]");
+    CodeBuilder.AppendLine($"internal sealed class {className} : Arbiter.CommandQuery.Mapping.MapperBase<{sourceName}, {destinationName}>");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
-    WriteMapper(source, destination);
+    WriteMapper(sourceName, destinationName, sourceProperties, destinationProperties);
 
     CodeBuilder.DecrementIndent();
     CodeBuilder.AppendLine("}");
     CodeBuilder.AppendLine();
 }
 
-private void WriteMapper(string source, string destination)
+private void WriteMapper(
+    string sourceType,
+    string destinationType,
+    IEnumerable<Property> sourceProperties,
+    IEnumerable<Property> destinationProperties)
 {
-    CodeBuilder.AppendLine($"[return: NotNullIfNotNull(nameof(source))]");
-    CodeBuilder.AppendLine($"public partial {destination}? Map({source}? source);");
+    if (sourceProperties == null || destinationProperties == null)
+        return;
+
+    var destinationNames = destinationProperties.Select(d => d.PropertyName);
+    var commonProperties = sourceProperties.IntersectBy(destinationNames, p => p.PropertyName);
+
+    WriteCopyMap(sourceType, destinationType, commonProperties);
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine($"public partial void Map({source} source, {destination} destination);");
+
+    WriteQueryMap(sourceType, destinationType, commonProperties);
+}
+
+private void WriteQueryMap(string sourceType, string destinationType, IEnumerable<Property> properties)
+{
+    CodeBuilder.AppendLine($"public override IQueryable<{destinationType}> ProjectTo(IQueryable<{sourceType}> source)");
+    CodeBuilder.AppendLine("{");
+    CodeBuilder.IncrementIndent();
+
+    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(source);");
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine($"public partial IQueryable<{destination}> ProjectTo(IQueryable<{source}> source);");
+
+    CodeBuilder.AppendLine($"return source.Select(p =>");
+    CodeBuilder.IncrementIndent();
+    CodeBuilder.AppendLine($"new {destinationType}");
+    CodeBuilder.AppendLine("{");
+    CodeBuilder.IncrementIndent();
+
+    CodeBuilder.AppendLine("#region Generated Query Properties");
+    foreach (var property in properties)
+    {
+        CodeBuilder.AppendLine($"{property.PropertyName} = p.{property.PropertyName},");
+    }
+    CodeBuilder.AppendLine("#endregion");
+
+    CodeBuilder.DecrementIndent();
+    CodeBuilder.AppendLine("}"); // object initializer end
+
+    CodeBuilder.DecrementIndent();
+    CodeBuilder.AppendLine(");");
+
+    CodeBuilder.DecrementIndent();
+    CodeBuilder.AppendLine("}"); // function end
+}
+
+private void WriteCopyMap(string sourceType, string destinationType, IEnumerable<Property> properties)
+{
+    CodeBuilder.AppendLine($"public override void Map({sourceType} source, {destinationType} destination)");
+    CodeBuilder.AppendLine("{");
+    CodeBuilder.IncrementIndent();
+
+    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(source);");
+    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(destination);");
+    CodeBuilder.AppendLine();
+
+    CodeBuilder.AppendLine("#region Generated Copied Properties");
+    foreach (var property in properties)
+    {
+        CodeBuilder.AppendLine($"destination.{property.PropertyName} = source.{property.PropertyName};");
+    }
+    CodeBuilder.AppendLine("#endregion");
+
+    CodeBuilder.DecrementIndent();
+    CodeBuilder.AppendLine("}"); // function end
+}
+
+private static (string? ClassNamespace, string? ClassName, IEnumerable<Property>? Properties) GetNames(object value)
+{
+    return value switch
+    {
+        Model model => ("Models", model.ModelClass.ToSafeName(), model.Properties),
+        Entity entity => ("Entities", entity.EntityClass.ToSafeName(), entity.Properties),
+        _ => (null, null, null)
+    };
 }
 
 // run script

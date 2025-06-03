@@ -29,6 +29,7 @@
     <File Path="templates/DomainJsonContext.csx" />
     <File Path="templates/DomainServiceRegistration.csx" />
     <File Path="templates/EntityEndpoint.csx" />
+    <File Path="templates/EntityMapper.csx" />
     <File Path="templates/EntityMapping.csx" />
     <File Path="templates/EntityStore.csx" />
   </Folder>

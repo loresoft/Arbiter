@@ -22,7 +22,7 @@ public static class QueryExtensions
     /// <param name="query">The query to apply the sort to.</param>
     /// <param name="sort">The sort expression to apply.</param>
     /// <returns>
-    /// An <see cref="IQueryable{T}"/> with the sort applied. If <paramref name="sort"/> is <c>null</c>, the original query is returned.
+    /// An <see cref="IQueryable{T}"/> with the sort applied. If <paramref name="sort"/> is <see langword="null"/>, the original query is returned.
     /// </returns>
     /// <example>
     /// <code>
@@ -44,7 +44,7 @@ public static class QueryExtensions
     /// <param name="query">The query to apply the sorts to.</param>
     /// <param name="sorts">A collection of sort expressions to apply.</param>
     /// <returns>
-    /// An <see cref="IQueryable{T}"/> with the sorts applied. If <paramref name="sorts"/> is <c>null</c> or empty, the original query is returned.
+    /// An <see cref="IQueryable{T}"/> with the sorts applied. If <paramref name="sorts"/> is <see langword="null"/> or empty, the original query is returned.
     /// </returns>
     /// <example>
     /// <code>
@@ -88,7 +88,7 @@ public static class QueryExtensions
     /// <param name="query">The query to apply the filter to.</param>
     /// <param name="filter">The filter expression to apply.</param>
     /// <returns>
-    /// An <see cref="IQueryable{T}"/> with the filter applied. If <paramref name="filter"/> is <c>null</c> or invalid, the original query is returned.
+    /// An <see cref="IQueryable{T}"/> with the filter applied. If <paramref name="filter"/> is <see langword="null"/> or invalid, the original query is returned.
     /// </returns>
     /// <example>
     /// <code>

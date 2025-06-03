@@ -5,7 +5,7 @@ project:
   fileScopedNamespace: true
 database:
   provider: SqlServer
-  connectionString: Data Source=(local);Initial Catalog=TrackerTest;Integrated Security=True;TrustServerCertificate=True
+  connectionString: Data Source=(local);Initial Catalog=TrackerCommandQuery;Integrated Security=True;TrustServerCertificate=True
   schemas:
     - dbo
 data:
@@ -37,40 +37,39 @@ model:
       entities:
         - 'TaskExtended'
         - 'UserRole'
-      properties:
-        - '\.Id$'
-        - '\.Created$'
-        - '\.CreatedBy$'
-        - '\.Updated$'
-        - '\.UpdatedBy$'
-        - '\.RowVersion$'
   read:
     generate: true
     name: '{Entity.Name}ReadModel'
-    baseClass: 'Arbiter.CommandQuery.Models.EntityCreateModel<int>'
+    baseClass: 'IHaveIdentifier<int>, ITrackCreated, ITrackUpdated, ITrackConcurrency'
     document: false
   create:
     generate: true
     name: '{Entity.Name}CreateModel'
-    baseClass: 'Arbiter.CommandQuery.Models.EntityReadModel<int>'
+    baseClass: 'IHaveIdentifier<int>, ITrackCreated, ITrackUpdated'
     document: false
     exclude:
       entities:
         - 'UserLogin'
+      properties:
+        - '\.RowVersion$'
   update:
     generate: true
     name: '{Entity.Name}UpdateModel'
-    baseClass: 'Arbiter.CommandQuery.Models.EntityUpdateModel'
+    baseClass: 'ITrackUpdated, ITrackConcurrency'
     document: false
     exclude:
       entities:
         - 'UserLogin'
+      properties:
+        - '\.Id$'
+        - '\.Created$'
+        - '\.CreatedBy$'
   mapper:
     generate: false
   validator:
     generate: true
     name: '{Model.Name}Validator'
-    baseClass: 'AbstractValidator<{Model.Name}>'
+    baseClass: FluentValidation.AbstractValidator<{Model.Name}>
     namespace: '{Project.Namespace}.Domain.Validation'
     directory: '{Project.Directory}\Domain\{Entity.Name}\Validation'
     attributes: '[RegisterSingleton<FluentValidation.IValidator<{Model.Name}>>]'
@@ -87,3 +86,4 @@ script:
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '{Project.Directory}\Domain\{Entity.Name}\Mapping'
+      merge: true

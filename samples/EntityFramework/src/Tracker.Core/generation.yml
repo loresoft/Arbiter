@@ -80,14 +80,14 @@ script:
       parameters:
         keyType: int
 
-    - templatePath: '..\..\..\..\templates\EntityMapping.csx'
+    - templatePath: '..\..\..\..\templates\EntityMapper.csx'
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '{Project.Directory}\Domain\{Entity.Name}\Mapping'
       parameters:
         excludeDomain: true
 
-    - templatePath: '..\..\..\..\templates\EntityMapping.csx'
+    - templatePath: '..\..\..\..\templates\EntityMapper.csx'
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '..\{Project.Namespace}.Shared\Domain\{Entity.Name}\Mapping'

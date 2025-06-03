@@ -2,12 +2,8 @@
 #pragma warning disable RMG012 // Source member was not found for target member
 #pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
 using Arbiter.CommandQuery.Definitions;
 
-using Injectio.Attributes;
 using Riok.Mapperly.Abstractions;
 
 using Entities = Tracker.Data.Entities;
@@ -17,49 +13,44 @@ namespace Tracker.Domain.Mapping;
 
 [Mapper]
 [RegisterSingleton<IMapper<Entities.Status, Models.StatusReadModel>>]
-internal sealed partial class StatusToStatusReadModelMapper : IMapper<Entities.Status, Models.StatusReadModel>
+internal sealed partial class StatusToStatusReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.Status, Models.StatusReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusReadModel? Map(Entities.Status? source);
+    public override partial void Map(Entities.Status source, Models.StatusReadModel destination);
 
-    public partial void Map(Entities.Status source, Models.StatusReadModel destination);
-
-    public partial IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Entities.Status> source);
+    public override partial IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Entities.Status> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Entities.Status, Models.StatusUpdateModel>>]
-internal sealed partial class StatusToStatusUpdateModelMapper : IMapper<Entities.Status, Models.StatusUpdateModel>
+internal sealed partial class StatusToStatusUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.Status, Models.StatusUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.StatusUpdateModel? Map(Entities.Status? source);
+    [MapperIgnoreSource(nameof(Entities.Status.Id))]
+    [MapperIgnoreSource(nameof(Entities.Status.Created))]
+    [MapperIgnoreSource(nameof(Entities.Status.CreatedBy))]
+    public override partial void Map(Entities.Status source, Models.StatusUpdateModel destination);
 
-    public partial void Map(Entities.Status source, Models.StatusUpdateModel destination);
-
-    public partial IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Entities.Status> source);
+    public override partial IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Entities.Status> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.StatusCreateModel, Entities.Status>>]
-internal sealed partial class StatusCreateModelToStatusMapper : IMapper<Models.StatusCreateModel, Entities.Status>
+internal sealed partial class StatusCreateModelToStatusMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusCreateModel, Entities.Status>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Status? Map(Models.StatusCreateModel? source);
+    [MapperIgnoreTarget(nameof(Entities.Status.RowVersion))]
+    public override partial void Map(Models.StatusCreateModel source, Entities.Status destination);
 
-    public partial void Map(Models.StatusCreateModel source, Entities.Status destination);
-
-    public partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusCreateModel> source);
+    public override partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusCreateModel> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.StatusUpdateModel, Entities.Status>>]
-internal sealed partial class StatusUpdateModelToStatusMapper : IMapper<Models.StatusUpdateModel, Entities.Status>
+internal sealed partial class StatusUpdateModelToStatusMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusUpdateModel, Entities.Status>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Entities.Status? Map(Models.StatusUpdateModel? source);
+    [MapperIgnoreTarget(nameof(Entities.Status.Id))]
+    [MapperIgnoreTarget(nameof(Entities.Status.Created))]
+    [MapperIgnoreTarget(nameof(Entities.Status.CreatedBy))]
+    public override partial void Map(Models.StatusUpdateModel source, Entities.Status destination);
 
-    public partial void Map(Models.StatusUpdateModel source, Entities.Status destination);
-
-    public partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
+    public override partial IQueryable<Entities.Status> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
 }
 

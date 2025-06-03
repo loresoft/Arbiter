@@ -33,7 +33,7 @@ public class JsonExceptionMiddleware
     /// <param name="next">The next middleware in the request pipeline.</param>
     /// <param name="loggerFactory">The factory used to create a logger instance.</param>
     /// <param name="hostingEnvironment">The hosting environment to determine if the application is in development mode.</param>
-    /// <exception cref="ArgumentNullException">Thrown when any of the parameters are <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when any of the parameters are <see langword="null"/>.</exception>
     public JsonExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnvironment)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));

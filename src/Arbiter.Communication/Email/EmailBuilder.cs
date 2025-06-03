@@ -128,7 +128,7 @@ public class EmailBuilder
     /// <summary>
     /// Sets the plain text body content of the email.
     /// </summary>
-    /// <param name="textBody">The plain text body content. May be <c>null</c>.</param>
+    /// <param name="textBody">The plain text body content. May be <see langword="null"/>.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     public EmailBuilder TextBody(string? textBody)
     {
@@ -230,7 +230,7 @@ public class EmailBuilder
     /// <summary>
     /// Creates a new <see cref="EmailBuilder"/> instance, optionally setting the sender address and display name.
     /// </summary>
-    /// <param name="fromAddress">The sender's email address. If <c>null</c>, the sender is not set.</param>
+    /// <param name="fromAddress">The sender's email address. If <see langword="null"/>, the sender is not set.</param>
     /// <param name="fromName">The optional display name for the sender.</param>
     /// <returns>A new <see cref="EmailBuilder"/> instance.</returns>
     public static EmailBuilder Create(string? fromAddress = null, string? fromName = null)

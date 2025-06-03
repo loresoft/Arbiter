@@ -14,6 +14,7 @@ public partial class AuditUpdateModelValidator
         RuleFor(p => p.Content).NotEmpty();
         RuleFor(p => p.Username).NotEmpty();
         RuleFor(p => p.Username).MaximumLength(50);
+        RuleFor(p => p.UpdatedBy).MaximumLength(100);
         #endregion
     }
 

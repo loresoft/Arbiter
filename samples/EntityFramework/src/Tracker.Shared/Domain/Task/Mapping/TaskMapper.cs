@@ -2,12 +2,8 @@
 #pragma warning disable RMG012 // Source member was not found for target member
 #pragma warning disable RMG020 // Source member is not mapped to any target member
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-
 using Arbiter.CommandQuery.Definitions;
 
-using Injectio.Attributes;
 using Riok.Mapperly.Abstractions;
 
 using Models = Tracker.Domain.Models;
@@ -16,49 +12,50 @@ namespace Tracker.Domain.Mapping;
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
-internal sealed partial class TaskReadModelToTaskCreateModelMapper : IMapper<Models.TaskReadModel, Models.TaskCreateModel>
+internal sealed partial class TaskReadModelToTaskCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TaskCreateModel? Map(Models.TaskReadModel? source);
+    [MapperIgnoreSource(nameof(Models.TaskReadModel.Id))]
+    [MapperIgnoreSource(nameof(Models.TaskReadModel.RowVersion))]
+    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Id))]
+    public override partial void Map(Models.TaskReadModel source, Models.TaskCreateModel destination);
 
-    public partial void Map(Models.TaskReadModel source, Models.TaskCreateModel destination);
-
-    public partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
+    public override partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
-internal sealed partial class TaskReadModelToTaskUpdateModelMapper : IMapper<Models.TaskReadModel, Models.TaskUpdateModel>
+internal sealed partial class TaskReadModelToTaskUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TaskUpdateModel? Map(Models.TaskReadModel? source);
+    [MapperIgnoreSource(nameof(Models.TaskReadModel.Id))]
+    [MapperIgnoreSource(nameof(Models.TaskReadModel.Created))]
+    [MapperIgnoreSource(nameof(Models.TaskReadModel.CreatedBy))]
+    public override partial void Map(Models.TaskReadModel source, Models.TaskUpdateModel destination);
 
-    public partial void Map(Models.TaskReadModel source, Models.TaskUpdateModel destination);
-
-    public partial IQueryable<Models.TaskUpdateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
+    public override partial IQueryable<Models.TaskUpdateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
-internal sealed partial class TaskUpdateModelToTaskCreateModelMapper : IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>
+internal sealed partial class TaskUpdateModelToTaskCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TaskCreateModel? Map(Models.TaskUpdateModel? source);
+    [MapperIgnoreSource(nameof(Models.TaskUpdateModel.RowVersion))]
+    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Id))]
+    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Created))]
+    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.CreatedBy))]
+    public override partial void Map(Models.TaskUpdateModel source, Models.TaskCreateModel destination);
 
-    public partial void Map(Models.TaskUpdateModel source, Models.TaskCreateModel destination);
-
-    public partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
+    public override partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
 }
 
 [Mapper]
 [RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskReadModel>>]
-internal sealed partial class TaskUpdateModelToTaskReadModelMapper : IMapper<Models.TaskUpdateModel, Models.TaskReadModel>
+internal sealed partial class TaskUpdateModelToTaskReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskReadModel>
 {
-    [return: NotNullIfNotNull(nameof(source))]
-    public partial Models.TaskReadModel? Map(Models.TaskUpdateModel? source);
+    [MapperIgnoreTarget(nameof(Models.TaskReadModel.Id))]
+    [MapperIgnoreTarget(nameof(Models.TaskReadModel.Created))]
+    [MapperIgnoreTarget(nameof(Models.TaskReadModel.CreatedBy))]
+    public override partial void Map(Models.TaskUpdateModel source, Models.TaskReadModel destination);
 
-    public partial void Map(Models.TaskUpdateModel source, Models.TaskReadModel destination);
-
-    public partial IQueryable<Models.TaskReadModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
+    public override partial IQueryable<Models.TaskReadModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
 }
 

@@ -4,9 +4,11 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class UserCreateModel
-    : Arbiter.CommandQuery.Models.EntityReadModel<int>
+    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
 {
     #region Generated Properties
+    public int Id { get; set; }
+
     public string EmailAddress { get; set; } = null!;
 
     public bool IsEmailAddressConfirmed { get; set; }
@@ -28,6 +30,14 @@ public partial class UserCreateModel
     public DateTimeOffset? LastLogin { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public DateTimeOffset Created { get; set; }
+
+    public string? CreatedBy { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
 
     #endregion
 

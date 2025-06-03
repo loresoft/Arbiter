@@ -4,9 +4,11 @@ using System.Collections.Generic;
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 public partial class TaskCreateModel
-    : Arbiter.CommandQuery.Models.EntityReadModel<int>, IHaveTenant<int>
+    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated, IHaveTenant<int>
 {
     #region Generated Properties
+    public int Id { get; set; }
+
     public int StatusId { get; set; }
 
     public int? PriorityId { get; set; }
@@ -26,6 +28,14 @@ public partial class TaskCreateModel
     public int TenantId { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public DateTimeOffset Created { get; set; }
+
+    public string? CreatedBy { get; set; }
+
+    public DateTimeOffset Updated { get; set; }
+
+    public string? UpdatedBy { get; set; }
 
     #endregion
 

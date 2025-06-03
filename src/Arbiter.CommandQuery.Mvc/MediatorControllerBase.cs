@@ -20,7 +20,7 @@ public abstract class MediatorControllerBase : ControllerBase
     /// Initializes a new instance of the <see cref="MediatorControllerBase"/> class.
     /// </summary>
     /// <param name="mediator">The <see cref="IMediator"/> used to send requests and handle responses.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="mediator"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="mediator"/> is <see langword="null"/>.</exception>
     protected MediatorControllerBase(IMediator mediator)
     {
         Mediator = mediator ?? throw new System.ArgumentNullException(nameof(mediator));

@@ -38,11 +38,18 @@ public class TaskTests : DatabaseTestBase
         var createResult = await mediator.Send(createCommand);
         createResult.Should().NotBeNull();
 
+        // check mapping
+        createResult.PriorityName.Should().Be("Normal");
+        createResult.StatusName.Should().Be("Not Started");
+
         // Get Entity by Key
         var identifierQuery = new EntityIdentifierQuery<int, TaskReadModel>(MockPrincipal.Default, createResult.Id);
         var identifierResult = await mediator.Send(identifierQuery);
         identifierResult.Should().NotBeNull();
         identifierResult.Title.Should().Be(createModel.Title);
+        // check mapping
+        identifierResult.PriorityName.Should().Be("Normal");
+        identifierResult.StatusName.Should().Be("Not Started");
 
         // Query Entity
         var entityQuery = new EntityQuery
