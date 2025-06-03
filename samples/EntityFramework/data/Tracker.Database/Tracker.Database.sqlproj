@@ -6,8 +6,8 @@
     <ProjectGuid>{0210d856-b45c-49d0-a208-1eb435cbb3f1}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
-    <TargetDatabaseSet>True</TargetDatabaseSet>
     <IsPackable>false</IsPackable>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Tables" />
@@ -24,4 +24,7 @@
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
+  <Target Name="BeforeBuild">
+    <Delete Files="$(BaseIntermediateOutputPath)\project.assets.json" />
+  </Target>
 </Project>
