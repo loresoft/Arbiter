@@ -11,7 +11,7 @@ namespace Arbiter.Communication.Tests;
 public class EmailTemplateServiceTests : TestBase
 {
     [Test]
-    public async Task SendPassWordRestTest()
+    public async Task SendPasswordResetTest()
     {
         var templateService = Services.GetRequiredService<IEmailTemplateService>();
         templateService.Should().NotBeNull();

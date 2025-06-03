@@ -18,7 +18,7 @@ public class AzureTests
     public IServiceProvider Services => Application.Services;
 
     [Test, Skip("Local Only")]
-    public async Task SendPassWordRestTest()
+    public async Task SendPasswordResetTest()
     {
         var templateService = Services.GetRequiredService<IEmailTemplateService>();
         templateService.Should().NotBeNull();

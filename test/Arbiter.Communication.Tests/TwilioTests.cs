@@ -19,7 +19,7 @@ public class TwilioTests
     public IServiceProvider Services => Application.Services;
 
     [Test, Skip("Local Only")]
-    public async Task SendPassWordRestTest()
+    public async Task SendPasswordResetTest()
     {
         var templateService = Services.GetRequiredService<IEmailTemplateService>();
         templateService.Should().NotBeNull();
@@ -38,12 +38,12 @@ public class TwilioTests
         };
 
         var recipients = EmailBuilder.Create()
-            .To("SendPassWordRestTest@mailinator.com", "Send Grid")
+            .To("SendPasswordResetTest@mailinator.com", "Send Grid")
             .BuildRecipients();
 
         recipients.Should().NotBeNull();
         recipients.To.Should().NotBeEmpty();
-        recipients.To[0].Address.Should().Be("SendPassWordRestTest@mailinator.com");
+        recipients.To[0].Address.Should().Be("SendPasswordResetTest@mailinator.com");
 
         var result = await templateService.Send(TemplateNames.ResetPasswordEmail, emailModel, recipients);
 
