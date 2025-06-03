@@ -39,6 +39,7 @@ public string WriteCode()
     CodeBuilder.AppendLine();
 
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Definitions;");
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.Mapping;");
     CodeBuilder.AppendLine();
 
 
@@ -94,7 +95,8 @@ private void GenerateClass(object? source, object? destination)
     var destinationName = $"{destinationNamespace}.{destinationClass}";
 
     CodeBuilder.AppendLine($"[RegisterSingleton<IMapper<{sourceName}, {destinationName}>>]");
-    CodeBuilder.AppendLine($"internal sealed class {className} : Arbiter.CommandQuery.Mapping.MapperBase<{sourceName}, {destinationName}>");
+    CodeBuilder.AppendLine($"internal sealed class {className}");
+    CodeBuilder.AppendLine($"    : MapperBase<{sourceName}, {destinationName}>");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
@@ -125,7 +127,8 @@ private void WriteMapper(
 
 private void WriteQueryMap(string sourceType, string destinationType, IEnumerable<Property> properties)
 {
-    CodeBuilder.AppendLine($"public override IQueryable<{destinationType}> ProjectTo(IQueryable<{sourceType}> source)");
+    CodeBuilder.AppendLine($"public override IQueryable<{destinationType}> ProjectTo(");
+    CodeBuilder.AppendLine($"    IQueryable<{sourceType}> source)");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
@@ -157,7 +160,9 @@ private void WriteQueryMap(string sourceType, string destinationType, IEnumerabl
 
 private void WriteCopyMap(string sourceType, string destinationType, IEnumerable<Property> properties)
 {
-    CodeBuilder.AppendLine($"public override void Map({sourceType} source, {destinationType} destination)");
+    CodeBuilder.AppendLine($"public override void Map(");
+    CodeBuilder.AppendLine($"    {sourceType} source,");
+    CodeBuilder.AppendLine($"    {destinationType} destination)");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 

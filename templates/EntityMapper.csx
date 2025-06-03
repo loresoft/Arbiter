@@ -41,6 +41,7 @@ public string WriteCode()
     CodeBuilder.AppendLine();
 
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Definitions;");
+    CodeBuilder.AppendLine("using Arbiter.CommandQuery.Mapping;");
     CodeBuilder.AppendLine();
 
     CodeBuilder.AppendLine("using Riok.Mapperly.Abstractions;");
@@ -79,7 +80,8 @@ private void GenerateClass(string className, string source, string destination, 
 {
     CodeBuilder.AppendLine("[Mapper]");
     CodeBuilder.AppendLine($"[RegisterSingleton<IMapper<{source}, {destination}>>]");
-    CodeBuilder.AppendLine($"internal sealed partial class {className} : Arbiter.CommandQuery.Mapping.MapperBase<{source}, {destination}>");
+    CodeBuilder.AppendLine($"internal sealed partial class {className}");
+    CodeBuilder.AppendLine($"    : MapperBase<{source}, {destination}>");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
@@ -100,9 +102,12 @@ private void WriteMapper(string source, string destination, List<string>? source
         foreach(var property in targetIgnore)
             CodeBuilder.AppendLine($"[MapperIgnoreTarget(nameof({destination}.{property}))]");
 
-    CodeBuilder.AppendLine($"public override partial void Map({source} source, {destination} destination);");
+    CodeBuilder.AppendLine($"public override partial void Map(");
+    CodeBuilder.AppendLine($"    {source} source,");
+    CodeBuilder.AppendLine($"    {destination} destination);");
     CodeBuilder.AppendLine();
-    CodeBuilder.AppendLine($"public override partial IQueryable<{destination}> ProjectTo(IQueryable<{source}> source);");
+    CodeBuilder.AppendLine($"public override partial IQueryable<{destination}> ProjectTo(");
+    CodeBuilder.AppendLine($"    IQueryable<{source}> source);");
 }
 
 // run script
