@@ -23,8 +23,8 @@ public class SmtpApplication : TestHostApplication
 
         builder.Configuration.AddUserSecrets("8e031d65-7a0b-4b43-a160-3ab9601963b1");
 
-        builder.Services.AddSmtpEmailDeliver(
-            configureOptions: options => options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat)
-        );
+        builder.Services
+            .AddTemplateResourceResolver(TemplateNames.TemplateAssembly, TemplateNames.TemplateResourceFormat)
+            .AddSmtpEmailDeliver();
     }
 }

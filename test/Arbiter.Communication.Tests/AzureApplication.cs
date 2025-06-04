@@ -20,14 +20,9 @@ public class AzureApplication : TestHostApplication
 
         builder.Configuration.AddUserSecrets("124f13a8-a53b-4af2-accc-6407ba0340e2");
 
-        builder.Services.AddAzureEmailDeliver(
-            nameOrConnectionString: "ArbiterCommunication",
-            configureOptions: options => options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat)
-        );
-
-        builder.Services.AddAzureSmsDeliver(
-            nameOrConnectionString: "ArbiterCommunication",
-            configureOptions: options => options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat)
-        );
+        builder.Services
+            .AddTemplateResourceResolver(TemplateNames.TemplateAssembly, TemplateNames.TemplateResourceFormat)
+            .AddAzureEmailDeliver("ArbiterCommunication")
+            .AddAzureSmsDeliver("ArbiterCommunication");
     }
 }

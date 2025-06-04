@@ -1,30 +1,35 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 using Fluid;
-
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Arbiter.Communication.Template;
 
 /// <summary>
-/// Provides services for applying text templates to models and retrieving embedded resource templates.
+/// Provides services for applying text templates to models and retrieving named templates using registered template resolvers.
 /// </summary>
 /// <remarks>
-/// This service uses Fluid for template parsing and rendering, and YamlDotNet for deserializing resource templates.
+/// This service uses Fluid for template parsing and rendering, and supports extensible template resolution via registered <see cref="ITemplateResolver"/> implementations.
 /// </remarks>
 public class TemplateService : ITemplateService
 {
     private readonly FluidParser _fluidParser;
+    private readonly IReadOnlyList<ITemplateResolver> _templateResolvers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TemplateService"/> class.
     /// </summary>
     /// <param name="fluidParser">The Fluid parser used for template parsing and rendering.</param>
-    public TemplateService(FluidParser fluidParser)
+    /// <param name="templateResolvers">A collection of template resolvers for locating and loading templates by name.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="fluidParser"/> or <paramref name="templateResolvers"/> is <see langword="null"/>.
+    /// </exception>
+    public TemplateService(FluidParser fluidParser, IEnumerable<ITemplateResolver> templateResolvers)
     {
+        ArgumentNullException.ThrowIfNull(fluidParser);
+        ArgumentNullException.ThrowIfNull(templateResolvers);
+
         _fluidParser = fluidParser;
+        _templateResolvers = [.. templateResolvers.OrderBy(p => p.Priority)];
     }
 
     /// <summary>
@@ -58,43 +63,35 @@ public class TemplateService : ITemplateService
     }
 
     /// <summary>
-    /// Retrieves an embedded resource template from the specified assembly and resource name, and deserializes it to the specified type.
+    /// Retrieves a template by name and attempts to deserialize or cast it to the specified type using registered template resolvers.
     /// </summary>
-    /// <typeparam name="TTemplate">The type to which the resource template should be deserialized.</typeparam>
-    /// <param name="assembly">The assembly containing the embedded resource.</param>
-    /// <param name="resourceName">The name of the embedded resource.</param>
+    /// <typeparam name="TTemplate">The type to which the template should be deserialized or cast.</typeparam>
+    /// <param name="templateName">The name or key of the template to retrieve.</param>
     /// <param name="template">
-    /// When this method returns, contains the resource template as <typeparamref name="TTemplate"/> if found and successfully loaded; otherwise, <see langword="null"/>.
+    /// When this method returns, contains the template as <typeparamref name="TTemplate"/> if found and successfully loaded; otherwise, <see langword="null"/>.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the resource template was found and loaded successfully; otherwise, <see langword="false"/>.
+    /// <see langword="true"/> if the template was found and loaded successfully; otherwise, <see langword="false"/>.
     /// </returns>
     /// <remarks>
-    /// Uses YamlDotNet to deserialize the embedded resource. Returns <see langword="false"/> if the resource is not found or cannot be deserialized.
+    /// Attempts to resolve the template using all registered <see cref="ITemplateResolver"/> instances.
+    /// Returns <see langword="true"/> on the first successful resolution; otherwise, <see langword="false"/>.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="assembly"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="resourceName"/> is <see langword="null"/> or empty.</exception>
-    public bool TryGetResourceTemplate<TTemplate>(
-        Assembly assembly,
-        string resourceName,
+    /// <exception cref="ArgumentException">Thrown if <paramref name="templateName"/> is <see langword="null"/> or empty.</exception>
+    public bool TryGetTemplate<TTemplate>(
+        string templateName,
         [NotNullWhen(true)] out TTemplate? template)
     {
-        ArgumentNullException.ThrowIfNull(assembly);
-        ArgumentException.ThrowIfNullOrEmpty(resourceName);
+        ArgumentException.ThrowIfNullOrEmpty(templateName);
 
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream is null)
+        // try each registered resolver until one succeeds
+        for (int i = 0; i < _templateResolvers.Count; i++)
         {
-            template = default;
-            return false;
+            if (_templateResolvers[i].TryResolveTemplate(templateName, out template))
+                return true;
         }
 
-        using var reader = new StreamReader(stream);
-        var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-
-        template = deserializer.Deserialize<TTemplate>(reader);
-        return template is not null;
+        template = default;
+        return false;
     }
 }

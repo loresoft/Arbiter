@@ -14,18 +14,14 @@ public class TestApplication : TestHostApplication
     {
         base.ConfigureApplication(builder);
 
-        builder.Services.AddEmailDelivery<MemoryEmailDeliverService>(options =>
-        {
-            options.FromAddress = "UnitTestACE@mailinator.com";
-            options.FromName = "Unit Test";
-
-            options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat);
-        });
-
-        builder.Services.AddSmsDelivery<MemorySmsDeliverService>(options =>
-        {
-            options.SenderNumber = "+8885551212";
-            options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat);
-        });
+        builder.Services
+            .AddTemplateResourceResolver(TemplateNames.TemplateAssembly, TemplateNames.TemplateResourceFormat)
+            .AddTemplateResolver<MockTemplateResolver>()
+            .AddEmailDelivery<MemoryEmailDeliverService>(options =>
+            {
+                options.FromAddress = "UnitTestACE@mailinator.com";
+                options.FromName = "Unit Test";
+            })
+            .AddSmsDelivery<MemorySmsDeliverService>(options => options.SenderNumber = "+8885551212");
     }
 }

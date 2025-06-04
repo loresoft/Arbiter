@@ -64,16 +64,9 @@ public class SmsTemplateService : ISmsTemplateService
         ArgumentException.ThrowIfNullOrEmpty(templateName);
         ArgumentNullException.ThrowIfNull(model);
 
-        var options = _options.Value;
-
         try
         {
-            var templateAssembly = options.TemplateAssembly ?? Assembly.GetExecutingAssembly();
-            var resourceName = !string.IsNullOrEmpty(options.TemplateResourceFormat)
-                ? string.Format(options.TemplateResourceFormat, templateName)
-                : templateName;
-
-            if (!_templateService.TryGetResourceTemplate<SmsTemplate>(templateAssembly, resourceName, out var template))
+            if (!_templateService.TryGetTemplate<SmsTemplate>(templateName, out var template))
             {
                 _logger.LogError("Could not find template: {TemplateName}", templateName);
                 return SmsResult.Fail($"Could not find template '{templateName}'");

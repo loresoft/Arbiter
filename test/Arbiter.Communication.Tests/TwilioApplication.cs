@@ -21,12 +21,9 @@ public class TwilioApplication : TestHostApplication
 
         builder.Configuration.AddUserSecrets("5b92be6b-0be6-43cb-a944-709792dbba38");
 
-        builder.Services.AddSendGridEmailDeliver(options =>
-            options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat)
-        );
-
-        builder.Services.AddTwilioSmsDeliver(options =>
-            options.AddTemplateAssembly<TestApplication>(TemplateNames.TemplateResourceFormat)
-        );
+        builder.Services
+            .AddTemplateResourceResolver(TemplateNames.TemplateAssembly, TemplateNames.TemplateResourceFormat)
+            .AddSendGridEmailDeliver()
+            .AddTwilioSmsDeliver();
     }
 }

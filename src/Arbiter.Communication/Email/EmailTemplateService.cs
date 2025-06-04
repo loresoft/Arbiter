@@ -84,16 +84,9 @@ public class EmailTemplateService : IEmailTemplateService
         ArgumentException.ThrowIfNullOrEmpty(templateName);
         ArgumentNullException.ThrowIfNull(emailModel);
 
-        var options = Options.Value;
-
         try
         {
-            var templateAssembly = options.TemplateAssembly ?? Assembly.GetExecutingAssembly();
-            var resourceName = !string.IsNullOrEmpty(options.TemplateResourceFormat)
-                ? string.Format(options.TemplateResourceFormat, templateName)
-                : templateName;
-
-            if (!TemplateService.TryGetResourceTemplate<EmailTemplate>(templateAssembly, resourceName, out var emailTemplate))
+            if (!TemplateService.TryGetTemplate<EmailTemplate>(templateName, out var emailTemplate))
             {
                 Logger.LogError("Could not find email template: {TemplateName}", templateName);
                 return EmailResult.Fail($"Could not find template '{templateName}'");
@@ -132,16 +125,14 @@ public class EmailTemplateService : IEmailTemplateService
     {
         ArgumentNullException.ThrowIfNull(emailModel);
 
-        var options = Options.Value;
-
         try
         {
             var subject = TemplateService.ApplyTemplate(emailTemplate.Subject, emailModel);
             var htmlBody = TemplateService.ApplyTemplate(emailTemplate.HtmlBody, emailModel);
             var textBody = TemplateService.ApplyTemplate(emailTemplate.TextBody, emailModel);
 
-            var fromName = options.FromName;
-            var fromEmail = options.FromAddress;
+            var fromName = Options.Value.FromName;
+            var fromEmail = Options.Value.FromAddress;
 
             var localSenders = senders ?? new EmailSenders(new EmailAddress(fromEmail, fromName));
 

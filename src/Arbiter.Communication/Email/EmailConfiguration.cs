@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Arbiter.Communication.Email;
 
 /// <summary>
-/// Represents configuration options for email delivery, including sender information, SMTP server settings, and template resources.
+/// Represents configuration options for email delivery, including sender information and SMTP server settings.
 /// </summary>
 public class EmailConfiguration
 {
@@ -62,55 +62,4 @@ public class EmailConfiguration
     /// Gets or sets the service key used to authenticate or identify the service.
     /// </summary>
     public string? ServiceKey { get; set; }
-
-    /// <summary>
-    /// Gets or sets the assembly containing embedded email templates.
-    /// </summary>
-    /// <remarks>
-    /// If specified, templates will be loaded from this assembly's resources.
-    /// </remarks>
-    public Assembly? TemplateAssembly { get; set; }
-
-    /// <summary>
-    /// Gets or sets the format string used to locate template resources within the assembly.
-    /// </summary>
-    /// <remarks>
-    /// This format is typically used with <see cref="string.Format(string, object?)"/> to resolve the resource name for a template.
-    /// </remarks>
-    /// <example>
-    /// Example format: "Arbiter.CommandQuery.Templates.{0}.yaml"
-    /// </example>
-    public string? TemplateResourceFormat { get; set; }
-
-    /// <summary>
-    /// Sets the <see cref="TemplateAssembly"/> to the assembly containing the specified type <typeparamref name="T"/>,
-    /// and optionally sets the <see cref="TemplateResourceFormat"/>.
-    /// </summary>
-    /// <typeparam name="T">A type from the assembly to use for template resources.</typeparam>
-    /// <param name="templateResourceFormat">
-    /// An optional format string for locating template resources within the assembly.
-    /// If provided, sets <see cref="TemplateResourceFormat"/>.
-    /// </param>
-    /// <returns>The current <see cref="EmailConfiguration"/> instance for chaining.</returns>
-    public EmailConfiguration AddTemplateAssembly<T>(string? templateResourceFormat = null)
-        => AddTemplateAssembly(typeof(T).Assembly, templateResourceFormat);
-
-    /// <summary>
-    /// Configures the email system to use the specified assembly for email templates.
-    /// </summary>
-    /// <param name="assembly">The assembly containing the email templates. This parameter cannot be <see langword="null"/>.</param>
-    /// <param name="templateResourceFormat">An optional format string used to locate template resources within the assembly.  If not specified, a default
-    /// format may be used.</param>
-    /// <returns>The current <see cref="EmailConfiguration"/> instance, allowing for method chaining.</returns>
-    public EmailConfiguration AddTemplateAssembly(Assembly assembly, string? templateResourceFormat = null)
-    {
-        ArgumentNullException.ThrowIfNull(assembly);
-
-        TemplateAssembly = assembly;
-
-        if (templateResourceFormat is not null)
-            TemplateResourceFormat = templateResourceFormat;
-
-        return this;
-    }
 }

@@ -17,8 +17,7 @@ public class TemplateServiceTests : TestBase
         var templateService = Services.GetRequiredService<ITemplateService>();
         templateService.Should().NotBeNull();
 
-        var resourceName = TemplateNames.GetResourceName(TemplateNames.ResetPasswordEmail);
-        var result = templateService.TryGetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        var result = templateService.TryGetTemplate<EmailTemplate>(TemplateNames.ResetPasswordEmail, out var template);
         result.Should().BeTrue();
 
         template.Should().NotBeNull();
@@ -35,8 +34,7 @@ public class TemplateServiceTests : TestBase
         var templateService = Services.GetRequiredService<ITemplateService>();
         templateService.Should().NotBeNull();
 
-        var resourceName = TemplateNames.GetResourceName(TemplateNames.VerificationCode);
-        var result = templateService.TryGetResourceTemplate<SmsTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        var result = templateService.TryGetTemplate<SmsTemplate>(TemplateNames.VerificationCode, out var template);
         result.Should().BeTrue();
 
         template.Should().NotBeNull();
@@ -51,8 +49,7 @@ public class TemplateServiceTests : TestBase
         var templateService = Services.GetRequiredService<ITemplateService>();
         templateService.Should().NotBeNull();
 
-        var resourceName = TemplateNames.GetResourceName("non-existent-template");
-        var result = templateService.TryGetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        var result = templateService.TryGetTemplate<EmailTemplate>("non-existent-template", out var template);
         result.Should().BeFalse();
 
         template.Subject.Should().BeNull();

@@ -1,7 +1,6 @@
 using Arbiter.Communication.Email;
 using Arbiter.Communication.Sms;
 using Arbiter.Communication.Template;
-using Arbiter.Communication.Tests.Templates;
 
 using AwesomeAssertions;
 
@@ -90,9 +89,6 @@ public class DependencyInjectionTests : TestBase
         emailConfig.Value.Should().NotBeNull();
         emailConfig.Value.FromAddress.Should().Be("UnitTestACE@mailinator.com");
         emailConfig.Value.FromName.Should().Be("Unit Test");
-        emailConfig.Value.TemplateAssembly.Should().NotBeNull();
-        emailConfig.Value.TemplateAssembly.Should().BeSameAs(typeof(TestApplication).Assembly);
-        emailConfig.Value.TemplateResourceFormat.Should().Be(TemplateNames.TemplateResourceFormat);
     }
 
     [Test]
@@ -102,9 +98,13 @@ public class DependencyInjectionTests : TestBase
         smsConfig.Should().NotBeNull();
         smsConfig.Value.Should().NotBeNull();
         smsConfig.Value.SenderNumber.Should().Be("+8885551212");
-        smsConfig.Value.TemplateAssembly.Should().NotBeNull();
-        smsConfig.Value.TemplateAssembly.Should().BeSameAs(typeof(TestApplication).Assembly);
-        smsConfig.Value.TemplateResourceFormat.Should().Be(TemplateNames.TemplateResourceFormat);
+    }
+
+    [Test]
+    public void VerifyTemplateResourceResolverRegistration()
+    {
+        var resolver = Services.GetServices<ITemplateResolver>();
+        resolver.Should().NotBeNull();
     }
 
 }
