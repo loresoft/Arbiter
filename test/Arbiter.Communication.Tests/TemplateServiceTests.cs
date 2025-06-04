@@ -18,7 +18,8 @@ public class TemplateServiceTests : TestBase
         templateService.Should().NotBeNull();
 
         var resourceName = TemplateNames.GetResourceName(TemplateNames.ResetPasswordEmail);
-        var template = templateService.GetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName);
+        var result = templateService.TryGetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        result.Should().BeTrue();
 
         template.Should().NotBeNull();
         template.Subject.Should().Be("Reset Password{% if ProductName != blank %} for {{ ProductName }}{% endif %}");
@@ -35,7 +36,8 @@ public class TemplateServiceTests : TestBase
         templateService.Should().NotBeNull();
 
         var resourceName = TemplateNames.GetResourceName(TemplateNames.VerificationCode);
-        var template = templateService.GetResourceTemplate<SmsTemplate>(typeof(TestApplication).Assembly, resourceName);
+        var result = templateService.TryGetResourceTemplate<SmsTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        result.Should().BeTrue();
 
         template.Should().NotBeNull();
         template.Message.Should().Be("Your verification code{% if ProductName != blank %} for {{ ProductName }}{% endif %} is {{ Code }}.");
@@ -50,7 +52,8 @@ public class TemplateServiceTests : TestBase
         templateService.Should().NotBeNull();
 
         var resourceName = TemplateNames.GetResourceName("non-existent-template");
-        var template = templateService.GetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName);
+        var result = templateService.TryGetResourceTemplate<EmailTemplate>(typeof(TestApplication).Assembly, resourceName, out var template);
+        result.Should().BeFalse();
 
         template.Subject.Should().BeNull();
         template.HtmlBody.Should().BeNull();

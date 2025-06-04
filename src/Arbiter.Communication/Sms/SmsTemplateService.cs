@@ -73,14 +73,13 @@ public class SmsTemplateService : ISmsTemplateService
                 ? string.Format(options.TemplateResourceFormat, templateName)
                 : templateName;
 
-            var template = _templateService.GetResourceTemplate<SmsTemplate?>(templateAssembly, resourceName);
-            if (template == null)
+            if (!_templateService.TryGetResourceTemplate<SmsTemplate>(templateAssembly, resourceName, out var template))
             {
                 _logger.LogError("Could not find template: {TemplateName}", templateName);
                 return SmsResult.Fail($"Could not find template '{templateName}'");
             }
 
-            return await Send(template.Value, model, recipient, sender, cancellationToken)
+            return await Send(template, model, recipient, sender, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)

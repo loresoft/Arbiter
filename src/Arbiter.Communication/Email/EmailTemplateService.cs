@@ -16,11 +16,6 @@ namespace Arbiter.Communication.Email;
 /// </remarks>
 public class EmailTemplateService : IEmailTemplateService
 {
-    private readonly ILogger<EmailTemplateService> _logger;
-    private readonly IOptions<EmailConfiguration> _options;
-    private readonly ITemplateService _templateService;
-    private readonly IEmailDeliveryService _deliveryService;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailTemplateService"/> class.
     /// </summary>
@@ -28,17 +23,40 @@ public class EmailTemplateService : IEmailTemplateService
     /// <param name="options">The email options containing sender and template configuration.</param>
     /// <param name="templateService">The template service for applying models to templates.</param>
     /// <param name="deliveryService">The service responsible for delivering emails.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="logger"/>, <paramref name="options"/>, <paramref name="templateService"/>, or <paramref name="deliveryService"/> is <see langword="null"/>.
+    /// </exception>
     public EmailTemplateService(
         ILogger<EmailTemplateService> logger,
         IOptions<EmailConfiguration> options,
         ITemplateService templateService,
         IEmailDeliveryService deliveryService)
     {
-        _logger = logger;
-        _options = options;
-        _templateService = templateService;
-        _deliveryService = deliveryService;
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        Options = options ?? throw new ArgumentNullException(nameof(options));
+        TemplateService = templateService ?? throw new ArgumentNullException(nameof(templateService));
+        DeliveryService = deliveryService ?? throw new ArgumentNullException(nameof(deliveryService));
     }
+
+    /// <summary>
+    /// Gets the logger used for diagnostic and error messages.
+    /// </summary>
+    protected ILogger Logger { get; }
+
+    /// <summary>
+    /// Gets the email configuration options.
+    /// </summary>
+    protected IOptions<EmailConfiguration> Options { get; }
+
+    /// <summary>
+    /// Gets the template service for applying models to templates.
+    /// </summary>
+    protected ITemplateService TemplateService { get; }
+
+    /// <summary>
+    /// Gets the service responsible for delivering emails.
+    /// </summary>
+    protected IEmailDeliveryService DeliveryService { get; }
 
     /// <summary>
     /// Sends an email using a named template, binding the specified model to the template and delivering it to the given recipients.
@@ -47,14 +65,15 @@ public class EmailTemplateService : IEmailTemplateService
     /// <param name="templateName">The name of the template to use for the email.</param>
     /// <param name="emailModel">The model containing data to bind to the template.</param>
     /// <param name="recipients">The recipients of the email, including To, Cc, and Bcc addresses.</param>
-    /// <param name="senders">The sender and optional reply-to addresses for the email. If null, default senders from configuration are used.</param>
+    /// <param name="senders">The sender and optional reply-to addresses for the email. If <see langword="null"/>, default senders from configuration are used.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation,
     /// including success status, message, and any exception details.
     /// </returns>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="templateName"/> is null or empty.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="templateName"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Exception">Thrown if an error occurs during template loading or email sending.</exception>
     public async Task<EmailResult> Send<TModel>(
         string templateName,
         TModel emailModel,
@@ -65,7 +84,7 @@ public class EmailTemplateService : IEmailTemplateService
         ArgumentException.ThrowIfNullOrEmpty(templateName);
         ArgumentNullException.ThrowIfNull(emailModel);
 
-        var options = _options.Value;
+        var options = Options.Value;
 
         try
         {
@@ -74,18 +93,17 @@ public class EmailTemplateService : IEmailTemplateService
                 ? string.Format(options.TemplateResourceFormat, templateName)
                 : templateName;
 
-            var emailTemplate = _templateService.GetResourceTemplate<EmailTemplate?>(templateAssembly, resourceName);
-            if (emailTemplate == null)
+            if (!TemplateService.TryGetResourceTemplate<EmailTemplate>(templateAssembly, resourceName, out var emailTemplate))
             {
-                _logger.LogError("Could not find email template: {TemplateName}", templateName);
+                Logger.LogError("Could not find email template: {TemplateName}", templateName);
                 return EmailResult.Fail($"Could not find template '{templateName}'");
             }
 
-            return await Send(emailTemplate.Value, emailModel, recipients, senders, cancellationToken).ConfigureAwait(false);
+            return await Send(emailTemplate, emailModel, recipients, senders, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email: {ErrorMessage}", ex.Message);
+            Logger.LogError(ex, "Error sending email: {ErrorMessage}", ex.Message);
             throw;
         }
     }
@@ -97,13 +115,14 @@ public class EmailTemplateService : IEmailTemplateService
     /// <param name="emailTemplate">The email template to use for the message.</param>
     /// <param name="emailModel">The model containing data to bind to the template.</param>
     /// <param name="recipients">The recipients of the email, including To, Cc, and Bcc addresses.</param>
-    /// <param name="senders">The sender and optional reply-to addresses for the email. If null, default senders from configuration are used.</param>
+    /// <param name="senders">The sender and optional reply-to addresses for the email. If <see langword="null"/>, default senders from configuration are used.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> that resolves to an <see cref="EmailResult"/> indicating the outcome of the send operation,
     /// including success status, message, and any exception details.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Exception">Thrown if an error occurs during template application or email sending.</exception>
     public async Task<EmailResult> Send<TModel>(
         EmailTemplate emailTemplate,
         TModel emailModel,
@@ -113,13 +132,13 @@ public class EmailTemplateService : IEmailTemplateService
     {
         ArgumentNullException.ThrowIfNull(emailModel);
 
-        var options = _options.Value;
+        var options = Options.Value;
 
         try
         {
-            var subject = _templateService.ApplyTemplate(emailTemplate.Subject, emailModel);
-            var htmlBody = _templateService.ApplyTemplate(emailTemplate.HtmlBody, emailModel);
-            var textBody = _templateService.ApplyTemplate(emailTemplate.TextBody, emailModel);
+            var subject = TemplateService.ApplyTemplate(emailTemplate.Subject, emailModel);
+            var htmlBody = TemplateService.ApplyTemplate(emailTemplate.HtmlBody, emailModel);
+            var textBody = TemplateService.ApplyTemplate(emailTemplate.TextBody, emailModel);
 
             var fromName = options.FromName;
             var fromEmail = options.FromAddress;
@@ -128,18 +147,18 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (localSenders.From.Address.IsNullOrWhiteSpace())
             {
-                _logger.LogError("From address is not configured in EmailOptions.");
+                Logger.LogError("From address is not configured in EmailOptions.");
                 return EmailResult.Fail("From address is not configured.");
             }
 
             var content = new EmailContent(subject, htmlBody, textBody);
             var message = new EmailMessage(localSenders, recipients, content);
 
-            return await _deliveryService.Send(message, cancellationToken).ConfigureAwait(false);
+            return await DeliveryService.Send(message, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error Sending Email: {ErrorMessage}", ex.Message);
+            Logger.LogError(ex, "Error Sending Email: {ErrorMessage}", ex.Message);
             throw;
         }
     }

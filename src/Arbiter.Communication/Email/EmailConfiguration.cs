@@ -44,7 +44,7 @@ public class EmailConfiguration
     /// Gets or sets a value indicating whether to use SSL when connecting to the SMTP server.
     /// </summary>
     /// <remarks>
-    /// The default value is <c>true</c>.
+    /// The default value is <see langword="true"/>.
     /// </remarks>
     public bool UseSSL { get; set; } = true;
 

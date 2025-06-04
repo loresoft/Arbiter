@@ -27,10 +27,17 @@ public class EmailBuilder
     /// </summary>
     /// <param name="address">The sender's email address.</param>
     /// <param name="displayName">The optional display name for the sender.</param>
+    /// <param name="condition">An optional predicate to determine if the sender should be set.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="address"/> is null or empty.</exception>
-    public EmailBuilder From(string address, string? displayName = null)
+    public EmailBuilder From(
+        string? address,
+        string? displayName = null,
+        Func<string?, string?, bool>? condition = null)
     {
+        if (condition is not null && !condition(address, displayName))
+            return this;
+
         ArgumentException.ThrowIfNullOrEmpty(address);
 
         _from = new EmailAddress(address, displayName);
@@ -42,10 +49,17 @@ public class EmailBuilder
     /// </summary>
     /// <param name="address">The reply-to email address.</param>
     /// <param name="displayName">The optional display name for the reply-to address.</param>
+    /// <param name="condition">An optional predicate to determine if the reply-to should be added.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="address"/> is null or empty.</exception>
-    public EmailBuilder ReplyTo(string address, string? displayName = null)
+    public EmailBuilder ReplyTo(
+        string? address,
+        string? displayName = null,
+        Func<string?, string?, bool>? condition = null)
     {
+        if (condition is not null && !condition(address, displayName))
+            return this;
+
         ArgumentException.ThrowIfNullOrEmpty(address);
 
         _replyTo.Add(new EmailAddress(address, displayName));
@@ -57,10 +71,17 @@ public class EmailBuilder
     /// </summary>
     /// <param name="address">The recipient's email address.</param>
     /// <param name="displayName">The optional display name for the recipient.</param>
+    /// <param name="condition">An optional predicate to determine if the recipient should be added.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="address"/> is null or empty.</exception>
-    public EmailBuilder To(string address, string? displayName = null)
+    public EmailBuilder To(
+        string address,
+        string? displayName = null,
+        Func<string?, string?, bool>? condition = null)
     {
+        if (condition is not null && !condition(address, displayName))
+            return this;
+
         ArgumentException.ThrowIfNullOrEmpty(address);
 
         _to.Add(new EmailAddress(address, displayName));
@@ -72,10 +93,17 @@ public class EmailBuilder
     /// </summary>
     /// <param name="address">The Cc recipient's email address.</param>
     /// <param name="displayName">The optional display name for the Cc recipient.</param>
+    /// <param name="condition">An optional predicate to determine if the Cc recipient should be added.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="address"/> is null or empty.</exception>
-    public EmailBuilder Cc(string address, string? displayName = null)
+    public EmailBuilder Cc(
+        string address,
+        string? displayName = null,
+        Func<string?, string?, bool>? condition = null)
     {
+        if (condition is not null && !condition(address, displayName))
+            return this;
+
         ArgumentException.ThrowIfNullOrEmpty(address);
 
         _cc.Add(new EmailAddress(address, displayName));
@@ -87,10 +115,17 @@ public class EmailBuilder
     /// </summary>
     /// <param name="address">The Bcc recipient's email address.</param>
     /// <param name="displayName">The optional display name for the Bcc recipient.</param>
+    /// <param name="condition">An optional predicate to determine if the Bcc recipient should be added.</param>
     /// <returns>The current <see cref="EmailBuilder"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="address"/> is null or empty.</exception>
-    public EmailBuilder Bcc(string address, string? displayName = null)
+    public EmailBuilder Bcc(
+        string address,
+        string? displayName = null,
+        Func<string?, string?, bool>? condition = null)
     {
+        if (condition is not null && !condition(address, displayName))
+            return this;
+
         ArgumentException.ThrowIfNullOrEmpty(address);
 
         _bcc.Add(new EmailAddress(address, displayName));
@@ -177,28 +212,30 @@ public class EmailBuilder
         return this;
     }
 
-
     /// <summary>
-    /// Builds and returns an instance of <see cref="EmailSenders"/> containing the configured sender and reply-to email
-    /// addresses.
+    /// Builds and returns an instance of <see cref="EmailSenders"/> containing the configured sender and reply-to email addresses.
     /// </summary>
-    /// <remarks>Use this method to create an <see cref="EmailSenders"/> instance with the current
-    /// configuration. Ensure that the sender and reply-to addresses have been properly set before calling this
-    /// method.</remarks>
+    /// <remarks>
+    /// Use this method to create an <see cref="EmailSenders"/> instance with the current configuration.
+    /// Ensure that the sender and reply-to addresses have been properly set before calling this method.
+    /// </remarks>
     /// <returns>An <see cref="EmailSenders"/> object initialized with the sender and reply-to email addresses.</returns>
     public EmailSenders BuildSenders() => new(_from, _replyTo);
 
     /// <summary>
     /// Constructs an <see cref="EmailRecipients"/> object using the current recipient lists.
     /// </summary>
-    /// <returns>An <see cref="EmailRecipients"/> instance containing the current "To", "CC", and "BCC" recipient lists.</returns>
+    /// <returns>
+    /// An <see cref="EmailRecipients"/> instance containing the current "To", "Cc", and "Bcc" recipient lists.
+    /// </returns>
     public EmailRecipients BuildRecipients() => new(_to, _cc, _bcc);
 
     /// <summary>
-    /// Builds and returns an <see cref="EmailContent"/> object containing the email's subject, HTML body, and text
-    /// body.
+    /// Builds and returns an <see cref="EmailContent"/> object containing the email's subject, HTML body, and text body.
     /// </summary>
-    /// <returns>An <see cref="EmailContent"/> instance initialized with the current subject, HTML body, and text body values.</returns>
+    /// <returns>
+    /// An <see cref="EmailContent"/> instance initialized with the current subject, HTML body, and text body values.
+    /// </returns>
     public EmailContent BuildContent() => new(_subject, _htmlBody, _textBody);
 
     /// <summary>
@@ -225,7 +262,6 @@ public class EmailBuilder
 
         return new EmailMessage(senders, recipients, content, _headers, _attachments);
     }
-
 
     /// <summary>
     /// Creates a new <see cref="EmailBuilder"/> instance, optionally setting the sender address and display name.

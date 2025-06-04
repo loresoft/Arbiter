@@ -39,7 +39,7 @@ public static partial class StringExtensions
     /// </summary>
     /// <param name="item">A String reference</param>
     /// <returns>
-    ///     <c>true</c> if is null or empty; otherwise, <c>false</c>.
+    ///     <see langword="true"/> if is null or empty; otherwise, <see langword="false"/>.
     /// </returns>
     public static bool IsNullOrEmpty([NotNullWhen(false)] this string? item)
     {
@@ -51,7 +51,7 @@ public static partial class StringExtensions
     /// </summary>
     /// <param name="item">A String reference</param>
     /// <returns>
-    ///      <c>true</c> if is null or empty; otherwise, <c>false</c>.
+    ///      <see langword="true"/> if is null or empty; otherwise, <see langword="false"/>.
     /// </returns>
     public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? item)
     {
@@ -70,7 +70,7 @@ public static partial class StringExtensions
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <returns>
-    ///   <c>true</c> if the specified <paramref name="value"/> is not <see cref="IsNullOrWhiteSpace"/>; otherwise, <c>false</c>.
+    ///   <see langword="true"/> if the specified <paramref name="value"/> is not <see cref="IsNullOrWhiteSpace"/>; otherwise, <see langword="false"/>.
     /// </returns>
     public static bool HasValue([NotNullWhen(true)] this string? value)
     {
