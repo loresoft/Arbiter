@@ -1,15 +1,16 @@
 namespace Arbiter.CommandQuery.Definitions;
 
 /// <summary>
-/// An <see langword="interface"/> indicating the implemented type supports soft delete
+/// Defines a contract for entities that support soft deletion. Implementing this interface allows an
+/// entity to be marked as deleted without being physically removed from storage.
 /// </summary>
 public interface ITrackDeleted
 {
     /// <summary>
-    /// Gets or sets a value indicating whether this instance is deleted.
+    /// Gets or sets a value indicating whether this entity instance is considered deleted (soft delete).
     /// </summary>
     /// <value>
-    ///   <see langword="true"/> if this instance is deleted; otherwise, <see langword="false"/>.
+    /// <see langword="true"/> if this instance is marked as deleted; otherwise, <see langword="false"/>.
     /// </value>
     bool IsDeleted { get; set; }
 }

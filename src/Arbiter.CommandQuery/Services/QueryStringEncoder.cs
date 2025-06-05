@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Buffers.Text;
 using System.IO.Compression;
 using System.Text.Json;
 
@@ -57,8 +58,23 @@ public static class QueryStringEncoder
     }
 
 
-    private static string Base64UrlEncode(ReadOnlySpan<byte> input)
+    /// <summary>
+    /// Encodes the specified binary data into a Base64 URL-safe string.
+    /// </summary>
+    /// <remarks>
+    /// The resulting string is URL-safe, meaning it replaces characters that are not valid in URLs
+    /// (such as '+' and '/') with '-' and '_', and removes padding characters ('=') typically found in standard Base64
+    /// encoding. This method is optimized for performance and uses stack allocation for small inputs.
+    /// </remarks>
+    /// <param name="input">The binary data to encode as a <see cref="ReadOnlySpan{T}"/> of bytes.</param>
+    /// <returns>
+    /// A Base64 URL-safe string representation of the input data. Returns an empty string if <paramref name="input"/>is empty.
+    /// </returns>
+    public static string Base64UrlEncode(ReadOnlySpan<byte> input)
     {
+#if NET9_0_OR_GREATER
+        return Base64Url.EncodeToString(input);
+#else
         const int StackAllocThreshold = 128;
 
         if (input.IsEmpty)
@@ -79,10 +95,25 @@ public static class QueryStringEncoder
             ArrayPool<char>.Shared.Return(bufferToReturnToPool);
 
         return base64Url;
+#endif
     }
 
-    private static byte[] Base64UrlDecode(string input)
+    /// <summary>
+    /// Decodes a Base64 URL-encoded string into its original byte array representation.
+    /// </summary>
+    /// <remarks>
+    /// This method automatically handles padding and replaces URL-safe Base64 characters ('-' and '_')
+    /// with their standard Base64 equivalents ('+' and '/'). Ensure the input string is properly formatted  as
+    /// Base64 URL-encoded before calling this method.
+    /// </remarks>
+    /// <param name="input">The Base64 URL-encoded string to decode. This string must use the URL-safe Base64 encoding scheme, where '-'
+    /// replaces '+' and '_' replaces '/'.</param>
+    /// <returns>A byte array containing the decoded data. Returns an empty array if <paramref name="input"/> is an empty string.</returns>
+    public static byte[] Base64UrlDecode(string input)
     {
+#if NET9_0_OR_GREATER
+        return Base64Url.DecodeFromChars(input);
+#else
         ArgumentNullException.ThrowIfNull(input);
 
         var count = input.Length;
@@ -114,9 +145,10 @@ public static class QueryStringEncoder
             buffer[i] = '=';
 
         return Convert.FromBase64CharArray(buffer, bufferOffset, arraySizeRequired);
+#endif
     }
 
-
+#if !NET9_0_OR_GREATER
     private static int Base64UrlEncode(ReadOnlySpan<byte> input, Span<char> output)
     {
         if (input.IsEmpty)
@@ -166,4 +198,5 @@ public static class QueryStringEncoder
             _ => throw new FormatException($"Malformed input: {inputLength} is an invalid input length."),
         };
     }
+#endif
 }
