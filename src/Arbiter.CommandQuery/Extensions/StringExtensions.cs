@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.RegularExpressions;
 
 using Arbiter.CommandQuery.Services;
@@ -62,14 +61,8 @@ public static partial class StringExtensions
     /// </returns>
     public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? item)
     {
-        if (item == null)
-            return true;
+        return string.IsNullOrWhiteSpace(item);
 
-        for (int i = 0; i < item.Length; i++)
-            if (!char.IsWhiteSpace(item[i]))
-                return false;
-
-        return true;
     }
 
     /// <summary>
