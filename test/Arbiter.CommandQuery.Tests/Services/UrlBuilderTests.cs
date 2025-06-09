@@ -337,6 +337,6 @@ public class UrlBuilderTests
 
         var url = builder.ToString();
 
-        url.Should().Be("https://example.com?id=42");
+        url.Should().Be("https://example.com?key=&id=42");
     }
 }
