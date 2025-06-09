@@ -147,7 +147,7 @@ public ref struct UrlBuilder
     /// <param name="path">The path segment to append. Must not be empty.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPath(ReadOnlySpan<char> path)
+    public UrlBuilder AppendPath(scoped ReadOnlySpan<char> path)
     {
         ThrowIfDisposed();
 
@@ -270,7 +270,7 @@ public ref struct UrlBuilder
     /// <param name="value">The query parameter value.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendQuery(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+    public UrlBuilder AppendQuery(scoped ReadOnlySpan<char> name, scoped ReadOnlySpan<char> value)
     {
         ThrowIfDisposed();
 
@@ -468,6 +468,7 @@ public ref struct UrlBuilder
     /// Releases all resources used by this <see cref="UrlBuilder"/> instance.
     /// After disposal, further use of this instance will throw an <see cref="ObjectDisposedException"/>.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Dispose()
     {
         if (_disposed)
@@ -497,6 +498,7 @@ public ref struct UrlBuilder
             throw new ObjectDisposedException(nameof(UrlBuilder));
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void EnsureCapacity(ref char[]? buffer, int currentLength, int requiredExtra)
     {
         int requiredLength = currentLength + requiredExtra;
