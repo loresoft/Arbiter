@@ -1,869 +1,597 @@
-using System.Collections.Specialized;
+using System.Buffers;
 using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Arbiter.CommandQuery.Services;
 
 /// <summary>
-/// Build and modify uniform resource locator (URL)
+/// Provides a high-performance builder for constructing and manipulating Uniform Resource Locators (URLs).
+/// Supports a fluent API for setting URL components and appending path/query segments efficiently.
 /// </summary>
-public sealed partial class UrlBuilder
+/// <remarks>
+/// <para>
+/// <b>Thread Safety:</b> This type is not thread-safe and should not be shared between threads.
+/// </para>
+/// <para>
+/// <b>Disposal:</b> After calling <see cref="ToString"/>, this instance is disposed and must not be used again.
+/// Any further method calls will throw <see cref="ObjectDisposedException"/>.
+/// </para>
+/// </remarks>
+/// <example>
+/// <code>
+/// var builder = new UrlBuilder()
+///     .Scheme("https")
+///     .Host("api.example.com")
+///     .Port(443)
+///     .AppendPath("v1")
+///     .AppendPath("users")
+///     .AppendQuery("active", "true")
+///     .AppendQuery("role", "admin");
+///
+/// string url = builder.ToString();
+/// // Result: "https://api.example.com:443/v1/users?active=true&amp;role=admin"
+/// </code>
+/// </example>
+public ref struct UrlBuilder
 {
-    //scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]
+    private ReadOnlySpan<char> _scheme;
+    private ReadOnlySpan<char> _host;
+    private ReadOnlySpan<char> _port;
+    private ReadOnlySpan<char> _username;
+    private ReadOnlySpan<char> _password;
+    private ReadOnlySpan<char> _fragment;
 
-    private static readonly Dictionary<string, int?> _schemePorts = new Dictionary<string, int?>(StringComparer.OrdinalIgnoreCase)
-    {
-        { "acap", 674 },{ "afp", 548 },{ "dict", 2628 },{ "dns", 53 },{ "file", null },{ "ftp", 21 },{ "git", 9418 },{ "gopher", 70 },
-        { "http", 80 },{ "https", 443 },{ "imap", 143 },{ "ipp", 631 },{ "ipps", 631 },{ "irc", 194 },{ "ircs", 6697 },{ "ldap", 389 },
-        { "ldaps", 636 },{ "mms", 1755 },{ "msrp", 2855 },{ "msrps", null },{ "mtqp", 1038 },{ "nfs", 111 },{ "nntp", 119 },{ "nntps", 563 },
-        { "pop", 110 },{ "prospero", 1525 },{ "redis", 6379 },{ "rsync", 873 },{ "rtsp", 554 },{ "rtsps", 322 },{ "rtspu", 5005 },{ "sftp", 22 },
-        { "smb", 445 },{ "snmp", 161 },{ "ssh", 22 },{ "steam", null },{ "svn", 3690 },{ "telnet", 23 },{ "ventrilo", 3784 },{ "vnc", 5900 },
-        { "wais", 210 },{ "ws", 80 },{ "wss", 443 },{ "xmpp", null }
-    };
+    // Path segments buffer
+    private char[]? _pathSegmentsBuffer;
+    private int _pathSegmentsLength;
 
-    private const string _urlParseExpression = @"^(?:(?<scheme>[a-z][a-z0-9+\-.]*):\/\/)?(?:(?<username>[^:]*)(?::(?<password>[^@]*))?@)?(?<host>[^\/?#:]*)(?::(?<port>\d+))?(?<path>[^?#]*)(?:\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$";
+    // Query string buffer
+    private char[]? _queryStringBuffer;
+    private int _queryStringLength;
 
-#if NET7_0_OR_GREATER
-    [GeneratedRegex(_urlParseExpression, RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex UrlParseRegex();
-#else
-    private static readonly Lazy<Regex> _urlParseRegex = new(() => new(_urlParseExpression));
-    private static Regex UrlParseRegex() => _urlParseRegex.Value;
-#endif
+    private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UrlBuilder"/> class.
+    /// Initializes a new instance of the <see cref="UrlBuilder"/> struct, ready for URL construction.
     /// </summary>
     public UrlBuilder()
     {
+        _pathSegmentsBuffer = null;
+        _pathSegmentsLength = 0;
+        _queryStringBuffer = null;
+        _queryStringLength = 0;
+        _disposed = false;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UrlBuilder"/> with the specified <paramref name="url"/>.
+    /// Sets the scheme (protocol) for the URL, such as "http" or "https".
     /// </summary>
-    /// <param name="url">A URL string.</param>
-    public UrlBuilder(string? url)
+    /// <param name="scheme">The scheme to use for the URL (e.g., "http", "https").</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Scheme(ReadOnlySpan<char> scheme)
     {
-        if (string.IsNullOrWhiteSpace(url))
-            return;
-
-        ParseUrl(url);
+        _scheme = scheme;
+        return this;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UrlBuilder"/> with the specified <paramref name="uri"/>.
+    /// Sets the user name for user information in the URL authority component.
     /// </summary>
-    /// <param name="uri">An instance of the <see cref="Uri"/> class</param>
-    /// <exception cref="ArgumentNullException">uri is null</exception>
-    public UrlBuilder(Uri uri)
+    /// <param name="userName">The user name to include in the URL.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder UserName(ReadOnlySpan<char> userName)
     {
-        if (uri is null)
-            throw new ArgumentNullException(nameof(uri));
-
-        SetFieldsFromUri(uri);
+        _username = userName;
+        return this;
     }
 
-
     /// <summary>
-    /// Gets the scheme name of the Url.
+    /// Sets the password for user information in the URL authority component.
     /// </summary>
-    /// <value>
-    /// The scheme name of the Url.
-    /// </value>
-    public string? Scheme { get; private set; }
-
-    /// <summary>
-    /// Gets the user name associated with the user that accesses the Url.
-    /// </summary>
-    /// <value>
-    /// The user name associated with the user that accesses the Url.
-    /// </value>
-    public string? UserName { get; private set; }
-
-    /// <summary>
-    /// Gets the password associated with the user that accesses the Url.
-    /// </summary>
-    /// <value>
-    /// The password associated with the user that accesses the Url.
-    /// </value>
-    public string? Password { get; private set; }
-
-    /// <summary>
-    /// Gets the Domain Name System (DNS) host name or IP address of a server.
-    /// </summary>
-    /// <value>
-    /// The Domain Name System (DNS) host name or IP address of a server.
-    /// </value>
-    public string? Host { get; private set; }
-
-    /// <summary>
-    /// Gets the port number of the Url.
-    /// </summary>
-    /// <value>
-    /// The port number of the Url.
-    /// </value>
-    public int? Port { get; private set; }
-
-
-    /// <summary>
-    /// Gets the path segment collection to the resource referenced by the Url.
-    /// </summary>
-    /// <value>
-    /// The path segment collection to the resource referenced by the Url.
-    /// </value>
-    public IList<string> Path { get; } = [];
-
-    /// <summary>
-    /// Gets the query string dictionary information included in the Url.
-    /// </summary>
-    /// <value>
-    /// The query string dictionary information included in the Url.
-    /// </value>
-    public NameValueCollection Query { get; } = [];
-
-    /// <summary>
-    /// Gets the fragment portion of the Url.
-    /// </summary>
-    /// <value>
-    /// The fragment portion of the Url.
-    /// </value>
-    public string? Fragment { get; private set; }
-
-
-    /// <summary>
-    /// Replace the schema name for the current Url.
-    /// </summary>
-    /// <param name="value">The schema name.</param>
-    /// <returns></returns>
-    public UrlBuilder SetScheme(string? value)
+    /// <param name="password">The password to include in the URL.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Password(ReadOnlySpan<char> password)
     {
-        Scheme = value;
+        _password = password;
+        return this;
+    }
 
-        if (Scheme is null)
+    /// <summary>
+    /// Sets the host (domain or IP address) for the URL.
+    /// </summary>
+    /// <param name="host">The host name or IP address.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Host(ReadOnlySpan<char> host)
+    {
+        _host = host;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the port for the URL using a character span.
+    /// </summary>
+    /// <param name="port">The port as a character span (e.g., "443").</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Port(ReadOnlySpan<char> port)
+    {
+        _port = port;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the port for the URL using an integer value.
+    /// </summary>
+    /// <param name="port">The port number (e.g., 443).</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Port(int port)
+    {
+        _port = port.ToString(CultureInfo.InvariantCulture).AsSpan();
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the fragment for the URL (the portion after the '#' symbol).
+    /// </summary>
+    /// <param name="fragment">The fragment to append to the URL (without the '#').</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder Fragment(ReadOnlySpan<char> fragment)
+    {
+        _fragment = fragment;
+        return this;
+    }
+
+    /// <summary>
+    /// Appends a path segment to the URL, escaping as needed.
+    /// </summary>
+    /// <param name="path">The path segment to append. Must not be empty.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendPath(ReadOnlySpan<char> path)
+    {
+        ThrowIfDisposed();
+
+        if (path.IsEmpty)
             return this;
 
-        int index = Scheme.IndexOf(':');
-        if (index != -1)
-            Scheme = Scheme.Substring(0, index);
+        // Calculate encoded length for the path segment
+        int encodedLen = GetEncodedLength(path);
+        bool needsSlash = _pathSegmentsLength > 0 && _pathSegmentsBuffer![_pathSegmentsLength - 1] != '/';
+        int requiredExtra = encodedLen + (needsSlash ? 1 : 0);
 
-        if (Scheme.Length != 0)
-        {
-            if (!Uri.CheckSchemeName(value))
-                throw new ArgumentException("Invalid URI: The URI scheme is not valid.", nameof(value));
+        EnsureCapacity(ref _pathSegmentsBuffer, _pathSegmentsLength, requiredExtra);
 
-            Scheme = Scheme.ToLowerInvariant();
-        }
+        if (needsSlash)
+            _pathSegmentsBuffer![_pathSegmentsLength++] = '/';
 
-        return this;
-    }
-
-    /// <summary>
-    /// Replace the user name for the current Url.
-    /// </summary>
-    /// <param name="value">The user name associated with the user that access the Url.</param>
-    /// <param name="unescape">Converts a url string to its unescaped representation.</param>
-    /// <returns></returns>
-    public UrlBuilder SetUserName(string? value, bool unescape = false)
-    {
-        UserName = value != null && unescape ? Uri.UnescapeDataString(value) : value;
-        return this;
-    }
-
-    /// <summary>
-    /// Replace the password for the current Url.
-    /// </summary>
-    /// <param name="value">The password associated with the user that access the Url.</param>
-    /// <param name="unescape">Converts a url string to its unescaped representation.</param>
-    /// <returns></returns>
-    public UrlBuilder SetPassword(string? value, bool unescape = false)
-    {
-        Password = value != null && unescape ? Uri.UnescapeDataString(value) : value;
-        return this;
-    }
-
-    /// <summary>
-    /// Replace the Domain Name System (DNS) host name or IP address for the current Url.
-    /// </summary>
-    /// <param name="value">The Domain Name System (DNS) host name or IP address.</param>
-    /// <returns></returns>
-    public UrlBuilder SetHost(string? value)
-    {
-        Host = value;
-
-        if (Host is null)
-            return this;
-
-        //probable ipv6 address - Note: this is only supported for cases where the authority is inet-based.
-        if (Host.Contains(':'))
-            //set brackets
-            if (Host[0] != '[')
-                Host = "[" + Host + "]";
+        // Encode the path segment in place
+        UrlEncode(path, _pathSegmentsBuffer.AsSpan(_pathSegmentsLength, encodedLen));
+        _pathSegmentsLength += encodedLen;
 
         return this;
     }
 
     /// <summary>
-    /// Replace the port number for the current Url.
+    /// Appends a path segment to the URL, converting the value to a string and escaping as needed.
+    /// Optionally, a predicate can be provided to determine if the value should be appended.
     /// </summary>
-    /// <param name="value">The port number.</param>
-    /// <returns></returns>
-    public UrlBuilder SetPort(int value)
+    /// <typeparam name="TValue">The type of the path segment value.</typeparam>
+    /// <param name="path">The path segment to append. If <see langword="null"/> or empty, nothing is appended.</param>
+    /// <param name="condition">
+    /// An optional predicate that determines whether the path should be appended.
+    /// If <see langword="null"/>, the path is always appended.
+    /// </param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendPath<TValue>(TValue? path, Func<TValue?, bool>? condition = null)
     {
-        if (value < -1 || value > 0xFFFF)
-            throw new ArgumentOutOfRangeException(nameof(value));
+        ThrowIfDisposed();
 
-        Port = value;
-        return this;
-    }
-
-    /// <summary>
-    /// Replace the port number for the current Url.
-    /// </summary>
-    /// <param name="value">The port number.</param>
-    /// <returns></returns>
-    public UrlBuilder SetPort(string? value)
-    {
-        if (!string.IsNullOrEmpty(value) && int.TryParse(value, CultureInfo.InvariantCulture, out int port))
-            return SetPort(port);
-
-        Port = null;
-        return this;
-    }
-
-    /// <summary>
-    /// Replace the fragment portion for the current Url.
-    /// </summary>
-    /// <param name="value">The fragment portion.</param>
-    /// <returns></returns>
-    public UrlBuilder SetFragment(string? value)
-    {
-        Fragment = value;
-        if (Fragment is null)
-            return this;
-
-        if (Fragment.Length > 0 && Fragment[0] != '#')
-            Fragment = '#' + Fragment;
-
-        return this;
-    }
-
-
-    /// <summary>
-    /// Appends a path segment to the current Url.
-    /// </summary>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendPath(Uri? path)
-    {
         if (path is null)
             return this;
 
-        ParsePath(path.AbsolutePath);
+        if (condition != null && !condition(path))
+            return this;
 
-        return this;
+        var str = path.ToString();
+        if (string.IsNullOrEmpty(str))
+            return this;
+
+        return AppendPath(str.AsSpan());
     }
 
     /// <summary>
-    /// Appends a path segment to the current Url.
+    /// Appends a path segment to the URL, escaping as needed.
+    /// Optionally, a predicate can be provided to determine if the value should be appended.
     /// </summary>
     /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendPath(string? path)
+    /// <param name="condition">
+    /// An optional predicate that determines whether the path should be appended.
+    /// If <see langword="null"/>, the path is always appended.
+    /// </param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendPath(string? path, Func<string?, bool>? condition = null)
     {
+        ThrowIfDisposed();
+
         if (path is null)
             return this;
 
-        ParsePath(path);
-
-        return this;
-    }
-
-    /// <summary>
-    /// Appends a path segment to the current Url.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendPath<TValue>(TValue? path)
-    {
-        if (path is null)
+        if (condition != null && !condition(path))
             return this;
 
-        var v = path.ToString();
-        ParsePath(v);
-
-        return this;
+        return AppendPath(path.AsSpan());
     }
 
     /// <summary>
-    /// Appends the path segments to the current Url.
+    /// Appends a path segment to the URL if the specified boolean condition is true.
     /// </summary>
-    /// <param name="paths">The path segments to append.</param>
-    /// <returns></returns>
+    /// <param name="path">The path segment to append.</param>
+    /// <param name="condition">If <see langword="true"/>, the path is appended; otherwise, it is not.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendPath(string? path, bool condition)
+    {
+        ThrowIfDisposed();
+
+        if (path is null || !condition)
+            return this;
+
+        return AppendPath(path.AsSpan());
+    }
+
+    /// <summary>
+    /// Appends multiple path segments to the URL. Each segment is escaped as needed.
+    /// </summary>
+    /// <param name="paths">A collection of path segments to append. <see langword="null"/> or empty segments are ignored.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendPaths(params IEnumerable<string>? paths)
     {
+        ThrowIfDisposed();
+
         if (paths is null)
             return this;
 
         foreach (var path in paths)
-            ParsePath(path);
-
-        return this;
-    }
-
-    /// <summary>
-    /// Appends a string formatted path segment to the current Url.
-    /// </summary>
-    /// <param name="format">A composite format string.</param>
-    /// <param name="arguments">An array that contains zero or more objects to format.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendPathFormat(string format, params object[] arguments)
-    {
-        var p = string.Format(format, arguments);
-
-        return AppendPath(p);
-    }
-
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf(Func<bool> condition, string? path)
-    {
-        if (condition is null || !condition())
-            return this;
-
-        return AppendPath(path);
-    }
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf(Func<string?, bool> condition, string? path)
-    {
-        if (condition is null || !condition(path))
-            return this;
-
-        return AppendPath(path);
-    }
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf(bool condition, string? path)
-    {
-        if (!condition)
-            return this;
-
-        return AppendPath(path);
-    }
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf<TValue>(Func<bool> condition, TValue? path)
-    {
-        if (condition is null || !condition())
-            return this;
-
-        return AppendPath(path);
-    }
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf<TValue>(Func<TValue?, bool> condition, TValue? path)
-    {
-        if (condition is null || !condition(path))
-            return this;
-
-        return AppendPath(path);
-    }
-
-    /// <summary>
-    /// Conditionally appends a path segment to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="path">The path segment to append.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendPathIf<TValue>(bool condition, TValue? path)
-    {
-        if (!condition)
-            return this;
-
-        return AppendPath(path);
-    }
-
-
-    /// <summary>
-    /// Replace the entire path for the current Url.  The <see cref="Path"/> collection is replaced with this path.
-    /// </summary>
-    /// <param name="path">The path segment to set.</param>
-    /// <returns></returns>
-    public UrlBuilder SetPath(string? path)
-    {
-        Path.Clear();
-        if (path is null)
-            return this;
-
-        ParsePath(path);
-        return this;
-    }
-
-
-    /// <summary>
-    /// Appends the query string name and value to the current url.
-    /// </summary>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQuery(string name, string? value)
-    {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
-
-        Query.Add(name, value);
-
-        return this;
-    }
-
-    /// <summary>
-    /// Appends the query string name and value to the current url.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQuery<TValue>(string name, TValue? value)
-    {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
-
-        var v = value?.ToString();
-        return AppendQuery(name, v);
-    }
-
-
-    /// <summary>
-    /// Appends the query string name and values to the current url.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="name">The query string name.</param>
-    /// <param name="values">The query string values.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueries<TValue>(string name, IEnumerable<TValue>? values)
-    {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
-
-        if (values is null)
-            return this;
-
-        foreach (var value in values)
         {
-            var v = value?.ToString();
-            AppendQuery(name, v);
+            if (!string.IsNullOrEmpty(path))
+                AppendPath(path.AsSpan());
         }
 
         return this;
     }
 
     /// <summary>
-    /// Appends the query string name and values to the current url.
+    /// Appends a query string parameter to the URL, escaping both name and value.
     /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="values">The query string values.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendQueries<TValue>(IEnumerable<KeyValuePair<string, TValue>>? values)
+    /// <param name="name">The query parameter name.</param>
+    /// <param name="value">The query parameter value.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendQuery(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
-        if (values is null)
+        ThrowIfDisposed();
+
+        if (name.IsEmpty)
             return this;
 
-        foreach (var value in values)
-        {
-            var n = value.Key;
-            var v = value.Value?.ToString();
+        int encodedNameLen = GetEncodedLength(name);
+        int encodedValueLen = GetEncodedLength(value);
 
-            AppendQuery(n, v);
+        int extra = encodedNameLen + 1 + encodedValueLen; // name=value
+        bool needsAmp = _queryStringLength > 0;
+        if (needsAmp)
+            extra++; // for '&'
+
+        EnsureCapacity(ref _queryStringBuffer, _queryStringLength, extra);
+
+        int pos = _queryStringLength;
+        if (needsAmp)
+            _queryStringBuffer![pos++] = '&';
+
+        // Encode name in place
+        UrlEncode(name, _queryStringBuffer.AsSpan(pos, encodedNameLen));
+        pos += encodedNameLen;
+
+        _queryStringBuffer![pos++] = '=';
+
+        // Encode value in place
+        UrlEncode(value, _queryStringBuffer.AsSpan(pos, encodedValueLen));
+        pos += encodedValueLen;
+
+        _queryStringLength = pos;
+        return this;
+    }
+
+    /// <summary>
+    /// Appends a query string parameter to the URL, converting the value to a string and escaping as needed.
+    /// Optionally, a predicate can be provided to determine if the value should be appended.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the query value.</typeparam>
+    /// <param name="name">The query parameter name.</param>
+    /// <param name="value">The query parameter value. If <see langword="null"/>, nothing is appended.</param>
+    /// <param name="condition">Optional predicate to determine if the value should be appended.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendQuery<TValue>(string name, TValue? value, Func<TValue?, bool>? condition = null)
+    {
+        ThrowIfDisposed();
+
+        if (string.IsNullOrEmpty(name) || value is null)
+            return this;
+
+        if (condition != null && !condition(value))
+            return this;
+
+        return AppendQuery(name.AsSpan(), value.ToString().AsSpan());
+    }
+
+    /// <summary>
+    /// Appends a query string parameter to the URL if the provided condition is met.
+    /// </summary>
+    /// <param name="name">The query parameter name.</param>
+    /// <param name="value">The query parameter value.</param>
+    /// <param name="condition">
+    /// An optional predicate that determines whether the query should be appended.
+    /// If <see langword="null"/>, the query is always appended.
+    /// </param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendQuery(string name, string? value, Func<string?, bool>? condition = null)
+    {
+        ThrowIfDisposed();
+
+        if (string.IsNullOrEmpty(name) || (condition != null && !condition(value)))
+            return this;
+
+        return AppendQuery(name.AsSpan(), value.AsSpan());
+    }
+
+    /// <summary>
+    /// Appends a query string parameter to the URL if the specified boolean condition is true.
+    /// </summary>
+    /// <param name="name">The query parameter name.</param>
+    /// <param name="value">The query parameter value.</param>
+    /// <param name="condition">If <see langword="true"/>, the query is appended; otherwise, it is not.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendQuery(string name, string? value, bool condition)
+    {
+        ThrowIfDisposed();
+
+        if (string.IsNullOrEmpty(name) || !condition || value is null)
+            return this;
+
+        return AppendQuery(name.AsSpan(), value.AsSpan());
+    }
+
+    /// <summary>
+    /// Appends multiple query string parameters to the URL. Each key-value pair is escaped as needed.
+    /// </summary>
+    /// <param name="queryParams">A collection of query string key-value pairs. <see langword="null"/> or empty keys/values are ignored.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    public UrlBuilder AppendQueries(params IEnumerable<KeyValuePair<string, string?>>? queryParams)
+    {
+        ThrowIfDisposed();
+
+        if (queryParams is null)
+            return this;
+
+        foreach (var kvp in queryParams)
+        {
+            if (!string.IsNullOrEmpty(kvp.Key) && kvp.Value != null)
+                AppendQuery(kvp.Key.AsSpan(), kvp.Value.AsSpan());
         }
 
         return this;
     }
 
     /// <summary>
-    /// Appends the query string name and values to the current url.
+    /// Returns the fully constructed URL as a string, including all components and segments.
+    /// After calling this method, the builder is disposed and must not be used again.
     /// </summary>
-    /// <param name="values">The query string values.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendQueries(NameValueCollection? values)
-    {
-
-        if (values is null)
-            return this;
-
-        Query.Add(values);
-
-        return this;
-    }
-
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf(Func<bool> condition, string name, string? value)
-    {
-        if (condition is null || !condition())
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf(Func<string?, bool> condition, string name, string? value)
-    {
-        if (condition is null || !condition(value))
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf(bool condition, string name, string? value)
-    {
-        if (!condition)
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf<TValue>(Func<bool> condition, string name, TValue? value)
-    {
-        if (condition is null || !condition())
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf<TValue>(Func<TValue?, bool> condition, string name, TValue? value)
-    {
-        if (condition is null || !condition(value))
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-    /// <summary>
-    /// Conditionally appends the query string name and value to the current url if the specified <paramref name="condition" /> is <see langword="true"/>.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="condition">The condition on weather the query string is appended.</param>
-    /// <param name="name">The query string name.</param>
-    /// <param name="value">The query string value.</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">name is <see langword="null"/></exception>
-    public UrlBuilder AppendQueryIf<TValue>(bool condition, string name, TValue? value)
-    {
-        if (!condition)
-            return this;
-
-        return AppendQuery(name, value);
-    }
-
-
-    /// <summary>
-    /// Appends the query string to the current url.
-    /// </summary>
-    /// <param name="queryString">The query string to append.</param>
-    /// <returns></returns>
-    public UrlBuilder AppendQuery(string? queryString)
-    {
-        if (queryString is null)
-            return this;
-
-        ParseQueryString(queryString);
-        return this;
-    }
-
-
-    /// <summary>
-    /// Replace the entire query string for the current Url.  The <see cref="Query"/> dictionary is replaced with this query string.
-    /// </summary>
-    /// <param name="queryString">The query string to set.</param>
-    /// <returns></returns>
-    public UrlBuilder SetQuery(string? queryString)
-    {
-        Query.Clear();
-        if (queryString is null)
-            return this;
-
-        ParseQueryString(queryString);
-
-        return this;
-    }
-
-
-    /// <summary>
-    /// Returns a <see cref="Uri" /> that represents this instance.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="Uri" /> that represents this instance.
-    /// </returns>
-    public Uri ToUri()
-    {
-        var url = ToString();
-        return new Uri(url, UriKind.RelativeOrAbsolute);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string" /> that represents this instance.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="string" /> that represents this instance.
-    /// </returns>
+    /// <returns>The complete URL as a string.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Simple string building logic")]
     public override string ToString()
     {
-        var builder = StringBuilderCache.Acquire(150);
+        ThrowIfDisposed();
 
-        if (!string.IsNullOrWhiteSpace(Scheme))
-            builder.Append(Scheme).Append(Uri.SchemeDelimiter);
+        // a reasonable initial capacity
+        var sb = new ValueStringBuilder(128);
 
-        if (!string.IsNullOrWhiteSpace(UserName))
+        // scheme://
+        if (!_scheme.IsEmpty)
         {
-            builder.Append(Uri.EscapeDataString(UserName));
-            if (!string.IsNullOrWhiteSpace(Password))
-                builder.Append(':').Append(Uri.EscapeDataString(Password));
-
-            builder.Append('@');
+            sb.Append(_scheme);
+            sb.Append("://");
         }
 
-        if (!string.IsNullOrWhiteSpace(Host))
+        // [username[:password]@]
+        if (!_username.IsEmpty)
         {
-            builder.Append(Host);
-            if (Port.HasValue && !IsStandardPort())
-                builder.Append(':').Append(Port);
+            sb.Append(_username);
+            if (!_password.IsEmpty)
+            {
+                sb.Append(':');
+                sb.Append(_password);
+            }
+            sb.Append('@');
         }
 
-        WritePath(builder);
-        WriteQueryString(builder);
+        // host
+        if (!_host.IsEmpty)
+            sb.Append(_host);
 
-        if (!string.IsNullOrWhiteSpace(Fragment))
-            builder.Append(Fragment);
+        // :port
+        if (!_port.IsEmpty)
+        {
+            sb.Append(':');
+            sb.Append(_port);
+        }
 
-        return StringBuilderCache.ToString(builder);
+        // /path
+        if (_pathSegmentsBuffer != null && _pathSegmentsLength > 0)
+        {
+            // Ensure path starts with '/'
+            if (_pathSegmentsBuffer[0] != '/')
+                sb.Append('/');
+
+            sb.Append(_pathSegmentsBuffer.AsSpan(0, _pathSegmentsLength));
+        }
+
+        // ?query
+        if (_queryStringBuffer != null && _queryStringLength > 0)
+        {
+            sb.Append('?');
+            sb.Append(_queryStringBuffer.AsSpan(0, _queryStringLength));
+        }
+
+        // #fragment
+        if (!_fragment.IsEmpty)
+        {
+            sb.Append('#');
+            sb.Append(_fragment);
+        }
+
+        var url = sb.ToString();
+
+        Dispose(); // Clean up buffers
+
+        return url;
     }
 
     /// <summary>
-    /// Creates a new <see cref="UrlBuilder"/> using the optional base path.
+    /// Releases all resources used by this <see cref="UrlBuilder"/> instance.
+    /// After disposal, further use of this instance will throw an <see cref="ObjectDisposedException"/>.
     /// </summary>
-    /// <param name="baseUrl">The base path for the UrlBuilder</param>
-    /// <returns>A new instance of UrlBuilder</returns>
-    public static UrlBuilder Create(string? baseUrl = null) => new(baseUrl);
-
-
-    private void WritePath(StringBuilder builder)
+    public void Dispose()
     {
-        builder.Append('/');
-        if (Path is null || Path.Count == 0)
+        if (_disposed)
             return;
 
-        int start = builder.Length;
-        foreach (var p in Path)
+        if (_pathSegmentsBuffer != null)
         {
-            if (builder.Length > start)
-                builder.Append('/');
+            ArrayPool<char>.Shared.Return(_pathSegmentsBuffer);
+            _pathSegmentsBuffer = null;
+            _pathSegmentsLength = 0;
+        }
 
-            var v = Uri.EscapeDataString(p ?? string.Empty);
+        if (_queryStringBuffer != null)
+        {
+            ArrayPool<char>.Shared.Return(_queryStringBuffer);
+            _queryStringBuffer = null;
+            _queryStringLength = 0;
+        }
 
-            builder.Append(v);
+        _disposed = true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly void ThrowIfDisposed()
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(UrlBuilder));
+    }
+
+    private static void EnsureCapacity(ref char[]? buffer, int currentLength, int requiredExtra)
+    {
+        int requiredLength = currentLength + requiredExtra;
+
+        if (buffer == null)
+        {
+            int initialSize = Math.Max(128, requiredLength);
+            buffer = ArrayPool<char>.Shared.Rent(initialSize);
+        }
+        else if (buffer.Length < requiredLength)
+        {
+            int newSize = Math.Max(buffer.Length * 2, requiredLength);
+            var newBuffer = ArrayPool<char>.Shared.Rent(newSize);
+            buffer.AsSpan(0, currentLength).CopyTo(newBuffer);
+
+            ArrayPool<char>.Shared.Return(buffer);
+            buffer = newBuffer;
         }
     }
 
-    private void WriteQueryString(StringBuilder builder)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int UrlEncode(ReadOnlySpan<char> input, Span<char> output)
     {
-        if (Query is null || Query.Count == 0)
-            return;
+        int written = 0;
+        Span<byte> utf8Buffer = stackalloc byte[4];
 
-        builder.Append('?');
-
-        int start = builder.Length;
-
-        foreach (var key in Query.AllKeys)
+        for (int i = 0; i < input.Length; i++)
         {
-            var k = Uri.EscapeDataString(key ?? string.Empty);
-            var values = Query.GetValues(key) ?? [string.Empty];
-
-            foreach (var value in values)
+            char c = input[i];
+            if (IsUnreserved(c))
             {
-                if (builder.Length > start)
-                    builder.Append('&');
-
-                var v = Uri.EscapeDataString(value ?? string.Empty);
-
-                builder
-                    .Append(k)
-                    .Append('=')
-                    .Append(v);
+                output[written++] = c;
+            }
+            else if (c <= 0x7F)
+            {
+                // ASCII, percent-encode as single byte
+                output[written++] = '%';
+                output[written++] = GetHex((c >> 4) & 0xF);
+                output[written++] = GetHex(c & 0xF);
+            }
+            else
+            {
+                // Non-ASCII: encode as UTF-8 bytes and percent-encode each byte
+                int byteCount = System.Text.Encoding.UTF8.GetBytes(input.Slice(i, 1), utf8Buffer);
+                for (int b = 0; b < byteCount; b++)
+                {
+                    output[written++] = '%';
+                    output[written++] = GetHex((utf8Buffer[b] >> 4) & 0xF);
+                    output[written++] = GetHex(utf8Buffer[b] & 0xF);
+                }
             }
         }
+        return written;
     }
 
-
-    private void SetFieldsFromUri(Uri uri)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetEncodedLength(ReadOnlySpan<char> input)
     {
-        if (!uri.IsAbsoluteUri)
+        int len = 0;
+        Span<byte> utf8Buffer = stackalloc byte[4];
+
+        for (int i = 0; i < input.Length; i++)
         {
-            // fall back to regex parser
-            ParseUrl(uri.ToString());
-            return;
+            char c = input[i];
+            if (IsUnreserved(c))
+            {
+                len += 1;
+            }
+            else if (c <= 0x7F)
+            {
+                len += 3; // %XX
+            }
+            else
+            {
+                // Non-ASCII: count UTF-8 bytes and add 3 per byte
+                int byteCount = System.Text.Encoding.UTF8.GetBytes(input.Slice(i, 1), utf8Buffer);
+                len += 3 * byteCount;
+            }
         }
-
-        Scheme = uri.Scheme;
-        Host = uri.Host;
-        Port = uri.Port;
-        Fragment = uri.Fragment;
-
-        ParseQueryString(uri.Query);
-        ParsePath(uri.AbsolutePath);
-
-        var userInfo = uri.UserInfo;
-
-        if (string.IsNullOrEmpty(userInfo))
-            return;
-
-        int index = userInfo.IndexOf(':');
-
-        if (index != -1)
-        {
-            Password = userInfo.Substring(index + 1);
-            UserName = userInfo.Substring(0, index);
-        }
-        else
-            UserName = userInfo;
+        return len;
     }
 
-    private void ParseUrl(string? url)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUnreserved(char c)
     {
-        if (string.IsNullOrEmpty(url))
-            return;
-
-        var match = UrlParseRegex().Match(url);
-        if (!match.Success)
-            return;
-
-        SetScheme(match.Groups["scheme"].Value);
-        SetUserName(match.Groups["username"].Value, true);
-        SetPassword(match.Groups["password"].Value, true);
-        SetHost(match.Groups["host"].Value);
-        SetPort(match.Groups["port"].Value);
-        SetPath(match.Groups["path"].Value);
-        SetQuery(match.Groups["query"].Value);
-        SetFragment(match.Groups["fragment"].Value);
+        // RFC 3986 unreserved: ALPHA / DIGIT / "-" / "." / "_" / "~"
+        return (c >= 'a' && c <= 'z') ||
+               (c >= 'A' && c <= 'Z') ||
+               (c >= '0' && c <= '9') ||
+               c == '-' || c == '_' || c == '.' || c == '~';
     }
 
-    private void ParseQueryString(string queryString)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static char GetHex(int value)
     {
-        if (string.IsNullOrEmpty(queryString))
-            return;
-
-        var result = HttpUtility.ParseQueryString(queryString);
-        Query.Add(result);
-    }
-
-    private void ParsePath(string? path)
-    {
-        if (string.IsNullOrEmpty(path))
-            return;
-
-        var parts = path?.Split('/');
-        if (parts == null)
-            return;
-
-        foreach (var part in parts)
-        {
-            if (string.IsNullOrEmpty(part))
-                continue;
-
-            var p = Uri.UnescapeDataString(part);
-
-            Path.Add(p);
-        }
-    }
-
-
-    private bool IsStandardPort()
-    {
-        if (string.IsNullOrEmpty(Scheme))
-            return false;
-
-        if (_schemePorts.TryGetValue(Scheme!, out int? port))
-            return port == Port;
-
-        return false;
+        return (char)(value < 10 ? ('0' + value) : ('A' + (value - 10)));
     }
 }

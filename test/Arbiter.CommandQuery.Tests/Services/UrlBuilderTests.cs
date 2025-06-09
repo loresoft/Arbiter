@@ -1,217 +1,342 @@
-namespace Arbiter.CommandQuery.Services.Tests;
+using Arbiter.CommandQuery.Services;
+
+namespace Arbiter.CommandQuery.Tests.Services;
 
 public class UrlBuilderTests
 {
-
     [Test]
-    [Arguments("http://foo/bar/baz", "date", "today", "http://foo/bar/baz?date=today")]
-    [Arguments("http://foo/bar/baz", "date", "sunday afternoon", "http://foo/bar/baz?date=sunday%20afternoon")]
-    [Arguments("http://foo/bar/baz?date=today", "key1", "value1", "http://foo/bar/baz?date=today&key1=value1")]
-    [Arguments("http://foo/bar/baz?date=today", "key1", "value 1&", "http://foo/bar/baz?date=today&key1=value%201%26")]
-    [Arguments("foo/bar/baz?date=today", "key1", "value 1&", "foo/bar/baz?date=today&key1=value%201%26")]
-    public void AppendQuery(string url, string key, string value, string expected)
+    public void BuildSimpleUrlWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com");
 
-        builder.AppendQuery(key, value);
-        builder.Query.AllKeys.Should().Contain(key);
-        builder.Query[key].Should().Contain(value);
+        var url = builder.ToString();
 
-        builder.ToString().Should().Be(expected);
-
+        url.Should().Be("https://example.com");
     }
 
     [Test]
-    [Arguments("http://foo/bar/baz", "date=today", "http://foo/bar/baz?date=today")]
-    [Arguments("http://foo/bar/baz?date=today", "date=yesterday", "http://foo/bar/baz?date=yesterday")]
-    [Arguments("http://foo/bar/baz?date=today", "?date=tomorrow", "http://foo/bar/baz?date=tomorrow")]
-    [Arguments("http://foo/bar/baz?date=today", "&date=tomorrow", "http://foo/bar/baz?=&date=tomorrow")]
-    [Arguments("http://foo/bar/baz?date=today", "date=", "http://foo/bar/baz?date=")]
-    [Arguments("foo/bar/baz?date=today", "date=", "foo/bar/baz?date=")]
-    public void SetQuery(string url, string query, string expected)
+    public void BuildUrlWithPortWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("http")
+            .Host("localhost")
+            .Port(8080);
 
-        builder.SetQuery(query);
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
 
+        url.Should().Be("http://localhost:8080");
     }
 
     [Test]
-    [Arguments("http://foo/bar/baz?date=today", null, "http://foo/bar/baz")]
-    [Arguments("http://foo/bar/baz?date=today", "", "http://foo/bar/baz")]
-    [Arguments("http://foo/bar/baz?date=today", "?", "http://foo/bar/baz")]
-    [Arguments("http://foo/bar/baz?date=today", "&", "http://foo/bar/baz?=&=")]
-    [Arguments("foo/bar/baz?date=today", "&", "foo/bar/baz?=&=")]
-    public void SetQueryEmpty(string url, string? query, string expected)
+    public void BuildUrlWithUserInfoWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("ftp")
+            .Host("ftp.example.com")
+            .UserName("user")
+            .Password("pass");
 
-        builder.SetQuery(query);
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
 
+        url.Should().Be("ftp://user:pass@ftp.example.com");
     }
 
     [Test]
-    [Arguments("http://foo.com/", "/bar/baz", "http://foo.com/bar/baz")]
-    [Arguments("http://foo.com/bar", "baz", "http://foo.com/bar/baz")]
-    [Arguments("http://foo.com/bar", "/baz", "http://foo.com/bar/baz")]
-    [Arguments("http://foo.com/bar/", "/baz", "http://foo.com/bar/baz")]
-    [Arguments("foo.com/bar/", "/baz", "foo.com/bar/baz")]
-    public void AppendPath(string url, string path, string expected)
+    public void BuildUrlWithPathWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api")
+            .AppendPath("v1")
+            .AppendPath("users");
 
-        builder.AppendPath(path);
-        builder.Path.Should().NotBeEmpty();
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api/v1/users");
     }
 
     [Test]
-    public void AppendParamsPath()
+    public void BuildUrlWithPathEncodesSpecialCharacters()
     {
-        var builder = new UrlBuilder("http://foo.com/");
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api v1")
+            .AppendPath("üser");
 
-        builder.AppendPaths("bar", "baz");
-        builder.Path.Should().NotBeEmpty();
-        builder.ToString().Should().Be("http://foo.com/bar/baz");
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api%20v1/%C3%BCser");
     }
 
     [Test]
-    [Arguments("http://foo.com/", 123, "http://foo.com/123")]
-    [Arguments("http://foo.com/bar", 5, "http://foo.com/bar/5")]
-    public void AppendPathTypeInt(string url, int path, string expected)
+    public void BuildUrlWithQueryWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("a", "1")
+            .AppendQuery("b", "2");
 
-        builder.AppendPath(path);
-        builder.Path.Should().NotBeEmpty();
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?a=1&b=2");
     }
 
     [Test]
-    [Arguments("http://foo.com/", "/bar/baz", "http://foo.com/bar/baz")]
-    [Arguments("http://foo.com/bar", "baz", "http://foo.com/baz")]
-    [Arguments("http://foo.com/bar", "/baz", "http://foo.com/baz")]
-    [Arguments("foo.com/bar", "/baz", "foo.com/baz")]
-    public void SetPath(string url, string path, string expected)
+    public void BuildUrlWithQueryEncodesSpecialCharacters()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("a b", "ü&c");
 
-        builder.SetPath(path);
-        builder.Path.Should().NotBeEmpty();
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?a%20b=%C3%BC%26c");
     }
 
-
     [Test]
-    [Arguments("http://foo.com/bar/baz", null, "http://foo.com/")]
-    [Arguments("http://foo.com/bar/baz", "", "http://foo.com/")]
-    [Arguments("http://foo.com/bar/baz", "/", "http://foo.com/")]
-    public void SetPathEmpty(string url, string? path, string expected)
+    public void BuildUrlWithFragmentWorks()
     {
-        var builder = new UrlBuilder(url);
-        builder.Should().NotBeNull();
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .Fragment("section1");
 
-        builder.SetPath(path);
-        builder.Path.Should().BeEmpty();
-        builder.ToString().Should().Be(expected);
+        var url = builder.ToString();
 
+        url.Should().Be("https://example.com#section1");
     }
 
+    [Test]
+    public void BuildOnlyPathNoSchemeOrHost()
+    {
+        var builder = new UrlBuilder()
+            .AppendPath("api")
+            .AppendPath("v1")
+            .AppendPath("users");
+
+        var url = builder.ToString();
+
+        url.Should().Be("/api/v1/users");
+    }
 
     [Test]
-    public void Build()
+    public void BuildOnlyQueryNoSchemeOrHost()
+    {
+        var builder = new UrlBuilder()
+            .AppendQuery("foo", "bar")
+            .AppendQuery("baz", "qux");
+
+        var url = builder.ToString();
+
+        url.Should().Be("?foo=bar&baz=qux");
+    }
+
+    [Test]
+    public void BuildOnlyFragmentNoSchemeOrHost()
+    {
+        var builder = new UrlBuilder()
+            .Fragment("fragSection");
+
+        var url = builder.ToString();
+
+        url.Should().Be("#fragSection");
+    }
+
+    [Test]
+    public void BuildPathAndQueryNoSchemeOrHost()
+    {
+        var builder = new UrlBuilder()
+            .AppendPath("api")
+            .AppendPath("v1")
+            .AppendQuery("id", "42");
+
+        var url = builder.ToString();
+
+        url.Should().Be("/api/v1?id=42");
+    }
+
+    [Test]
+    public void BuildPathQueryFragmentNoSchemeOrHost()
+    {
+        var builder = new UrlBuilder()
+            .AppendPath("api")
+            .AppendPath("v1")
+            .AppendQuery("id", "42")
+            .Fragment("top");
+
+        var url = builder.ToString();
+
+        url.Should().Be("/api/v1?id=42#top");
+    }
+
+    [Test]
+    public void BuildEmptyBuilderReturnsEmptyString()
     {
         var builder = new UrlBuilder();
-        builder
-            .SetScheme("https")
-            .SetHost("foo.com")
-            .SetPort(443)
-            .AppendPath("/bar");
 
-        builder.Scheme.Should().Be("https");
-        builder.Host.Should().Be("foo.com");
-        builder.Port.Should().Be(443);
+        var url = builder.ToString();
 
-        builder.Path.Should().NotBeEmpty();
-        builder.Path.Should().Contain("bar");
-
-        builder.ToString().Should().Be("https://foo.com/bar");
-
+        url.Should().BeEmpty();
     }
 
     [Test]
-    public void BuildRelative()
+    public void BuildUrlWithPortAsStringWorks()
     {
-        var builder = UrlBuilder
-            .Create()
-            .AppendPath("/bar")
-            .AppendQuery("test", true);
+        var builder = new UrlBuilder()
+            .Scheme("http")
+            .Host("localhost")
+            .Port("1234");
 
-        builder.Scheme.Should().BeNull();
-        builder.Host.Should().BeNull();
-        builder.Port.Should().BeNull();
+        var url = builder.ToString();
 
-        builder.Path.Should().NotBeEmpty();
-        builder.Path.Should().Contain("bar");
-
-        builder.Query.AllKeys.Length.Should().BeGreaterThan(0);
-        builder.Query.AllKeys.Should().Contain("test");
-
-        builder.ToString().Should().Be("/bar?test=True");
-
+        url.Should().Be("http://localhost:1234");
     }
 
     [Test]
-    public void BuildBasePath()
+    public void AppendPathGenericWorks()
     {
-        var builder = UrlBuilder
-            .Create("http://foo.com/test")
-            .AppendPath("/bar")
-            .AppendQuery("test", true);
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath(123)
+            .AppendPath(Guid.Empty);
 
-        builder.Scheme.Should().Be("http");
-        builder.Host.Should().Be("foo.com");
-        builder.Port.Should().BeNull();
+        var url = builder.ToString();
 
-        builder.Path.Should().NotBeEmpty();
-        builder.Path.Should().Contain("test");
-        builder.Path.Should().Contain("bar");
-
-        builder.Query.AllKeys.Length.Should().BeGreaterThan(0);
-        builder.Query.AllKeys.Should().Contain("test");
-
-        builder.ToString().Should().Be("http://foo.com/test/bar?test=True");
-
+        url.Should().Be("https://example.com/123/00000000-0000-0000-0000-000000000000");
     }
 
     [Test]
-    public void BuildBaseRelativePath()
+    public void AppendPathWithConditionFuncWorks()
     {
-        var builder = UrlBuilder
-            .Create("/foo")
-            .AppendPath("/bar")
-            .AppendQuery("test", true);
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api", s => s == "api")
+            .AppendPath("skip", s => s == "nope");
 
-        builder.Scheme.Should().BeEmpty();
-        builder.Host.Should().BeEmpty();
-        builder.Port.Should().BeNull();
+        var url = builder.ToString();
 
-        builder.Path.Should().NotBeEmpty();
-        builder.Path.Should().Contain("foo");
-        builder.Path.Should().Contain("bar");
+        url.Should().Be("https://example.com/api");
+    }
 
-        builder.Query.AllKeys.Length.Should().BeGreaterThan(0);
-        builder.Query.AllKeys.Should().Contain("test");
+    [Test]
+    public void AppendPathWithConditionBoolWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api", true)
+            .AppendPath("skip", false);
 
-        builder.ToString().Should().Be("/foo/bar?test=True");
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api");
+    }
+
+    [Test]
+    public void AppendPathsWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPaths(["api", "v2", "users"]);
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api/v2/users");
+    }
+
+    [Test]
+    public void AppendQueryGenericWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("id", 42);
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?id=42");
+    }
+
+    [Test]
+    public void AppendQueryWithConditionFuncWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("a", "1", v => v == "1")
+            .AppendQuery("b", "2", v => v == "nope");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?a=1");
+    }
+
+    [Test]
+    public void AppendQueryWithConditionBoolWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("a", "1", true)
+            .AppendQuery("b", "2", false);
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?a=1");
+    }
+
+    [Test]
+    public void AppendQueriesWorks()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQueries([
+                new KeyValuePair<string, string?>("a", "1"),
+                new KeyValuePair<string, string?>("b", "2")
+            ]);
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?a=1&b=2");
+    }
+
+    [Test]
+    public void AppendPathNullOrEmptyDoesNothing()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath((string?)null)
+            .AppendPath("")
+            .AppendPath("users");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/users");
+    }
+
+    [Test]
+    public void AppendQueryNullOrEmptyDoesNothing()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("", "value")
+            .AppendQuery("key", (string?)null)
+            .AppendQuery("id", "42");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?id=42");
     }
 }

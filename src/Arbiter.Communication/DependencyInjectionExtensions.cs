@@ -22,7 +22,7 @@ public static class DependencyInjectionExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddTemplateServices(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -76,7 +76,7 @@ public static class DependencyInjectionExtensions
     /// <remarks>
     /// Registers <see cref="FluidParser"/>, <see cref="ITemplateService"/>, and <see cref="IEmailTemplateService"/> as singletons.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddEmailServices(
         this IServiceCollection services,
         Action<EmailConfiguration>? configureOptions = null)
@@ -108,7 +108,7 @@ public static class DependencyInjectionExtensions
     /// <remarks>
     /// Registers the specified <typeparamref name="TService"/> as a singleton implementation of <see cref="IEmailDeliveryService"/>.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddEmailDelivery<TService>(
         this IServiceCollection services,
         Action<EmailConfiguration>? configureOptions = null)
@@ -131,7 +131,7 @@ public static class DependencyInjectionExtensions
     /// An optional delegate to configure <see cref="EmailConfiguration"/> options, such as sender information, SMTP server, and template resources.
     /// </param>
     /// <returns>The <see cref="IServiceCollection"/> for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> or <paramref name="factory"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> or <paramref name="factory"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddEmailDelivery(
         this IServiceCollection services,
         Func<IServiceProvider, IEmailDeliveryService> factory,
@@ -157,7 +157,7 @@ public static class DependencyInjectionExtensions
     /// <remarks>
     /// Registers <see cref="SmtpEmailDeliveryService"/> as a singleton implementation of <see cref="IEmailDeliveryService"/>.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddSmtpEmailDeliver(
         this IServiceCollection services,
         Action<EmailConfiguration>? configureOptions = null)
@@ -178,7 +178,7 @@ public static class DependencyInjectionExtensions
     /// An optional delegate to configure <see cref="SmsConfiguration"/> options, such as sender information and template resources.
     /// </param>
     /// <returns>The <see cref="IServiceCollection"/> for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddSmsServices(
         this IServiceCollection services,
         Action<SmsConfiguration>? configureOptions = null)
@@ -210,7 +210,7 @@ public static class DependencyInjectionExtensions
     /// <remarks>
     /// Registers the specified <typeparamref name="TService"/> as a singleton implementation of <see cref="ISmsDeliveryService"/>.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddSmsDelivery<TService>(
         this IServiceCollection services,
         Action<SmsConfiguration>? configureOptions = null)
@@ -233,7 +233,7 @@ public static class DependencyInjectionExtensions
     /// An optional delegate to configure <see cref="SmsConfiguration"/> options, such as sender information and template resources.
     /// </param>
     /// <returns>The <see cref="IServiceCollection"/> for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddSmsDeliver(
         this IServiceCollection services,
         Func<IServiceProvider, ISmsDeliveryService> factory,

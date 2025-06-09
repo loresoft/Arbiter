@@ -3,6 +3,7 @@ using System.Text;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Services;
 
 namespace Arbiter.CommandQuery.Extensions;
 
@@ -64,13 +65,14 @@ public static class QueryExtensions
         ArgumentNullException.ThrowIfNull(query);
 
         // Create ordering expression e.g. Field1 asc, Field2 desc
-        var builder = new StringBuilder();
+        var builder = new ValueStringBuilder(128);
         foreach (var sort in sorts)
         {
             if (builder.Length > 0)
                 builder.Append(',');
 
-            builder.Append(sort.Name).Append(' ');
+            builder.Append(sort.Name);
+            builder.Append(' ');
 
             var isDescending = !string.IsNullOrWhiteSpace(sort.Direction)
                 && sort.Direction.StartsWith(EntitySortDirections.Descending, StringComparison.OrdinalIgnoreCase);
