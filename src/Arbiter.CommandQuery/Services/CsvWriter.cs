@@ -61,10 +61,13 @@ public static class CsvWriter
         ArgumentNullException.ThrowIfNull(stream);
 
         encoding ??= Encoding.UTF8;
-        using var writer = new StreamWriter(stream, encoding, bufferSize: 4096, leaveOpen: true);
 
-        await WriteAsync(writer, headers, rows, selector, cancellationToken)
-            .ConfigureAwait(false);
+        var writer = new StreamWriter(stream, encoding, bufferSize: 4096, leaveOpen: true);
+        await using (writer.ConfigureAwait(false))
+        {
+            await WriteAsync(writer, headers, rows, selector, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -127,9 +130,6 @@ public static class CsvWriter
             await WriteRowAsync(writer, selector(row))
                 .ConfigureAwait(false);
         }
-
-        await writer.FlushAsync(cancellationToken)
-            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public static class CsvWriter
     /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if null.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public static async Task WriteAsync<T>(
+    public static Task WriteAsync<T>(
         Stream stream,
         IEnumerable<T> rows,
         Encoding? encoding = null,
@@ -151,8 +151,7 @@ public static class CsvWriter
         var headers = T.Headers();
         var selector = T.RowSelector();
 
-        await WriteAsync(stream, headers, rows, selector, encoding, cancellationToken)
-            .ConfigureAwait(false);
+        return WriteAsync(stream, headers, rows, selector, encoding, cancellationToken);
     }
 
     /// <summary>
@@ -162,7 +161,7 @@ public static class CsvWriter
     /// <param name="rows">The data rows to write.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task{TResult}"/> whose result is the CSV-formatted string.</returns>
-    public static async Task<string> WriteAsync<T>(
+    public static Task<string> WriteAsync<T>(
         IEnumerable<T> rows,
         CancellationToken cancellationToken = default)
         where T : ISupportWriter<T>
@@ -170,8 +169,7 @@ public static class CsvWriter
         var headers = T.Headers();
         var selector = T.RowSelector();
 
-        return await WriteAsync(headers, rows, selector, cancellationToken)
-            .ConfigureAwait(false);
+        return WriteAsync(headers, rows, selector, cancellationToken);
     }
 
     /// <summary>
@@ -182,7 +180,7 @@ public static class CsvWriter
     /// <param name="rows">The data rows to write.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public static async Task WriteAsync<T>(
+    public static Task WriteAsync<T>(
         TextWriter writer,
         IEnumerable<T> rows,
         CancellationToken cancellationToken = default)
@@ -191,8 +189,7 @@ public static class CsvWriter
         var headers = T.Headers();
         var selector = T.RowSelector();
 
-        await WriteAsync(writer, headers, rows, selector, cancellationToken)
-            .ConfigureAwait(false);
+        return WriteAsync(writer, headers, rows, selector, cancellationToken);
     }
 
 
@@ -222,20 +219,26 @@ public static class CsvWriter
             return;
 
         var span = value.AsSpan();
-        bool needsQuotes = span.ContainsAny(SpecialChars);
+        var needsQuotes = span.ContainsAny(SpecialChars);
 
-        if (needsQuotes)
-            await writer.WriteAsync('"').ConfigureAwait(false);
-
-        foreach (char ch in value)
+        if (!needsQuotes)
         {
+            // Fast path: no special chars, write directly
+            await writer.WriteAsync(value).ConfigureAwait(false);
+            return;
+        }
+
+        // write with quotes and escape any quotes within the value
+        await writer.WriteAsync('"').ConfigureAwait(false);
+        for (var i = 0; i < value.Length; i++)
+        {
+            var ch = value[i];
+
             if (ch == '"')
                 await writer.WriteAsync("\"\"").ConfigureAwait(false);
             else
                 await writer.WriteAsync(ch).ConfigureAwait(false);
         }
-
-        if (needsQuotes)
-            await writer.WriteAsync('"').ConfigureAwait(false);
+        await writer.WriteAsync('"').ConfigureAwait(false);
     }
 }
