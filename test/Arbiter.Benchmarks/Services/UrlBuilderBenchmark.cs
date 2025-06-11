@@ -4,7 +4,7 @@ using Arbiter.CommandQuery.Services;
 
 using BenchmarkDotNet.Attributes;
 
-namespace Arbiter.Benchmarks.Builders;
+namespace Arbiter.Benchmarks.Services;
 
 [MemoryDiagnoser]
 [Description("UrlBuilder")]

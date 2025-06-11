@@ -5,6 +5,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 
+using Arbiter.Benchmarks.Services;
+
 namespace Arbiter.CommandQuery.Services;
 
 /// <summary>

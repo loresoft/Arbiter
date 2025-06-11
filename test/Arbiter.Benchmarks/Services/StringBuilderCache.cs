@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Benchmarks.Services;
 
 /// <summary>Provide a cached reusable instance of StringBuilder per thread.</summary>
 internal static class StringBuilderCache
