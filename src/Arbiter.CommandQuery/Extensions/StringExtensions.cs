@@ -122,7 +122,8 @@ public static class StringExtensions
         int firstLength = first.Length;
         int secondLength = second.Length;
 
-        if (firstEndsWith && !secondStartsWith || !firstEndsWith && secondStartsWith)
+        // XOR operator returns true if exactly one of its operands is true, but not both and not neither.
+        if (firstEndsWith ^ secondStartsWith)
         {
             // No separator adjustment needed
             var totalLength = firstLength + secondLength;
@@ -244,7 +245,7 @@ public static class StringExtensions
                 }
             }
 
-            return new string(buffer.Slice(0, j));
+            return new string(buffer[..j]);
         }
         finally
         {
