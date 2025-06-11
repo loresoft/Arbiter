@@ -9,6 +9,15 @@ namespace Arbiter.CommandQuery.Services;
 /// </summary>
 public ref struct ValueStringBuilder
 {
+    /// <summary>
+    /// Represents the default initial capacity for the builder.
+    /// </summary>
+    /// <remarks>
+    /// This constant defines the default size, in characters, that a builder can hold when
+    /// initialized without specifying a capacity.
+    /// </remarks>
+    public const int DefaultCapacity = 256;
+
     private Span<char> _buffer;          // Current character buffer
     private char[]? _arrayFromPool;      // Array rented from pool
     private int _position;               // Current write position
@@ -31,7 +40,7 @@ public ref struct ValueStringBuilder
     /// </summary>
     /// <param name="capacity">The minimum number of characters the builder can initially store.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity"/> is not positive.</exception>
-    public ValueStringBuilder(int capacity)
+    public ValueStringBuilder(int capacity = DefaultCapacity)
     {
         if (capacity <= 0)
             throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be positive.");
@@ -130,6 +139,41 @@ public ref struct ValueStringBuilder
     }
 
     /// <summary>
+    /// Appends the string representation of the specified value to the current instance.
+    /// </summary>
+    /// <remarks>
+    /// This method attempts to format the value directly into the internal buffer. If the buffer
+    /// does not have  enough space, it is resized, and the formatting is retried. The method ensures that the appended
+    /// value  is properly added to the builder, growing the buffer as needed.
+    /// </remarks>
+    /// <typeparam name="T">The type of the value to append. Must implement <see cref="ISpanFormattable"/>.</typeparam>
+    /// <param name="value">The value to append. The value is formatted using its <see cref="ISpanFormattable.TryFormat"/> implementation.</param>
+    /// <returns>The current <see cref="ValueStringBuilder"/> instance with the appended value.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the value of type <typeparamref name="T"/> cannot be formatted into the buffer.</exception>
+    public ValueStringBuilder Append<T>(T value) where T : ISpanFormattable
+    {
+        ThrowIfDisposed();
+
+        // Try to format directly into the buffer
+        int charsAvailable = _buffer.Length - _position;
+        if (value.TryFormat(_buffer[_position..], out int charsWritten, format: null, provider: null))
+        {
+            _position += charsWritten;
+            return this;
+        }
+
+        // If not enough space, grow and try again
+        // Estimate: most types won't exceed 128 chars, but we double buffer for safety
+        Grow(_position + 128);
+        charsAvailable = _buffer.Length - _position;
+        if (!value.TryFormat(_buffer.Slice(_position), out charsWritten, format: null, provider: null))
+            throw new InvalidOperationException($"Failed to format value of type {typeof(T)}.");
+
+        _position += charsWritten;
+        return this;
+    }
+
+    /// <summary>
     /// Appends the platform-specific line terminator to the builder.
     /// </summary>
     /// <returns>The current <see cref="ValueStringBuilder"/> instance.</returns>
@@ -142,6 +186,15 @@ public ref struct ValueStringBuilder
     /// <param name="value">The string to append before the line terminator.</param>
     /// <returns>The current <see cref="ValueStringBuilder"/> instance.</returns>
     public ValueStringBuilder AppendLine(string? value)
+        => Append(value).AppendLine();
+
+    /// <summary>
+    /// Appends the string representation of the specified value, followed by a newline, to the current instance.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to append. Must implement <see cref="ISpanFormattable"/>.</typeparam>
+    /// <param name="value">The value to append. Its string representation is formatted and appended to the current instance.</param>
+    /// <returns>The current <see cref="ValueStringBuilder"/> instance with the appended value and a newline.</returns>
+    public ValueStringBuilder AppendLine<T>(T value) where T : ISpanFormattable
         => Append(value).AppendLine();
 
     /// <summary>
