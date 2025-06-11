@@ -1,17 +1,10 @@
-using System.Globalization;
 using System.Net.Mime;
-using System.Text.Json;
-
-using CsvHelper;
-using CsvHelper.Configuration;
 
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Mediation;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Arbiter.Mediation;
 
 namespace Arbiter.CommandQuery.Mvc;
 
@@ -132,72 +125,6 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
         return results?.ToList();
     }
 
-    /// <summary>
-    /// Exports a list of entities as a CSV file based on the specified query.
-    /// </summary>
-    /// <param name="query">The query containing filtering and sorting criteria.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>A CSV file containing the exported entities.</returns>
-    [HttpPost("export")]
-    [Produces("text/csv")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<ActionResult> Export(
-        [FromBody] EntitySelect query,
-        CancellationToken cancellationToken = default)
-    {
-        var results = await SelectQuery(query, cancellationToken);
-        results ??= [];
-
-        var csvConfiguration = HttpContext.RequestServices.GetService<CsvConfiguration>()
-            ?? new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true };
-
-        await using var memoryStream = new MemoryStream();
-        await using var streamWriter = new StreamWriter(memoryStream);
-        await using var csvWriter = new CsvWriter(streamWriter, csvConfiguration);
-
-        WriteExportData(csvWriter, results);
-        await streamWriter.FlushAsync(cancellationToken);
-
-        var buffer = memoryStream.ToArray();
-
-        return File(buffer, "text/csv");
-    }
-
-    /// <summary>
-    /// Exports a list of entities as a CSV file based on query parameters.
-    /// </summary>
-    /// <param name="encodedQuery">The encoded query string containing filtering and sorting criteria.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>A CSV file containing the exported entities.</returns>
-    [HttpGet("export")]
-    [Produces("text/csv")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<ActionResult> Export(
-        [FromQuery] string? encodedQuery = null,
-        CancellationToken cancellationToken = default)
-    {
-        var jsonSerializerOptions = HttpContext.RequestServices.GetService<JsonSerializerOptions>()
-            ?? new JsonSerializerOptions(JsonSerializerDefaults.Web);
-
-        var query = QueryStringEncoder.Decode<EntitySelect>(encodedQuery, jsonSerializerOptions) ?? new EntitySelect();
-
-        var results = await SelectQuery(query, cancellationToken);
-        results ??= [];
-
-        var csvConfiguration = HttpContext.RequestServices.GetService<CsvConfiguration>()
-            ?? new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true };
-
-        await using var memoryStream = new MemoryStream();
-        await using var streamWriter = new StreamWriter(memoryStream);
-        await using var csvWriter = new CsvWriter(streamWriter, csvConfiguration);
-
-        WriteExportData(csvWriter, results);
-        await streamWriter.FlushAsync();
-
-        var buffer = memoryStream.ToArray();
-
-        return File(buffer, "text/csv");
-    }
 
     /// <summary>
     /// Executes a query to retrieve a single entity by its identifier.
@@ -233,15 +160,5 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     {
         var command = new EntitySelectQuery<TListModel>(User, entitySelect);
         return await Mediator.Send(command, cancellationToken);
-    }
-
-    /// <summary>
-    /// Writes the exported data to a CSV writer.
-    /// </summary>
-    /// <param name="csvWriter">The CSV writer to write the data to.</param>
-    /// <param name="results">The list of entities to export.</param>
-    protected virtual void WriteExportData(CsvWriter csvWriter, IReadOnlyCollection<TListModel> results)
-    {
-        csvWriter.WriteRecords(results);
     }
 }
