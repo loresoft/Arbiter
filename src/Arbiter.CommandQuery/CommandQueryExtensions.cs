@@ -38,6 +38,23 @@ public static class CommandQueryExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds command validation behavior to the service collection.
+    /// </summary>
+    /// <remarks>
+    /// This method registers a pipeline behavior that validates commands before they are processed.
+    /// It ensures that any command passed through the pipeline adheres to the defined validation rules.
+    /// </remarks>
+    /// <param name="services">The <see cref="IServiceCollection"/> to which the command validation behavior is added.</param>
+    /// <returns>The same <see cref="IServiceCollection"/> instance, allowing for method chaining.</returns>
+    public static IServiceCollection AddCommandValidation(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton(typeof(IPipelineBehavior<,>), typeof(ValidateCommandBehavior<,>));
+
+        return services;
+    }
 
     /// <summary>
     /// Adds the remote dispatcher to the service collection.  The client must register the <see cref="RemoteDispatcher"/> with the correct <see cref="HttpClient"/>.

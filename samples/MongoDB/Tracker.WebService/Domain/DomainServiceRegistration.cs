@@ -8,6 +8,10 @@ public static class DomainServiceRegistration
     public static void Register(IServiceCollection services)
     {
         services.AddAutoMapper(typeof(DomainServiceRegistration).Assembly);
-        services.AddCommandQuery();
+
+        services
+            .AddCommandQuery()
+            .AddCommandValidation();
+
     }
 }

@@ -3,13 +3,16 @@ using Arbiter.CommandQuery.Definitions;
 namespace Arbiter.CommandQuery.MongoDB.Tests.Adapters;
 
 [RegisterSingleton(Duplicate = DuplicateStrategy.Replace)]
-internal class FluentValidationAdapter<T>(FluentValidation.IValidator<T> validator) : IValidator<T>
+internal class FluentValidationAdapter<T>(FluentValidation.IValidator<T>? validator = null) : IValidator<T>
 {
     public async ValueTask<Models.ValidationResult> Validate(T instance, CancellationToken cancellationToken = default)
     {
+        if (validator is null)
+            return Models.ValidationResult.Success;
+
         var result = await validator.ValidateAsync(instance, cancellationToken);
         if (result.IsValid)
-            return new Models.ValidationResult();
+            return Models.ValidationResult.Success;
 
         return new Models.ValidationResult
         {

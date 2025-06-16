@@ -1,0 +1,10 @@
+@baseAddress = https://localhost:7003
+@apiKey = 681a501ea926338477bd580b
+
+
+### action command
+
+GET {{baseAddress}}/api/Task/Process?action=Run
+X-API-KEY: {{apiKey}}
+Accept: application/json
+

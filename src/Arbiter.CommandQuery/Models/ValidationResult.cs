@@ -1,7 +1,5 @@
 using System.Text.Json.Serialization;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
@@ -37,6 +35,18 @@ public class ValidationResult
     /// <returns>A string representation of the error message</returns>
     public string ToString(string separator)
     {
-        return string.Join(separator, Errors.Select(failure => failure.Value));
+        if (Errors.Count == 0)
+            return string.Empty;
+
+        return string.Join(separator, Errors.SelectMany(kvp => kvp.Value));
     }
+
+    /// <summary>
+    /// Gets a <see cref="ValidationResult"/> instance that represents a successful validation result.
+    /// </summary>
+    /// <remarks>
+    /// This property provides a predefined instance of <see cref="ValidationResult"/> to represent
+    /// success,  avoiding the need to create a new instance for successful validation scenarios.
+    /// </remarks>
+    public static ValidationResult Success { get; } = new();
 }
