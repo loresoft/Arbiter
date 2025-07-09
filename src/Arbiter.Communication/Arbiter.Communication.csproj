@@ -9,8 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Fluid.Core" Version="2.24.0" />
     <PackageReference Include="MailKit" Version="4.12.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.7" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
