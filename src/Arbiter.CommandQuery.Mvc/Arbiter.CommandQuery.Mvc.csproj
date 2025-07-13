@@ -9,8 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
 </Project>

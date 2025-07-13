@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AwesomeAssertions" Version="9.0.0" />
+    <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.2" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.3" />
     <PackageReference Include="TUnit" Version="0.25.21" />
     <PackageReference Include="Verify.TUnit" Version="30.4.0" />
   </ItemGroup>
