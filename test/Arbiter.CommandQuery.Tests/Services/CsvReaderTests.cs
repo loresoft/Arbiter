@@ -82,7 +82,7 @@ public class CsvReaderTests
         people.Should().HaveCount(3);
         people[0].Name.Should().Be("Alice, with comma");
         people[1].Name.Should().Be("Bob\" with quote");
-        people[2].Name.Should().Contain("Charlie\r\n with newline");
+        people[2].Name.Should().Contain($"Charlie{Environment.NewLine} with newline");
     }
 
     [Test]
@@ -116,7 +116,7 @@ public class CsvReaderTests
         rows[0].Should().BeEquivalentTo(["Name", "Age", "Email"]);
         rows[1].Should().BeEquivalentTo(["Alice, with comma", "30", "alice@example.com"]);
         rows[2].Should().BeEquivalentTo(["Bob\" with quote", "25", "bob@example.com"]);
-        rows[3].Should().BeEquivalentTo(["Charlie\r\n with newline", "35", "charlie@example.com"]);
+        rows[3].Should().BeEquivalentTo([$"Charlie{Environment.NewLine} with newline", "35", "charlie@example.com"]);
     }
 
     [Test]
