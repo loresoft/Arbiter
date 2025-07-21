@@ -1,6 +1,9 @@
+using Arbiter.CommandQuery.Definitions;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Arbiter.CommandQuery.Endpoints;
 
@@ -16,7 +19,8 @@ public static class EndpointRouteExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEndpointRoutes(this IServiceCollection services)
     {
-        services.AddSingleton<IEndpointRoute, DispatcherEndpoint>();
+        services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
+        services.TryAddSingleton<IEndpointRoute, DispatcherEndpoint>();
 
         return services;
     }
