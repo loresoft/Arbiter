@@ -41,7 +41,8 @@ public class EntitySelectQueryHandler<TContext, TEntity, TReadModel>
             .TagWith($"EntitySelectQueryHandler; Context:{typeof(TContext).Name}, Entity:{typeof(TEntity).Name}, Model:{typeof(TReadModel).Name}");
 
         // build query from filter
-        query = BuildQuery(request, query);
+        query = await BuildQuery(request, query)
+            .ConfigureAwait(false);
 
         // page the query and convert to read model
         return await QueryList(request, query, cancellationToken).ConfigureAwait(false);
@@ -52,8 +53,8 @@ public class EntitySelectQueryHandler<TContext, TEntity, TReadModel>
     /// </summary>
     /// <param name="request">The request to build the query from.</param>
     /// <param name="query">The IQueryable to apply the entity query to</param>
-    /// <returns>An IQueryable with the entity query applied</returns>
-    protected virtual IQueryable<TEntity> BuildQuery(
+    /// <returns>A ValueTask containing an IQueryable with the entity query applied</returns>
+    protected virtual ValueTask<IQueryable<TEntity>> BuildQuery(
         EntitySelectQuery<TReadModel> request,
         IQueryable<TEntity> query)
     {
@@ -67,7 +68,7 @@ public class EntitySelectQueryHandler<TContext, TEntity, TReadModel>
         if (!string.IsNullOrEmpty(entitySelect?.Query))
             query = query.Where(entitySelect.Query);
 
-        return query;
+        return ValueTask.FromResult(query);
     }
 
     /// <summary>

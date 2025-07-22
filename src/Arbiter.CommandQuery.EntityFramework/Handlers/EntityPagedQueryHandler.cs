@@ -42,7 +42,8 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             .TagWith($"EntityPagedQueryHandler; Context:{typeof(TContext).Name}, Entity:{typeof(TEntity).Name}, Model:{typeof(TReadModel).Name}");
 
         // build query from filter
-        query = BuildQuery(request, query);
+        query = await BuildQuery(request, query)
+            .ConfigureAwait(false);
 
         // get total for query
         int total = await QueryTotal(request, query, cancellationToken)
@@ -68,8 +69,8 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     /// </summary>
     /// <param name="request">The request to build the query from.</param>
     /// <param name="query">The IQueryable to apply the entity query to</param>
-    /// <returns>An IQueryable with the entity query applied</returns>
-    protected virtual IQueryable<TEntity> BuildQuery(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query)
+    /// <returns>A ValueTask containing an IQueryable with the entity query applied</returns>
+    protected virtual ValueTask<IQueryable<TEntity>> BuildQuery(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query)
     {
         var entityQuery = request.Query;
 
@@ -82,7 +83,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             query = query.Where(entityQuery.Query);
 
 
-        return query;
+        return ValueTask.FromResult(query);
     }
 
     /// <summary>

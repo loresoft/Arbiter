@@ -48,7 +48,7 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
         var query = Repository.All();
 
         // Build query from filter
-        query = BuildQuery(request, query);
+        query = await BuildQuery(request, query).ConfigureAwait(false);
 
         // Get total for query
         int total = await QueryTotal(request, query, cancellationToken).ConfigureAwait(false);
@@ -72,8 +72,8 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
     /// </summary>
     /// <param name="request">The paged query request.</param>
     /// <param name="query">The initial query.</param>
-    /// <returns>The modified query.</returns>
-    protected virtual IQueryable<TEntity> BuildQuery(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query)
+    /// <returns>The modified query as a ValueTask.</returns>
+    protected virtual ValueTask<IQueryable<TEntity>> BuildQuery(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query)
     {
         var entityQuery = request.Query;
 
@@ -85,7 +85,7 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
         if (!string.IsNullOrEmpty(entityQuery?.Query))
             query = query.Where(entityQuery.Query);
 
-        return query;
+        return ValueTask.FromResult(query);
     }
 
     /// <summary>
