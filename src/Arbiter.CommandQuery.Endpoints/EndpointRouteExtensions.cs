@@ -20,7 +20,9 @@ public static class EndpointRouteExtensions
     public static IServiceCollection AddEndpointRoutes(this IServiceCollection services)
     {
         services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
-        services.TryAddSingleton<IEndpointRoute, DispatcherEndpoint>();
+
+        // allow duplicates
+        services.AddSingleton<IEndpointRoute, DispatcherEndpoint>();
 
         return services;
     }

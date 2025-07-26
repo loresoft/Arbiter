@@ -15,13 +15,17 @@ using SystemTextJsonPatch;
 namespace Arbiter.CommandQuery.Endpoints;
 
 /// <summary>
-/// Base class for entity command endpoints.
+/// Provides a base class for defining RESTful command endpoints for an entity, including create, update, upsert, patch, and delete operations.
 /// </summary>
-/// <typeparam name="TKey">The type of the key for entity</typeparam>
-/// <typeparam name="TListModel">The type of the list model</typeparam>
-/// <typeparam name="TReadModel">The type of the read model.</typeparam>
-/// <typeparam name="TCreateModel">The type of the create model</typeparam>
-/// <typeparam name="TUpdateModel">The type of the update model</typeparam>
+/// <typeparam name="TKey">The type of the entity key.</typeparam>
+/// <typeparam name="TListModel">The type of the list model returned by queries.</typeparam>
+/// <typeparam name="TReadModel">The type of the read model returned by single-entity queries and commands.</typeparam>
+/// <typeparam name="TCreateModel">The type of the model used to create a new entity.</typeparam>
+/// <typeparam name="TUpdateModel">The type of the model used to update or patch an entity.</typeparam>
+/// <remarks>
+/// This class extends <see cref="EntityQueryEndpointBase{TKey, TListModel, TReadModel}"/> to provide endpoints for entity command operations.
+/// It is intended for use in applications to standardize CRUD API patterns.
+/// </remarks>
 public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TCreateModel, TUpdateModel>
     : EntityQueryEndpointBase<TKey, TListModel, TReadModel>
 {
@@ -29,14 +33,28 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     /// Initializes a new instance of the <see cref="EntityCommandEndpointBase{TKey, TListModel, TReadModel, TCreateModel, TUpdateModel}"/> class.
     /// </summary>
     /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this endpoint.</param>
-    /// <param name="entityName">The name of the entity for this endpoint</param>
-    /// <param name="routePrefix">The route prefix for this endpoint.  <paramref name="entityName"/> used if not set.</param>
+    /// <param name="entityName">The name of the entity for this endpoint.</param>
+    /// <param name="routePrefix">The route prefix for this endpoint. If not set, <paramref name="entityName"/> is used.</param>
     protected EntityCommandEndpointBase(ILoggerFactory loggerFactory, string entityName, string? routePrefix = null)
         : base(loggerFactory, entityName, routePrefix)
     {
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Maps the command endpoints for the entity, including create, update, upsert, patch, and delete operations.
+    /// </summary>
+    /// <param name="group">The <see cref="RouteGroupBuilder"/> used to define the endpoint group.</param>
+    /// <remarks>
+    /// This method adds endpoints for:
+    /// <list type="bullet">
+    /// <item><description>GET {id}/update - Retrieve an entity for update</description></item>
+    /// <item><description>POST - Create a new entity</description></item>
+    /// <item><description>POST {id} - Upsert (create or update) an entity</description></item>
+    /// <item><description>PUT {id} - Update an entity</description></item>
+    /// <item><description>PATCH {id} - Patch an entity using a JSON patch document</description></item>
+    /// <item><description>DELETE {id} - Delete an entity</description></item>
+    /// </list>
+    /// </remarks>
     protected override void MapGroup(RouteGroupBuilder group)
     {
         base.MapGroup(group);
@@ -85,13 +103,15 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a single entity by id.
+    /// Retrieves an entity for update by its identifier using the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to retrieve.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TUpdateModel}"/> with the update model or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TUpdateModel>, ProblemHttpResult>> GetUpdateQuery(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
@@ -115,13 +135,15 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Creates a new entity using the mediator service with the specified create model.
+    /// Creates a new entity using the provided create model and the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="createModel">The model being created</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="createModel">The model containing data for the new entity.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the created entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> CreateCommand(
         [FromServices] IMediator mediator,
         [FromBody] TCreateModel createModel,
@@ -145,14 +167,16 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Updates an existing entity using the mediator service with the specified update model.
+    /// Updates an existing entity using the provided update model and the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="updateModel">The update model to apply</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to update.</param>
+    /// <param name="updateModel">The model containing updated data for the entity.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the updated entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> UpdateCommand(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
@@ -177,14 +201,16 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Creates or updates an entity using the mediator service with the specified update model.
+    /// Creates or updates an entity using the provided update model and the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="updateModel">The update model to apply</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to upsert.</param>
+    /// <param name="updateModel">The model containing data for the entity.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the upserted entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> UpsertCommand(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
@@ -209,14 +235,16 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Patches an existing entity using the mediator service with the specified JSON patch document.
+    /// Applies a JSON patch document to an existing entity using the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="jsonPatch">The JSON patch document to apply</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to patch.</param>
+    /// <param name="jsonPatch">The JSON patch document describing the changes.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the patched entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> PatchCommand(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
@@ -241,13 +269,15 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     }
 
     /// <summary>
-    /// Deletes an existing entity using the mediator service with the specified identifier.
+    /// Deletes an existing entity by its identifier using the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to delete.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the deleted entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> DeleteCommand(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,

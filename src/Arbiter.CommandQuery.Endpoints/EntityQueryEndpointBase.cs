@@ -12,19 +12,23 @@ using Microsoft.Extensions.Logging;
 namespace Arbiter.CommandQuery.Endpoints;
 
 /// <summary>
-/// Base class for entity query endpoints.
+/// Provides a base class for defining RESTful query endpoints for an entity, including single, paged, and list queries.
 /// </summary>
-/// <typeparam name="TKey">The type of the key for entity</typeparam>
-/// <typeparam name="TListModel">The type of the list model</typeparam>
-/// <typeparam name="TReadModel">The type of the read model.</typeparam>
+/// <typeparam name="TKey">The type of the entity key.</typeparam>
+/// <typeparam name="TListModel">The type of the list model returned by queries.</typeparam>
+/// <typeparam name="TReadModel">The type of the read model returned by single-entity queries.</typeparam>
+/// <remarks>
+/// This class is intended for use in Blazor and WebAssembly applications to standardize entity query API patterns.
+/// It supports mapping endpoints for retrieving entities by ID, paged results, and filtered lists.
+/// </remarks>
 public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IEndpointRoute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityQueryEndpointBase{TKey, TListModel, TReadModel}"/> class.
     /// </summary>
     /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this endpoint.</param>
-    /// <param name="entityName">The name of the entity for this endpoint</param>
-    /// <param name="routePrefix">The route prefix for this endpoint.  <paramref name="entityName"/> used if not set.</param>
+    /// <param name="entityName">The name of the entity for this endpoint.</param>
+    /// <param name="routePrefix">The route prefix for this endpoint. If not set, <paramref name="entityName"/> is used.</param>
     protected EntityQueryEndpointBase(ILoggerFactory loggerFactory, string entityName, string? routePrefix = null)
     {
         ArgumentNullException.ThrowIfNull(loggerFactory);
@@ -37,20 +41,19 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// The name of the entity for this endpoint.
+    /// Gets the name of the entity for this endpoint.
     /// </summary>
     public string EntityName { get; }
 
     /// <summary>
-    /// The route prefix for this endpoint.
+    /// Gets the route prefix for this endpoint.
     /// </summary>
     public string RoutePrefix { get; }
 
     /// <summary>
-    /// The logger for this endpoint.
+    /// Gets the logger for this endpoint.
     /// </summary>
     protected ILogger Logger { get; }
-
 
     /// <inheritdoc/>
     public void AddRoutes(IEndpointRouteBuilder endpoints)
@@ -61,9 +64,19 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Maps the group of endpoints for this entity.
+    /// Maps the group of query endpoints for this entity, including single, paged, and list queries.
     /// </summary>
-    /// <param name="group">Group of endpoints to map</param>
+    /// <param name="group">The <see cref="RouteGroupBuilder"/> used to define the endpoint group.</param>
+    /// <remarks>
+    /// This method adds endpoints for:
+    /// <list type="bullet">
+    /// <item><description>GET {id} - Retrieve an entity by ID</description></item>
+    /// <item><description>GET page - Retrieve a paged result of entities</description></item>
+    /// <item><description>POST page - Retrieve a paged result of entities using a query object</description></item>
+    /// <item><description>GET (root) - Retrieve a list of entities by query</description></item>
+    /// <item><description>POST query - Retrieve a list of entities using a select object</description></item>
+    /// </list>
+    /// </remarks>
     protected virtual void MapGroup(RouteGroupBuilder group)
     {
         group
@@ -104,13 +117,15 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a single entity by id.
+    /// Retrieves a single entity by its identifier using the mediator service.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="id">The identifier for the entity</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="id">The identifier of the entity to retrieve.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the entity or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> GetQuery(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
@@ -135,16 +150,18 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a page of entities.
+    /// Retrieves a paged result of entities using query string parameters.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="q">The raw query expression</param>
-    /// <param name="sort">The sort expression</param>
-    /// <param name="page">The page number for the query</param>
-    /// <param name="size">The size of the page for the query</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="q">The raw query expression.</param>
+    /// <param name="sort">The sort expression.</param>
+    /// <param name="page">The page number for the query. The default is 1.</param>
+    /// <param name="size">The size of the page for the query. The default is 20.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="EntityPagedResult{TListModel}"/> with the paged result or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<EntityPagedResult<TListModel>>, ProblemHttpResult>> GetPagedQuery(
         [FromServices] IMediator mediator,
         [FromQuery] string? q = null,
@@ -174,13 +191,15 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a page of entities based on specified entity query.
+    /// Retrieves a paged result of entities using a posted <see cref="EntityQuery"/> object.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="entityQuery">The entity query for selecting entities with a filter, sort and pagination</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="entityQuery">The entity query specifying filter, sort, and pagination.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="EntityPagedResult{TListModel}"/> with the paged result or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<EntityPagedResult<TListModel>>, ProblemHttpResult>> PostPagedQuery(
         [FromServices] IMediator mediator,
         [FromBody] EntityQuery entityQuery,
@@ -206,14 +225,16 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a list of entities.
+    /// Retrieves a list of entities using query string parameters.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="q">The raw query expression</param>
-    /// <param name="sort">The sort expression</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="q">The raw query expression.</param>
+    /// <param name="sort">The sort expression.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="IReadOnlyCollection{TListModel}"/> with the result list or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<IReadOnlyCollection<TListModel>>, ProblemHttpResult>> GetSelectQuery(
         [FromServices] IMediator mediator,
         [FromQuery] string? q = null,
@@ -242,13 +263,15 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
     }
 
     /// <summary>
-    /// Gets the result from the mediator service for a list of entities based on specified entity select.
+    /// Retrieves a list of entities using a posted <see cref="EntitySelect"/> object.
     /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
-    /// <param name="entitySelect">The entity select for selecting entities with a filter and sort</param>
-    /// <param name="user">The current security claims principal</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning the mediator response</returns>
+    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
+    /// <param name="entitySelect">The entity select specifying filter and sort criteria.</param>
+    /// <param name="user">The current security claims principal.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>
+    /// An awaitable task returning either <see cref="IReadOnlyCollection{TListModel}"/> with the result list or <see cref="ProblemHttpResult"/> on error.
+    /// </returns>
     protected virtual async Task<Results<Ok<IReadOnlyCollection<TListModel>>, ProblemHttpResult>> PostSelectQuery(
         [FromServices] IMediator mediator,
         [FromBody] EntitySelect entitySelect,
