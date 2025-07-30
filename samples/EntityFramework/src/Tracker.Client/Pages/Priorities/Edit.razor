@@ -20,7 +20,7 @@
     </nav>
 </div>
 <div class="container">
-    <LoadingContainer IsLoading="EditContext == null || Store.Model == null" Title="@ModelTypeName">
+    <LoadingBlock IsLoading="EditContext == null || Store.Model == null">
         <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
             <FluentValidationValidator />
 
@@ -121,7 +121,7 @@
                 </div>
             </div>
         </EditForm>
-    </LoadingContainer>
+    </LoadingBlock>
 
 </div>
 
