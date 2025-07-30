@@ -63,3 +63,5 @@ items:
 
   - name: Script Templates
     href: scripts.md
+  - name: Migration Guide
+    href: migration.md
