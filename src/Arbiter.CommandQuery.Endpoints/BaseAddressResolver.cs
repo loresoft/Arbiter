@@ -49,14 +49,15 @@ public sealed class BaseAddressResolver : IBaseAddressResolver
     /// <returns>
     /// The resolved base address string if available; otherwise, <c>null</c>.
     /// </returns>
-    public string? GetBaseAddress(string? configurationKey = "BaseAddress")
+    public string? GetBaseAddress(string? configurationKey = BaseAddressKey)
     {
         // Use NavigationManager if available
-        if (_navigationManager?.BaseUri != null)
-            return _navigationManager.BaseUri;
+        string? httpAddress = GetNavigationManagerAddress();
+        if (httpAddress.HasValue())
+            return httpAddress;
 
         // Use HttpContext if available
-        var httpAddress = GetHttpContextAddress();
+        httpAddress = GetHttpContextAddress();
         if (httpAddress.HasValue())
             return httpAddress;
 
@@ -75,5 +76,18 @@ public sealed class BaseAddressResolver : IBaseAddressResolver
             return null;
 
         return UriHelper.BuildAbsolute(request.Scheme, request.Host, request.PathBase);
+    }
+
+    private string? GetNavigationManagerAddress()
+    {
+        try
+        {
+            return _navigationManager?.BaseUri;
+        }
+        catch (InvalidOperationException)
+        {
+            // NavigationManager has not been initialized
+            return null;
+        }
     }
 }
