@@ -25,7 +25,7 @@ public static class QueryStringEncoder
         options ??= new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
         using var outputStream = new MemoryStream();
-        using var compressionStream = new GZipStream(outputStream, CompressionMode.Compress);
+        using var compressionStream = new BrotliStream(outputStream, CompressionLevel.Optimal);
         using var jsonWriter = new Utf8JsonWriter(compressionStream);
 
         JsonSerializer.Serialize(jsonWriter, value, options);
@@ -52,7 +52,7 @@ public static class QueryStringEncoder
         options ??= new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
         using var inputStream = new MemoryStream(jsonBytes);
-        using var compressionStream = new GZipStream(inputStream, CompressionMode.Decompress);
+        using var compressionStream = new BrotliStream(inputStream, CompressionMode.Decompress);
 
         return JsonSerializer.Deserialize<T>(compressionStream, options);
     }

@@ -11,9 +11,9 @@
     <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.0" />
-    <PackageReference Include="TUnit" Version="0.25.21" />
-    <PackageReference Include="Verify.TUnit" Version="30.5.0" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.1" />
+    <PackageReference Include="TUnit" Version="0.53.0" />
+    <PackageReference Include="Verify.TUnit" Version="30.6.1" />
   </ItemGroup>
 
   <ItemGroup>
