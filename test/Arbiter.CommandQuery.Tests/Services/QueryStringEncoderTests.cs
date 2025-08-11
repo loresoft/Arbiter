@@ -30,7 +30,7 @@ public class QueryStringEncoderTests
     [Test]
     public void EncodeNullValue()
     {
-        string? queryString = QueryStringEncoder.Encode<object>(null);
+        string? queryString = QueryStringEncoder.Encode<object>(null!);
         queryString.Should().BeNull();
     }
 

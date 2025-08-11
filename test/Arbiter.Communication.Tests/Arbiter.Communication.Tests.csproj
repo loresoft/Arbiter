@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.1" />
     <PackageReference Include="TestHost.Abstracts" Version="1.2.0" />
-    <PackageReference Include="TUnit" Version="0.53.0" />
+    <PackageReference Include="TUnit" Version="0.55.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,6 +19,7 @@ public static class EndpointRouteExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEndpointRoutes(this IServiceCollection services)
     {
+        services.AddHttpContextAccessor();
         services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
 
         // allow duplicates
