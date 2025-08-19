@@ -1,7 +1,6 @@
 using System.Reflection;
 
 using Arbiter.Communication.Email;
-using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Sms;
 using Arbiter.Communication.Template;
 

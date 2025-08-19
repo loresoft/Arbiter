@@ -1,5 +1,3 @@
-using System.Reflection;
-
 using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Template;
 
@@ -9,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Arbiter.Communication.Email;
 
 /// <summary>
-/// Provides functionality for sending templated emails by applying models to templates and delivering the result to recipients.
+/// Provides functionality for sending template emails by applying models to templates and delivering the result to recipients.
 /// </summary>
 /// <remarks>
 /// This service supports loading templates from embedded resources, applying model data, and sending emails using the configured delivery service.

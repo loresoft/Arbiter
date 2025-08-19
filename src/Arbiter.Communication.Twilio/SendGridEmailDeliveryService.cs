@@ -11,7 +11,7 @@ namespace Arbiter.Communication.Twilio;
 /// <summary>
 /// Provides an implementation of <see cref="IEmailDeliveryService"/> that delivers emails using SendGrid.
 /// </summary>
-public class SendGridEmailDeliveryService : IEmailDeliveryService
+public partial class SendGridEmailDeliveryService : IEmailDeliveryService
 {
     private readonly ILogger<SendGridEmailDeliveryService> _logger;
     private readonly ISendGridClient _sendGridClient;
@@ -43,7 +43,7 @@ public class SendGridEmailDeliveryService : IEmailDeliveryService
         var recipients = emailMessage.Recipients.ToString();
         var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
 
-        _logger.LogDebug("Sending email to '{Recipients}' with subject '{Subject}' using SendGrid", recipients, truncatedSubject);
+        LogSendingEmailSendGrid(_logger, recipients, truncatedSubject);
 
         try
         {
@@ -55,16 +55,16 @@ public class SendGridEmailDeliveryService : IEmailDeliveryService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Sent email to '{Recipients}' with subject '{Subject}'", recipients, truncatedSubject);
+                LogEmailSentSendGrid(_logger, recipients, truncatedSubject);
                 return EmailResult.Success("Email sent successfully.");
             }
 
-            _logger.LogError("Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}", recipients, truncatedSubject, response.StatusCode);
+            LogEmailSendErrorSendGrid(_logger, recipients, truncatedSubject, response.StatusCode);
             return EmailResult.Fail($"Email send failed with status {response.StatusCode}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}", recipients, truncatedSubject, ex.Message);
+            LogEmailSendExceptionSendGrid(_logger, recipients, truncatedSubject, ex.Message, ex);
             return EmailResult.Fail("An error occurred while sending the email", ex);
         }
     }
@@ -126,4 +126,17 @@ public class SendGridEmailDeliveryService : IEmailDeliveryService
 
     private static SendGrid.Helpers.Mail.EmailAddress ConvertEmail(Email.EmailAddress emailAddress)
         => new(emailAddress.Address, emailAddress.DisplayName);
+
+
+    [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using SendGrid")]
+    static partial void LogSendingEmailSendGrid(ILogger logger, string recipients, string subject);
+
+    [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}'")]
+    static partial void LogEmailSentSendGrid(ILogger logger, string recipients, string subject);
+
+    [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}")]
+    static partial void LogEmailSendErrorSendGrid(ILogger logger, string recipients, string subject, System.Net.HttpStatusCode status);
+
+    [LoggerMessage(4, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}")]
+    static partial void LogEmailSendExceptionSendGrid(ILogger logger, string recipients, string subject, string errorMessage, Exception exception);
 }

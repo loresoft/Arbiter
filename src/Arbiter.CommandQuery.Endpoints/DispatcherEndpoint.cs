@@ -15,7 +15,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// <summary>
 /// Defines an endpoint for dispatching commands using the Mediator pattern.
 /// </summary>
-public class DispatcherEndpoint : IEndpointRoute
+public partial class DispatcherEndpoint : IEndpointRoute
 {
     private readonly DispatcherOptions _dispatcherOptions;
     private readonly ILogger<DispatcherEndpoint> _logger;
@@ -65,19 +65,23 @@ public class DispatcherEndpoint : IEndpointRoute
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
+        var request = dispatchRequest.Request;
+
         try
         {
-            var request = dispatchRequest.Request;
-
             var result = await mediator.Send(request, cancellationToken).ConfigureAwait(false);
             return TypedResults.Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error dispatching request: {ErrorMessage}", ex.Message);
+            LogDispatchError(_logger, request?.GetType()?.FullName, ex.Message, ex);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
     }
+
+
+    [LoggerMessage(1, LogLevel.Error, "Error dispatching request '{RequestType}': {ErrorMessage}")]
+    static partial void LogDispatchError(ILogger logger, string? requestType, string errorMessage, Exception exception);
 }

@@ -1,5 +1,3 @@
-using System.Reflection;
-
 using Arbiter.Communication.Template;
 
 using Microsoft.Extensions.Logging;
@@ -8,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Arbiter.Communication.Sms;
 
 /// <summary>
-/// Provides functionality for sending templated SMS messages by applying models to templates and delivering the result to recipients.
+/// Provides functionality for sending template SMS messages by applying models to templates and delivering the result to recipients.
 /// </summary>
 /// <remarks>
 /// This service supports loading SMS templates from embedded resources, applying model data, and sending SMS messages using the configured delivery service.

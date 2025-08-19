@@ -16,7 +16,7 @@ namespace Arbiter.Communication.Email;
 /// This service composes and sends email messages using SMTP configuration options. It supports attachments, custom headers,
 /// and logs protocol details for diagnostics. The service will attempt to authenticate if credentials are provided and will accept all SSL certificates.
 /// </remarks>
-public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
+public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
 {
     private readonly ILogger<SmtpEmailDeliveryService> _logger;
     private readonly IOptions<EmailConfiguration> _options;
@@ -56,7 +56,7 @@ public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
         var recipients = emailMessage.Recipients.ToString();
         var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
 
-        _logger.LogDebug("Sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
+        LogSendingEmail(_logger, recipients, truncatedSubject, host);
 
         await using var logStream = new MemoryStream();
 
@@ -82,12 +82,12 @@ public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
             await client.SendAsync(mimeMessage, cancellationToken).ConfigureAwait(false);
             await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation("Sent email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
+            LogEmailSent(_logger, recipients, truncatedSubject, host);
             return EmailResult.Success("Email sent successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'", recipients, truncatedSubject, host);
+            LogEmailSendError(_logger, recipients, truncatedSubject, host, ex);
             return EmailResult.Fail("An error occurred while sending the email", ex);
         }
         finally
@@ -113,7 +113,7 @@ public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
             .ReadToEndAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        _logger.LogTrace("SMTP Protocol Log:\n{LogContent}", logContent);
+        LogSmtpProtocol(_logger, logContent);
     }
 
     /// <summary>
@@ -193,4 +193,17 @@ public sealed class SmtpEmailDeliveryService : IEmailDeliveryService
     /// <returns>A <see cref="MailboxAddress"/> instance.</returns>
     private static MailboxAddress CreateAddress(string address, string? name)
         => new(name ?? address, address);
+
+
+    [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'")]
+    static partial void LogSendingEmail(ILogger logger, string recipients, string subject, string? smtpHost);
+
+    [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'")]
+    static partial void LogEmailSent(ILogger logger, string recipients, string subject, string? smtpHost);
+
+    [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'")]
+    static partial void LogEmailSendError(ILogger logger, string recipients, string subject, string? smtpHost, Exception exception);
+
+    [LoggerMessage(4, LogLevel.Trace, "SMTP Protocol Log:\n{LogContent}")]
+    static partial void LogSmtpProtocol(ILogger logger, string logContent);
 }

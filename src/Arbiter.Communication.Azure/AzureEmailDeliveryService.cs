@@ -12,7 +12,7 @@ namespace Arbiter.Communication.Azure;
 /// <summary>
 /// Provides an implementation of <see cref="IEmailDeliveryService"/> that delivers emails using Azure Communication Services.
 /// </summary>
-public class AzureEmailDeliveryService : IEmailDeliveryService
+public partial class AzureEmailDeliveryService : IEmailDeliveryService
 {
     private readonly ILogger<AzureEmailDeliveryService> _logger;
     private readonly Ace.EmailClient _emailClient;
@@ -44,7 +44,7 @@ public class AzureEmailDeliveryService : IEmailDeliveryService
         var recipients = emailMessage.Recipients.ToString();
         var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
 
-        _logger.LogDebug("Sending email to '{Recipients}' with subject '{Subject}' using Azure Communication", recipients, truncatedSubject);
+        LogSendingEmailAzure(_logger, recipients, truncatedSubject);
 
         try
         {
@@ -54,16 +54,16 @@ public class AzureEmailDeliveryService : IEmailDeliveryService
 
             if (sendOperation.Value.Status == Ace.EmailSendStatus.Succeeded)
             {
-                _logger.LogInformation("Sent email to '{Recipients}' with subject '{Subject}'", recipients, truncatedSubject);
+                LogEmailSentAzure(_logger, recipients, truncatedSubject);
                 return EmailResult.Success("Email sent successfully.");
             }
 
-            _logger.LogError("Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}", recipients, truncatedSubject, sendOperation.Value.Status);
+            LogEmailSendErrorAzure(_logger, recipients, truncatedSubject, sendOperation.Value.Status);
             return EmailResult.Fail($"Email send failed with status {sendOperation.Value.Status}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}", recipients, truncatedSubject, ex.Message);
+            LogEmailSendExceptionAzure(_logger, recipients, truncatedSubject, ex.Message, ex);
             return EmailResult.Fail("An error occurred while sending the email", ex);
         }
     }
@@ -117,4 +117,17 @@ public class AzureEmailDeliveryService : IEmailDeliveryService
 
         return message;
     }
+
+
+    [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using Azure Communication")]
+    static partial void LogSendingEmailAzure(ILogger logger, string recipients, string subject);
+
+    [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}'")]
+    static partial void LogEmailSentAzure(ILogger logger, string recipients, string subject);
+
+    [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}")]
+    static partial void LogEmailSendErrorAzure(ILogger logger, string recipients, string subject, Ace.EmailSendStatus status);
+
+    [LoggerMessage(4, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}")]
+    static partial void LogEmailSendExceptionAzure(ILogger logger, string recipients, string subject, string errorMessage, Exception exception);
 }

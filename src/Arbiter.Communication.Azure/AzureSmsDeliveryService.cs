@@ -11,7 +11,7 @@ namespace Arbiter.Communication.Azure;
 /// <summary>
 /// Provides an implementation of <see cref="ISmsDeliveryService"/> that delivers SMS messages using Azure Communication Services.
 /// </summary>
-public class AzureSmsDeliveryService : ISmsDeliveryService
+public partial class AzureSmsDeliveryService : ISmsDeliveryService
 {
     private readonly ILogger<AzureSmsDeliveryService> _logger;
     private readonly SmsClient _smsClient;
@@ -44,7 +44,7 @@ public class AzureSmsDeliveryService : ISmsDeliveryService
         var truncatedMessage = message.Message.Truncate(20);
         var senderNumber = message.Sender.HasValue() ? message.Sender : _options.Value.SenderNumber;
 
-        _logger.LogDebug("Sending SMS to '{Recipient}' from '{Sender} with message '{Message}' using Azure Communication", message.Recipient, senderNumber, truncatedMessage);
+        LogSendingSms(_logger, message.Recipient, senderNumber, truncatedMessage);
 
         try
         {
@@ -59,17 +59,30 @@ public class AzureSmsDeliveryService : ISmsDeliveryService
 
             if (results.Value.Successful)
             {
-                _logger.LogInformation("Sent SMS to '{Recipients}' with message '{Message}'", message.Recipient, truncatedMessage);
+                LogSmsSent(_logger, message.Recipient, truncatedMessage);
                 return SmsResult.Success("SMS sent successfully.");
             }
 
-            _logger.LogError("Error sending SMS to '{Recipients}' with message '{Message}'", message.Recipient, truncatedMessage);
+            LogSmsSendError(_logger, message.Recipient, truncatedMessage);
             return SmsResult.Fail($"Error sending SMS: {results.Value.ErrorMessage}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending SMS to '{Recipients}' with message '{Message}': {ErrorMessage}", message.Recipient, truncatedMessage, ex.Message);
+            LogSmsSendException(_logger, message.Recipient, truncatedMessage, ex.Message, ex);
             return SmsResult.Fail("An error occurred while sending the SMS", ex);
         }
     }
+
+
+    [LoggerMessage(1, LogLevel.Debug, "Sending SMS to '{Recipient}' from '{Sender} with message '{Message}' using Azure Communication")]
+    static partial void LogSendingSms(ILogger logger, string recipient, string? sender, string message);
+
+    [LoggerMessage(2, LogLevel.Information, "Sent SMS to '{Recipient}' with message '{Message}'")]
+    static partial void LogSmsSent(ILogger logger, string recipient, string message);
+
+    [LoggerMessage(3, LogLevel.Error, "Error sending SMS to '{Recipient}' with message '{Message}'")]
+    static partial void LogSmsSendError(ILogger logger, string recipient, string message);
+
+    [LoggerMessage(4, LogLevel.Error, "Error sending SMS to '{Recipient}' with message '{Message}': {ErrorMessage}")]
+    static partial void LogSmsSendException(ILogger logger, string recipient, string message, string errorMessage, Exception exception);
 }
