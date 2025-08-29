@@ -9,7 +9,6 @@
     <PackageReference Include="MicroSoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.8" />
-    <PackageReference Include="Riok.Mapperly" Version="4.2.1" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,61 +1,75 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
+
+using System.Linq.Expressions;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Mapping;
 
-using Riok.Mapperly.Abstractions;
-
-using Models = Tracker.Domain.Models;
+using M = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantCreateModel>>]
-internal sealed partial class TenantReadModelToTenantCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TenantReadModel, Models.TenantCreateModel>
+[RegisterSingleton<IMapper<M.TenantReadModel, M.TenantCreateModel>>]
+internal sealed class TenantReadModelToTenantCreateModelMapper
+    : MapperBase<M.TenantReadModel, M.TenantCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TenantReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.TenantReadModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.TenantCreateModel.Id))]
-    public override partial void Map(Models.TenantReadModel source, Models.TenantCreateModel destination);
+    protected override Expression<Func<M.TenantReadModel, M.TenantCreateModel>> CreateMapping()
+    {
+        return source => new M.TenantCreateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            #endregion
 
-    public override partial IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantReadModel> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantUpdateModel>>]
-internal sealed partial class TenantReadModelToTenantUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TenantReadModel, Models.TenantUpdateModel>
+[RegisterSingleton<IMapper<M.TenantReadModel, M.TenantUpdateModel>>]
+internal sealed class TenantReadModelToTenantUpdateModelMapper
+    : MapperBase<M.TenantReadModel, M.TenantUpdateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TenantReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.TenantReadModel.Created))]
-    [MapperIgnoreSource(nameof(Models.TenantReadModel.CreatedBy))]
-    public override partial void Map(Models.TenantReadModel source, Models.TenantUpdateModel destination);
+    protected override Expression<Func<M.TenantReadModel, M.TenantUpdateModel>> CreateMapping()
+    {
+        return source => new M.TenantUpdateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            #endregion
 
-    public override partial IQueryable<Models.TenantUpdateModel> ProjectTo(IQueryable<Models.TenantReadModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TenantUpdateModel, Models.TenantCreateModel>>]
-internal sealed partial class TenantUpdateModelToTenantCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TenantUpdateModel, Models.TenantCreateModel>
+[RegisterSingleton<IMapper<M.TenantUpdateModel, M.TenantCreateModel>>]
+internal sealed class TenantUpdateModelToTenantCreateModelMapper
+    : MapperBase<M.TenantUpdateModel, M.TenantCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TenantUpdateModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.TenantCreateModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.TenantCreateModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.TenantCreateModel.CreatedBy))]
-    public override partial void Map(Models.TenantUpdateModel source, Models.TenantCreateModel destination);
+    protected override Expression<Func<M.TenantUpdateModel, M.TenantCreateModel>> CreateMapping()
+    {
+        return source => new M.TenantCreateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            #endregion
 
-    public override partial IQueryable<Models.TenantCreateModel> ProjectTo(IQueryable<Models.TenantUpdateModel> source);
-}
-
-[Mapper]
-[RegisterSingleton<IMapper<Models.TenantUpdateModel, Models.TenantReadModel>>]
-internal sealed partial class TenantUpdateModelToTenantReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TenantUpdateModel, Models.TenantReadModel>
-{
-    [MapperIgnoreTarget(nameof(Models.TenantReadModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.TenantReadModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.TenantReadModel.CreatedBy))]
-    public override partial void Map(Models.TenantUpdateModel source, Models.TenantReadModel destination);
-
-    public override partial IQueryable<Models.TenantReadModel> ProjectTo(IQueryable<Models.TenantUpdateModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 

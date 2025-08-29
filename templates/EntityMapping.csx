@@ -34,10 +34,21 @@ public string WriteCode()
     TemplateOptions.Parameters.TryGetValue("excludeDomain", out var excludeDomain);
     TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
 
+    TemplateOptions.Parameters.TryGetValue("readMapping", out var readMapping);
+    var readProperties = readMapping?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    TemplateOptions.Parameters.TryGetValue("createMapping", out var createMapping);
+    var createProperties = createMapping?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    TemplateOptions.Parameters.TryGetValue("updateMapping", out var updateMapping);
+    var updateProperties = updateMapping?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
     CodeBuilder.Clear();
     CodeBuilder.AppendLine("#pragma warning disable IDE0130 // Namespace does not match folder structure");
     CodeBuilder.AppendLine();
 
+    CodeBuilder.AppendLine("using System.Linq.Expressions;");
+    CodeBuilder.AppendLine();
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Definitions;");
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Mapping;");
     CodeBuilder.AppendLine();
@@ -45,9 +56,9 @@ public string WriteCode()
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
-        CodeBuilder.AppendLine($"using Entities = {entityNamespace};");
+        CodeBuilder.AppendLine($"using E = {entityNamespace};");
     }
-    CodeBuilder.AppendLine($"using Models = {modelNamespace};");
+    CodeBuilder.AppendLine($"using M = {modelNamespace};");
 
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
@@ -55,23 +66,23 @@ public string WriteCode()
 
     if (string.IsNullOrEmpty(excludeDomain))
     {
-        GenerateClass(readModel, createModel);
-        GenerateClass(readModel, updateModel);
-        GenerateClass(updateModel, createModel);
+        GenerateClass(readModel, createModel, readProperties.Intersect(createProperties).ToArray());
+        GenerateClass(readModel, updateModel, readProperties.Intersect(updateProperties).ToArray());
+        GenerateClass(updateModel, createModel, updateProperties.Intersect(createProperties).ToArray());
     }
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
-        GenerateClass(Entity, readModel);
-        GenerateClass(Entity, updateModel);
-        GenerateClass(createModel, Entity);
-        GenerateClass(updateModel, Entity);
+        GenerateClass(Entity, readModel, readProperties);
+        GenerateClass(Entity, updateModel, readProperties.Intersect(updateProperties).ToArray());
+        GenerateClass(createModel, Entity, createProperties.Intersect(readProperties).ToArray());
+        GenerateClass(updateModel, Entity, updateProperties.Intersect(readProperties).ToArray());
     }
 
     return CodeBuilder.ToString();
 }
 
-private void GenerateClass(object? source, object? destination)
+private void GenerateClass(object? source, object? destination, string[] manualProperties)
 {
     if (source == null || destination == null)
         return;
@@ -100,7 +111,7 @@ private void GenerateClass(object? source, object? destination)
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
-    WriteMapper(sourceName, destinationName, sourceProperties, destinationProperties);
+    WriteMapper(sourceName, destinationName, sourceProperties, destinationProperties, manualProperties);
 
     CodeBuilder.DecrementIndent();
     CodeBuilder.AppendLine("}");
@@ -111,7 +122,8 @@ private void WriteMapper(
     string sourceType,
     string destinationType,
     IEnumerable<Property> sourceProperties,
-    IEnumerable<Property> destinationProperties)
+    IEnumerable<Property> destinationProperties,
+    string[] manualProperties)
 {
     if (sourceProperties == null || destinationProperties == null)
         return;
@@ -119,63 +131,40 @@ private void WriteMapper(
     var destinationNames = destinationProperties.Select(d => d.PropertyName);
     var commonProperties = sourceProperties.IntersectBy(destinationNames, p => p.PropertyName);
 
-    WriteCopyMap(sourceType, destinationType, commonProperties);
-    CodeBuilder.AppendLine();
-
-    WriteQueryMap(sourceType, destinationType, commonProperties);
+    WriteExpressionMap(sourceType, destinationType, commonProperties, manualProperties);
 }
 
-private void WriteQueryMap(string sourceType, string destinationType, IEnumerable<Property> properties)
+private void WriteExpressionMap(string sourceType, string destinationType, IEnumerable<Property> properties, string[] manualProperties)
 {
-    CodeBuilder.AppendLine($"public override IQueryable<{destinationType}> ProjectTo(");
-    CodeBuilder.AppendLine($"    IQueryable<{sourceType}> source)");
+    CodeBuilder.AppendLine($"protected override Expression<Func<{sourceType}, {destinationType}>> CreateMapping()");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
-    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(source);");
-    CodeBuilder.AppendLine();
-
-    CodeBuilder.AppendLine($"return source.Select(p =>");
-    CodeBuilder.IncrementIndent();
-    CodeBuilder.AppendLine($"new {destinationType}");
+    CodeBuilder.AppendLine($"return source => new {destinationType}");
     CodeBuilder.AppendLine("{");
     CodeBuilder.IncrementIndent();
 
-    CodeBuilder.AppendLine("#region Generated Query Properties");
+    CodeBuilder.AppendLine("#region Generated Mappings");
     foreach (var property in properties)
     {
-        CodeBuilder.AppendLine($"{property.PropertyName} = p.{property.PropertyName},");
+        CodeBuilder.AppendLine($"{property.PropertyName} = source.{property.PropertyName},");
     }
     CodeBuilder.AppendLine("#endregion");
 
-    CodeBuilder.DecrementIndent();
-    CodeBuilder.AppendLine("}"); // object initializer end
 
-    CodeBuilder.DecrementIndent();
-    CodeBuilder.AppendLine(");");
-
-    CodeBuilder.DecrementIndent();
-    CodeBuilder.AppendLine("}"); // function end
-}
-
-private void WriteCopyMap(string sourceType, string destinationType, IEnumerable<Property> properties)
-{
-    CodeBuilder.AppendLine($"public override void Map(");
-    CodeBuilder.AppendLine($"    {sourceType} source,");
-    CodeBuilder.AppendLine($"    {destinationType} destination)");
-    CodeBuilder.AppendLine("{");
-    CodeBuilder.IncrementIndent();
-
-    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(source);");
-    CodeBuilder.AppendLine("ArgumentNullException.ThrowIfNull(destination);");
-    CodeBuilder.AppendLine();
-
-    CodeBuilder.AppendLine("#region Generated Copied Properties");
-    foreach (var property in properties)
+    if (manualProperties.Length > 0 && properties.Any())
     {
-        CodeBuilder.AppendLine($"destination.{property.PropertyName} = source.{property.PropertyName};");
+        CodeBuilder.AppendLine();
+        CodeBuilder.AppendLine("// Manual Mappings");
     }
-    CodeBuilder.AppendLine("#endregion");
+
+    foreach (var property in manualProperties)
+    {
+        CodeBuilder.AppendLine($"{property} = source.{property},");
+    }
+
+    CodeBuilder.DecrementIndent();
+    CodeBuilder.AppendLine("};"); // object initializer end
 
     CodeBuilder.DecrementIndent();
     CodeBuilder.AppendLine("}"); // function end
@@ -185,8 +174,8 @@ private static (string? ClassNamespace, string? ClassName, IEnumerable<Property>
 {
     return value switch
     {
-        Model model => ("Models", model.ModelClass.ToSafeName(), model.Properties),
-        Entity entity => ("Entities", entity.EntityClass.ToSafeName(), entity.Properties),
+        Model model => ("M", model.ModelClass.ToSafeName(), model.Properties),
+        Entity entity => ("E", entity.EntityClass.ToSafeName(), entity.Properties),
         _ => (null, null, null)
     };
 }

@@ -1,61 +1,99 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
+
+using System.Linq.Expressions;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Mapping;
 
-using Riok.Mapperly.Abstractions;
-
-using Models = Tracker.Domain.Models;
+using M = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
-internal sealed partial class TaskReadModelToTaskCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
+[RegisterSingleton<IMapper<M.TaskReadModel, M.TaskCreateModel>>]
+internal sealed class TaskReadModelToTaskCreateModelMapper
+    : MapperBase<M.TaskReadModel, M.TaskCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TaskReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.TaskReadModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Id))]
-    public override partial void Map(Models.TaskReadModel source, Models.TaskCreateModel destination);
+    protected override Expression<Func<M.TaskReadModel, M.TaskCreateModel>> CreateMapping()
+    {
+        return source => new M.TaskCreateModel
+        {
+            #region Generated Mappings
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            IsDeleted = source.IsDeleted,
+            TenantId = source.TenantId,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            AssignedId = source.AssignedId,
+            #endregion
 
-    public override partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
-internal sealed partial class TaskReadModelToTaskUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
+[RegisterSingleton<IMapper<M.TaskReadModel, M.TaskUpdateModel>>]
+internal sealed class TaskReadModelToTaskUpdateModelMapper
+    : MapperBase<M.TaskReadModel, M.TaskUpdateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TaskReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.TaskReadModel.Created))]
-    [MapperIgnoreSource(nameof(Models.TaskReadModel.CreatedBy))]
-    public override partial void Map(Models.TaskReadModel source, Models.TaskUpdateModel destination);
+    protected override Expression<Func<M.TaskReadModel, M.TaskUpdateModel>> CreateMapping()
+    {
+        return source => new M.TaskUpdateModel
+        {
+            #region Generated Mappings
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            IsDeleted = source.IsDeleted,
+            TenantId = source.TenantId,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            AssignedId = source.AssignedId,
+            #endregion
 
-    public override partial IQueryable<Models.TaskUpdateModel> ProjectTo(IQueryable<Models.TaskReadModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
-internal sealed partial class TaskUpdateModelToTaskCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
+[RegisterSingleton<IMapper<M.TaskUpdateModel, M.TaskCreateModel>>]
+internal sealed class TaskUpdateModelToTaskCreateModelMapper
+    : MapperBase<M.TaskUpdateModel, M.TaskCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.TaskUpdateModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.TaskCreateModel.CreatedBy))]
-    public override partial void Map(Models.TaskUpdateModel source, Models.TaskCreateModel destination);
+    protected override Expression<Func<M.TaskUpdateModel, M.TaskCreateModel>> CreateMapping()
+    {
+        return source => new M.TaskCreateModel
+        {
+            #region Generated Mappings
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            IsDeleted = source.IsDeleted,
+            TenantId = source.TenantId,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            AssignedId = source.AssignedId,
+            #endregion
 
-    public override partial IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
-}
-
-[Mapper]
-[RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskReadModel>>]
-internal sealed partial class TaskUpdateModelToTaskReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskReadModel>
-{
-    [MapperIgnoreTarget(nameof(Models.TaskReadModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.TaskReadModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.TaskReadModel.CreatedBy))]
-    public override partial void Map(Models.TaskUpdateModel source, Models.TaskReadModel destination);
-
-    public override partial IQueryable<Models.TaskReadModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 

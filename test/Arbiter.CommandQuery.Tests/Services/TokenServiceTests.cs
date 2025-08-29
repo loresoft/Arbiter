@@ -15,6 +15,11 @@ public class TokenServiceTests
         // Assert
         key.Should().NotBeNullOrWhiteSpace();
         key.Length.Should().BeInRange(43, 44); // 32 bytes in base64url is 43 or 44 chars (no padding)
+
+
+        key = TokenService.GenerateKey(64);
+        key.Should().NotBeNullOrWhiteSpace();
+        key.Length.Should().BeInRange(86, 88); // 64 bytes in base64url is 86 or 88 chars (no padding)
     }
 
     [Test]

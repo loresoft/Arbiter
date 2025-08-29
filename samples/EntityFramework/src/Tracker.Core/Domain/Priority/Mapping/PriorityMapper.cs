@@ -1,56 +1,109 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
+
+using System.Linq.Expressions;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Mapping;
 
-using Riok.Mapperly.Abstractions;
-
-using Entities = Tracker.Data.Entities;
-using Models = Tracker.Domain.Models;
+using E = Tracker.Data.Entities;
+using M = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[Mapper]
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityReadModel>>]
-internal sealed partial class PriorityToPriorityReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityReadModel>
+[RegisterSingleton<IMapper<E.Priority, M.PriorityReadModel>>]
+internal sealed class PriorityToPriorityReadModelMapper
+    : MapperBase<E.Priority, M.PriorityReadModel>
 {
-    public override partial void Map(Entities.Priority source, Models.PriorityReadModel destination);
+    protected override Expression<Func<E.Priority, M.PriorityReadModel>> CreateMapping()
+    {
+        return source => new M.PriorityReadModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Models.PriorityReadModel> ProjectTo(IQueryable<Entities.Priority> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityUpdateModel>>]
-internal sealed partial class PriorityToPriorityUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityUpdateModel>
+[RegisterSingleton<IMapper<E.Priority, M.PriorityUpdateModel>>]
+internal sealed class PriorityToPriorityUpdateModelMapper
+    : MapperBase<E.Priority, M.PriorityUpdateModel>
 {
-    [MapperIgnoreSource(nameof(Entities.Priority.Id))]
-    [MapperIgnoreSource(nameof(Entities.Priority.Created))]
-    [MapperIgnoreSource(nameof(Entities.Priority.CreatedBy))]
-    public override partial void Map(Entities.Priority source, Models.PriorityUpdateModel destination);
+    protected override Expression<Func<E.Priority, M.PriorityUpdateModel>> CreateMapping()
+    {
+        return source => new M.PriorityUpdateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Models.PriorityUpdateModel> ProjectTo(IQueryable<Entities.Priority> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.PriorityCreateModel, Entities.Priority>>]
-internal sealed partial class PriorityCreateModelToPriorityMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.PriorityCreateModel, Entities.Priority>
+[RegisterSingleton<IMapper<M.PriorityCreateModel, E.Priority>>]
+internal sealed class PriorityCreateModelToPriorityMapper
+    : MapperBase<M.PriorityCreateModel, E.Priority>
 {
-    [MapperIgnoreTarget(nameof(Entities.Priority.RowVersion))]
-    public override partial void Map(Models.PriorityCreateModel source, Entities.Priority destination);
+    protected override Expression<Func<M.PriorityCreateModel, E.Priority>> CreateMapping()
+    {
+        return source => new E.Priority
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityCreateModel> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Entities.Priority>>]
-internal sealed partial class PriorityUpdateModelToPriorityMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.PriorityUpdateModel, Entities.Priority>
+[RegisterSingleton<IMapper<M.PriorityUpdateModel, E.Priority>>]
+internal sealed class PriorityUpdateModelToPriorityMapper
+    : MapperBase<M.PriorityUpdateModel, E.Priority>
 {
-    [MapperIgnoreTarget(nameof(Entities.Priority.Id))]
-    [MapperIgnoreTarget(nameof(Entities.Priority.Created))]
-    [MapperIgnoreTarget(nameof(Entities.Priority.CreatedBy))]
-    public override partial void Map(Models.PriorityUpdateModel source, Entities.Priority destination);
+    protected override Expression<Func<M.PriorityUpdateModel, E.Priority>> CreateMapping()
+    {
+        return source => new E.Priority
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Entities.Priority> ProjectTo(IQueryable<Models.PriorityUpdateModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 

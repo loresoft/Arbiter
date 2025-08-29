@@ -1,56 +1,105 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
+
+using System.Linq.Expressions;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Mapping;
 
-using Riok.Mapperly.Abstractions;
-
-using Entities = Tracker.Data.Entities;
-using Models = Tracker.Domain.Models;
+using E = Tracker.Data.Entities;
+using M = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[Mapper]
-[RegisterSingleton<IMapper<Entities.User, Models.UserReadModel>>]
-internal sealed partial class UserToUserReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.User, Models.UserReadModel>
+[RegisterSingleton<IMapper<E.User, M.UserReadModel>>]
+internal sealed class UserToUserReadModelMapper
+    : MapperBase<E.User, M.UserReadModel>
 {
-    public override partial void Map(Entities.User source, Models.UserReadModel destination);
+    protected override Expression<Func<E.User, M.UserReadModel>> CreateMapping()
+    {
+        return source => new M.UserReadModel
+        {
+            #region Generated Mappings
+            DisplayName = source.DisplayName,
+            EmailAddress = source.EmailAddress,
+            IsDeleted = source.IsDeleted,
+            #endregion
 
-    public override partial IQueryable<Models.UserReadModel> ProjectTo(IQueryable<Entities.User> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Entities.User, Models.UserUpdateModel>>]
-internal sealed partial class UserToUserUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Entities.User, Models.UserUpdateModel>
+[RegisterSingleton<IMapper<E.User, M.UserUpdateModel>>]
+internal sealed class UserToUserUpdateModelMapper
+    : MapperBase<E.User, M.UserUpdateModel>
 {
-    [MapperIgnoreSource(nameof(Entities.User.Id))]
-    [MapperIgnoreSource(nameof(Entities.User.Created))]
-    [MapperIgnoreSource(nameof(Entities.User.CreatedBy))]
-    public override partial void Map(Entities.User source, Models.UserUpdateModel destination);
+    protected override Expression<Func<E.User, M.UserUpdateModel>> CreateMapping()
+    {
+        return source => new M.UserUpdateModel
+        {
+            #region Generated Mappings
+            DisplayName = source.DisplayName,
+            EmailAddress = source.EmailAddress,
+            IsDeleted = source.IsDeleted,
+            #endregion
 
-    public override partial IQueryable<Models.UserUpdateModel> ProjectTo(IQueryable<Entities.User> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.UserCreateModel, Entities.User>>]
-internal sealed partial class UserCreateModelToUserMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.UserCreateModel, Entities.User>
+[RegisterSingleton<IMapper<M.UserCreateModel, E.User>>]
+internal sealed class UserCreateModelToUserMapper
+    : MapperBase<M.UserCreateModel, E.User>
 {
-    [MapperIgnoreTarget(nameof(Entities.User.RowVersion))]
-    public override partial void Map(Models.UserCreateModel source, Entities.User destination);
+    protected override Expression<Func<M.UserCreateModel, E.User>> CreateMapping()
+    {
+        return source => new E.User
+        {
+            #region Generated Mappings
+            DisplayName = source.DisplayName,
+            EmailAddress = source.EmailAddress,
+            IsDeleted = source.IsDeleted,
+            #endregion
 
-    public override partial IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserCreateModel> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.UserUpdateModel, Entities.User>>]
-internal sealed partial class UserUpdateModelToUserMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.UserUpdateModel, Entities.User>
+[RegisterSingleton<IMapper<M.UserUpdateModel, E.User>>]
+internal sealed class UserUpdateModelToUserMapper
+    : MapperBase<M.UserUpdateModel, E.User>
 {
-    [MapperIgnoreTarget(nameof(Entities.User.Id))]
-    [MapperIgnoreTarget(nameof(Entities.User.Created))]
-    [MapperIgnoreTarget(nameof(Entities.User.CreatedBy))]
-    public override partial void Map(Models.UserUpdateModel source, Entities.User destination);
+    protected override Expression<Func<M.UserUpdateModel, E.User>> CreateMapping()
+    {
+        return source => new E.User
+        {
+            #region Generated Mappings
+            DisplayName = source.DisplayName,
+            EmailAddress = source.EmailAddress,
+            IsDeleted = source.IsDeleted,
+            #endregion
 
-    public override partial IQueryable<Entities.User> ProjectTo(IQueryable<Models.UserUpdateModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 

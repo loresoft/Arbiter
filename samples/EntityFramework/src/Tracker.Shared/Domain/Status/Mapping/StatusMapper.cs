@@ -1,61 +1,81 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-#pragma warning disable RMG012 // Source member was not found for target member
-#pragma warning disable RMG020 // Source member is not mapped to any target member
+
+using System.Linq.Expressions;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Mapping;
 
-using Riok.Mapperly.Abstractions;
-
-using Models = Tracker.Domain.Models;
+using M = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.StatusReadModel, Models.StatusCreateModel>>]
-internal sealed partial class StatusReadModelToStatusCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusReadModel, Models.StatusCreateModel>
+[RegisterSingleton<IMapper<M.StatusReadModel, M.StatusCreateModel>>]
+internal sealed class StatusReadModelToStatusCreateModelMapper
+    : MapperBase<M.StatusReadModel, M.StatusCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.StatusReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.StatusReadModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.StatusCreateModel.Id))]
-    public override partial void Map(Models.StatusReadModel source, Models.StatusCreateModel destination);
+    protected override Expression<Func<M.StatusReadModel, M.StatusCreateModel>> CreateMapping()
+    {
+        return source => new M.StatusCreateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusReadModel> source);
+            // Manual Mappings
+            Id = source.Id,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.StatusReadModel, Models.StatusUpdateModel>>]
-internal sealed partial class StatusReadModelToStatusUpdateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusReadModel, Models.StatusUpdateModel>
+[RegisterSingleton<IMapper<M.StatusReadModel, M.StatusUpdateModel>>]
+internal sealed class StatusReadModelToStatusUpdateModelMapper
+    : MapperBase<M.StatusReadModel, M.StatusUpdateModel>
 {
-    [MapperIgnoreSource(nameof(Models.StatusReadModel.Id))]
-    [MapperIgnoreSource(nameof(Models.StatusReadModel.Created))]
-    [MapperIgnoreSource(nameof(Models.StatusReadModel.CreatedBy))]
-    public override partial void Map(Models.StatusReadModel source, Models.StatusUpdateModel destination);
+    protected override Expression<Func<M.StatusReadModel, M.StatusUpdateModel>> CreateMapping()
+    {
+        return source => new M.StatusUpdateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Models.StatusUpdateModel> ProjectTo(IQueryable<Models.StatusReadModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+        };
+    }
 }
 
-[Mapper]
-[RegisterSingleton<IMapper<Models.StatusUpdateModel, Models.StatusCreateModel>>]
-internal sealed partial class StatusUpdateModelToStatusCreateModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusUpdateModel, Models.StatusCreateModel>
+[RegisterSingleton<IMapper<M.StatusUpdateModel, M.StatusCreateModel>>]
+internal sealed class StatusUpdateModelToStatusCreateModelMapper
+    : MapperBase<M.StatusUpdateModel, M.StatusCreateModel>
 {
-    [MapperIgnoreSource(nameof(Models.StatusUpdateModel.RowVersion))]
-    [MapperIgnoreTarget(nameof(Models.StatusCreateModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.StatusCreateModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.StatusCreateModel.CreatedBy))]
-    public override partial void Map(Models.StatusUpdateModel source, Models.StatusCreateModel destination);
+    protected override Expression<Func<M.StatusUpdateModel, M.StatusCreateModel>> CreateMapping()
+    {
+        return source => new M.StatusCreateModel
+        {
+            #region Generated Mappings
+            Name = source.Name,
+            Description = source.Description,
+            DisplayOrder = source.DisplayOrder,
+            IsActive = source.IsActive,
+            #endregion
 
-    public override partial IQueryable<Models.StatusCreateModel> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
-}
-
-[Mapper]
-[RegisterSingleton<IMapper<Models.StatusUpdateModel, Models.StatusReadModel>>]
-internal sealed partial class StatusUpdateModelToStatusReadModelMapper : Arbiter.CommandQuery.Mapping.MapperBase<Models.StatusUpdateModel, Models.StatusReadModel>
-{
-    [MapperIgnoreTarget(nameof(Models.StatusReadModel.Id))]
-    [MapperIgnoreTarget(nameof(Models.StatusReadModel.Created))]
-    [MapperIgnoreTarget(nameof(Models.StatusReadModel.CreatedBy))]
-    public override partial void Map(Models.StatusUpdateModel source, Models.StatusReadModel destination);
-
-    public override partial IQueryable<Models.StatusReadModel> ProjectTo(IQueryable<Models.StatusUpdateModel> source);
+            // Manual Mappings
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+        };
+    }
 }
 

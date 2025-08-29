@@ -1,6 +1,7 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
 using Arbiter.CommandQuery.Definitions;
+using System.Linq.Expressions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
@@ -10,386 +11,178 @@ namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 [RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
 internal sealed class TaskReadModelToTaskCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
 {
-    public override void Map(Models.TaskReadModel source, Models.TaskCreateModel destination)
+    protected override Expression<Func<Models.TaskReadModel, Models.TaskCreateModel>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.Id = source.Id;
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Created = source.Created;
-        destination.CreatedBy = source.CreatedBy;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        #endregion
-    }
-
-    public override IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskReadModel> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Models.TaskCreateModel
-            {
-                #region Generated Query Properties
-                Id = p.Id,
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Created = p.Created,
-                CreatedBy = p.CreatedBy,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                #endregion
-            }
-        );
+        return source => new Models.TaskCreateModel
+        {
+            Id = source.Id,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
 internal sealed class TaskReadModelToTaskUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
 {
-    public override void Map(Models.TaskReadModel source, Models.TaskUpdateModel destination)
+    protected override Expression<Func<Models.TaskReadModel, Models.TaskUpdateModel>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        destination.RowVersion = source.RowVersion;
-        #endregion
-    }
-
-    public override IQueryable<Models.TaskUpdateModel> ProjectTo(IQueryable<Models.TaskReadModel> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Models.TaskUpdateModel
-            {
-                #region Generated Query Properties
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                RowVersion = p.RowVersion,
-                #endregion
-            }
-        );
+        return source => new Models.TaskUpdateModel
+        {
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
 internal sealed class TaskUpdateModelToTaskCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
 {
-    public override void Map(Models.TaskUpdateModel source, Models.TaskCreateModel destination)
+    protected override Expression<Func<Models.TaskUpdateModel, Models.TaskCreateModel>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        #endregion
-    }
-
-    public override IQueryable<Models.TaskCreateModel> ProjectTo(IQueryable<Models.TaskUpdateModel> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Models.TaskCreateModel
-            {
-                #region Generated Query Properties
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                #endregion
-            }
-        );
+        return source => new Models.TaskCreateModel
+        {
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Entities.Task, Models.TaskReadModel>>]
 internal sealed class TaskToTaskReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Task, Models.TaskReadModel>
 {
-    public override void Map(Entities.Task source, Models.TaskReadModel destination)
+    protected override Expression<Func<Entities.Task, Models.TaskReadModel>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.Id = source.Id;
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Created = source.Created;
-        destination.CreatedBy = source.CreatedBy;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        destination.RowVersion = source.RowVersion;
-        #endregion
-
-        destination.StatusName = source.Status.Name;
-        destination.PriorityName = source.Priority?.Name;
-        destination.AssignedName = source.AssignedUser?.EmailAddress;
-        destination.TenantName = source.Tenant.Name;
-    }
-
-    public override IQueryable<Models.TaskReadModel> ProjectTo(IQueryable<Entities.Task> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Models.TaskReadModel
-            {
-                #region Generated Query Properties
-                Id = p.Id,
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Created = p.Created,
-                CreatedBy = p.CreatedBy,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                RowVersion = p.RowVersion,
-                #endregion
-
-                StatusName = p.Status.Name,
-                PriorityName = p.Priority != null ? p.Priority.Name : null,
-                AssignedName = p.AssignedUser != null ? p.AssignedUser.EmailAddress : null,
-                TenantName = p.Tenant.Name,
-            }
-        );
+        return source => new Models.TaskReadModel
+        {
+            Id = source.Id,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion,
+            StatusName = source.Status.Name,
+            PriorityName = source.Priority != null ? source.Priority.Name : null,
+            AssignedName = source.AssignedUser != null ? source.AssignedUser.EmailAddress : null,
+            TenantName = source.Tenant.Name
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Entities.Task, Models.TaskUpdateModel>>]
 internal sealed class TaskToTaskUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Task, Models.TaskUpdateModel>
 {
-    public override void Map(Entities.Task source, Models.TaskUpdateModel destination)
+    protected override Expression<Func<Entities.Task, Models.TaskUpdateModel>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        destination.RowVersion = source.RowVersion;
-        #endregion
-    }
-
-    public override IQueryable<Models.TaskUpdateModel> ProjectTo(IQueryable<Entities.Task> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Models.TaskUpdateModel
-            {
-                #region Generated Query Properties
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                RowVersion = p.RowVersion,
-                #endregion
-            }
-        );
+        return source => new Models.TaskUpdateModel
+        {
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Models.TaskCreateModel, Entities.Task>>]
 internal sealed class TaskCreateModelToTaskMapper : CommandQuery.Mapping.MapperBase<Models.TaskCreateModel, Entities.Task>
 {
-    public override void Map(Models.TaskCreateModel source, Entities.Task destination)
+    protected override Expression<Func<Models.TaskCreateModel, Entities.Task>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.Id = source.Id;
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Created = source.Created;
-        destination.CreatedBy = source.CreatedBy;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        #endregion
-    }
-
-    public override IQueryable<Entities.Task> ProjectTo(IQueryable<Models.TaskCreateModel> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Entities.Task
-            {
-                #region Generated Query Properties
-                Id = p.Id,
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Created = p.Created,
-                CreatedBy = p.CreatedBy,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                #endregion
-            }
-        );
+        return source => new Entities.Task
+        {
+            Id = source.Id,
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Created = source.Created,
+            CreatedBy = source.CreatedBy,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy
+        };
     }
 }
 
 [RegisterSingleton<IMapper<Models.TaskUpdateModel, Entities.Task>>]
 internal sealed class TaskUpdateModelToTaskMapper : CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Entities.Task>
 {
-    public override void Map(Models.TaskUpdateModel source, Entities.Task destination)
+    protected override Expression<Func<Models.TaskUpdateModel, Entities.Task>> CreateMapping()
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        #region Generated Copied Properties
-        destination.StatusId = source.StatusId;
-        destination.PriorityId = source.PriorityId;
-        destination.Title = source.Title;
-        destination.Description = source.Description;
-        destination.StartDate = source.StartDate;
-        destination.DueDate = source.DueDate;
-        destination.CompleteDate = source.CompleteDate;
-        destination.AssignedId = source.AssignedId;
-        destination.TenantId = source.TenantId;
-        destination.IsDeleted = source.IsDeleted;
-        destination.Updated = source.Updated;
-        destination.UpdatedBy = source.UpdatedBy;
-        destination.RowVersion = source.RowVersion;
-        #endregion
-    }
-
-    public override IQueryable<Entities.Task> ProjectTo(IQueryable<Models.TaskUpdateModel> source)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-
-        return source.Select(p =>
-            new Entities.Task
-            {
-                #region Generated Query Properties
-                StatusId = p.StatusId,
-                PriorityId = p.PriorityId,
-                Title = p.Title,
-                Description = p.Description,
-                StartDate = p.StartDate,
-                DueDate = p.DueDate,
-                CompleteDate = p.CompleteDate,
-                AssignedId = p.AssignedId,
-                TenantId = p.TenantId,
-                IsDeleted = p.IsDeleted,
-                Updated = p.Updated,
-                UpdatedBy = p.UpdatedBy,
-                RowVersion = p.RowVersion,
-                #endregion
-            }
-        );
+        return source => new Entities.Task
+        {
+            StatusId = source.StatusId,
+            PriorityId = source.PriorityId,
+            Title = source.Title,
+            Description = source.Description,
+            StartDate = source.StartDate,
+            DueDate = source.DueDate,
+            CompleteDate = source.CompleteDate,
+            AssignedId = source.AssignedId,
+            TenantId = source.TenantId,
+            IsDeleted = source.IsDeleted,
+            Updated = source.Updated,
+            UpdatedBy = source.UpdatedBy,
+            RowVersion = source.RowVersion
+        };
     }
 }
 
