@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.2" />
-    <PackageReference Include="Testcontainers.MsSql" Version="4.6.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageReference Include="TestHost.Abstracts" Version="1.2.0" />
     <PackageReference Include="TUnit" Version="0.56.44" />
   </ItemGroup>
