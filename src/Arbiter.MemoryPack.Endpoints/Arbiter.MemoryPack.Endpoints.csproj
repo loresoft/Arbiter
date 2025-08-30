@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Arbiter.MemoryPack.Dispatcher\MemoryPackConstants.cs" Link="MemoryPackConstants.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="1.21.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
+  </ItemGroup>
+
+</Project>

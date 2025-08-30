@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="1.21.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
+  </ItemGroup>
+
+</Project>

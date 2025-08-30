@@ -9,6 +9,10 @@
     <Project Path="src/Arbiter.Communication.Twilio/Arbiter.Communication.Twilio.csproj" Id="9b55db94-d979-45f0-8566-8e0c8059523e" />
     <Project Path="src/Arbiter.Communication/Arbiter.Communication.csproj" Id="8a6f4ddc-987c-4e96-9cc0-b9f03e149160" />
   </Folder>
+  <Folder Name="/MemoryPack/">
+    <Project Path="src/Arbiter.MemoryPack.Dispatcher/Arbiter.MemoryPack.Dispatcher.csproj" Id="58bb6e9d-ac68-4255-beb7-84fa37fe1863" />
+    <Project Path="src/Arbiter.MemoryPack.Endpoints/Arbiter.MemoryPack.Endpoints.csproj" Id="ed2f898f-db32-4608-a502-f0f4f3cbeb29" />
+  </Folder>
   <Folder Name="/Samples/" Id="7881efe6-0fba-4ce6-a4ee-f6cc56395fc7" />
   <Folder Name="/Samples/EntityFramework/" Id="f36d2018-e642-4d30-a508-10bc237d649e">
     <File Path="samples/EntityFramework/src/Directory.Build.props" />
@@ -40,6 +44,7 @@
     <Project Path="test/Arbiter.CommandQuery.Tests/Arbiter.CommandQuery.Tests.csproj" Id="ea445280-2bc1-4030-b0c2-e454ce5c4aa6" />
     <Project Path="test/Arbiter.Communication.Tests/Arbiter.Communication.Tests.csproj" Id="9da5eada-3069-46ed-900a-c319b7858690" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
+    <Project Path="test/Arbiter.MemoryPack.Tests/Arbiter.MemoryPack.Tests.csproj" Id="c8460d7e-3300-40a4-9a29-74a611131716" />
   </Folder>
   <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />
   <Project Path="src/Arbiter.CommandQuery.EntityFramework/Arbiter.CommandQuery.EntityFramework.csproj" />
