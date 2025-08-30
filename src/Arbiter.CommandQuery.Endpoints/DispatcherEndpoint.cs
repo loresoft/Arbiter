@@ -4,7 +4,6 @@ using Arbiter.CommandQuery.Dispatcher;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -59,7 +58,7 @@ public partial class DispatcherEndpoint : IEndpointRoute
     /// <param name="user">The current security claims principal</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>Awaitable task returning the mediator response</returns>
-    protected virtual async Task<Results<Ok<object>, ProblemHttpResult>> Send(
+    protected virtual async Task<IResult> Send(
         [FromBody] DispatchRequest dispatchRequest,
         [FromServices] IMediator mediator,
         ClaimsPrincipal? user = default,
@@ -71,6 +70,10 @@ public partial class DispatcherEndpoint : IEndpointRoute
         {
             var result = await mediator.Send(request, cancellationToken).ConfigureAwait(false);
             return TypedResults.Ok(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return TypedResults.Problem("Request was canceled", statusCode: 499);
         }
         catch (Exception ex)
         {

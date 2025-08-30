@@ -6,7 +6,10 @@ clr
 csv
 deconstruct
 deserialization
+deserialize
+deserialized
 deserializer
+deserializing
 inline
 json
 linq
@@ -15,6 +18,8 @@ mvc
 nullable
 queryable
 serialization
+serialize
 serializer
+serializing
 upsert
 validator

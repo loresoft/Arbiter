@@ -16,15 +16,19 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Arbiter.CommandQuery;
 
 /// <summary>
-/// Extensions for adding mediator services to the service collection.
+/// Extension methods for adding command query services to the service collection.
 /// </summary>
 public static class CommandQueryExtensions
 {
     /// <summary>
-    /// Adds the mediator command query services to the service collection.
+    /// Adds the command query services to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers the core command query services including the mediator,
+    /// principal reader, mapper, and tenant resolver.
+    /// </remarks>
     public static IServiceCollection AddCommandQuery(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -41,12 +45,12 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds command validation behavior to the service collection.
     /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     /// <remarks>
     /// This method registers a pipeline behavior that validates commands before they are processed.
     /// It ensures that any command passed through the pipeline adheres to the defined validation rules.
     /// </remarks>
-    /// <param name="services">The <see cref="IServiceCollection"/> to which the command validation behavior is added.</param>
-    /// <returns>The same <see cref="IServiceCollection"/> instance, allowing for method chaining.</returns>
     public static IServiceCollection AddCommandValidation(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -57,10 +61,48 @@ public static class CommandQueryExtensions
     }
 
     /// <summary>
-    /// Adds the remote dispatcher to the service collection.  The client must register the <see cref="RemoteDispatcher"/> with the correct <see cref="HttpClient"/>.
+    /// Adds the remote dispatcher to the service collection with configuration for the HTTP client.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configureClient">The action to configure the HTTP client with service provider.</param>
+    /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration of the HTTP client.</returns>
+    /// <remarks>
+    /// This overload allows configuration of the HTTP client using both the service provider and HTTP client instance.
+    /// </remarks>
+    public static IHttpClientBuilder AddRemoteDispatcher(this IServiceCollection services, Action<IServiceProvider, HttpClient> configureClient)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddRemoteDispatcher();
+        return services.AddHttpClient<RemoteDispatcher>(configureClient);
+    }
+
+    /// <summary>
+    /// Adds the remote dispatcher to the service collection with configuration for the HTTP client.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configureClient">The action to configure the HTTP client.</param>
+    /// <returns>The <see cref="IHttpClientBuilder"/> for further configuration of the HTTP client.</returns>
+    /// <remarks>
+    /// This overload allows configuration of the HTTP client using the HTTP client instance only.
+    /// </remarks>
+    public static IHttpClientBuilder AddRemoteDispatcher(this IServiceCollection services, Action<HttpClient> configureClient)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddRemoteDispatcher();
+        return services.AddHttpClient<RemoteDispatcher>(configureClient);
+    }
+
+    /// <summary>
+    /// Adds the remote dispatcher to the service collection without HTTP client configuration.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers the remote dispatcher without configuring the HTTP client.
+    /// The client must register the <see cref="RemoteDispatcher"/> with the correct <see cref="HttpClient"/> separately.
+    /// </remarks>
     public static IServiceCollection AddRemoteDispatcher(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -77,8 +119,11 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the server dispatcher to the service collection.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// The server dispatcher uses the mediator pattern to dispatch commands and queries locally.
+    /// </remarks>
     public static IServiceCollection AddServerDispatcher(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -95,10 +140,14 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the caching query behaviors for <see cref="IMemoryCache"/> to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers memory cache behaviors for all standard entity query operations:
+    /// identifier, identifiers, paged, select, and continuation queries.
+    /// </remarks>
     public static IServiceCollection AddEntityQueryMemoryCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -115,10 +164,14 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the caching query behaviors for <see cref="IDistributedCache"/> to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers distributed cache behaviors for all standard entity query operations:
+    /// identifier, identifiers, paged, select, and continuation queries.
+    /// </remarks>
     public static IServiceCollection AddEntityQueryDistributedCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -135,10 +188,14 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the caching query behaviors for <see cref="HybridCache"/> to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers hybrid cache behaviors for all standard entity query operations:
+    /// identifier, identifiers, paged, select, and continuation queries.
+    /// </remarks>
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -153,14 +210,18 @@ public static class CommandQueryExtensions
     }
 
     /// <summary>
-    /// Adds the caching command behaviors for <see cref="HybridCache"/> to the service collection.
+    /// Adds the caching command and query behaviors for <see cref="HybridCache"/> to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
     /// <typeparam name="TCreateModel">The type of the create model.</typeparam>
     /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers hybrid cache behaviors for both queries and commands.
+    /// Query behaviors provide caching, while command behaviors handle cache expiration.
+    /// </remarks>
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel, TCreateModel, TUpdateModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -179,10 +240,18 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity query behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method conditionally registers pipeline behaviors based on the interfaces implemented by <typeparamref name="TReadModel"/>:
+    /// <list type="bullet">
+    /// <item><description>If <typeparamref name="TReadModel"/> implements <see cref="IHaveTenant{TKey}"/>, tenant-based filtering behaviors are added.</description></item>
+    /// <item><description>If <typeparamref name="TReadModel"/> implements <see cref="ITrackDeleted"/>, soft delete filtering behaviors are added.</description></item>
+    /// </list>
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityQueryBehaviors<TKey, TReadModel>(this IServiceCollection services)
         where TReadModel : class
     {
@@ -209,11 +278,20 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity create behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
     /// <typeparam name="TCreateModel">The type of the create model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method conditionally registers pipeline behaviors based on the interfaces implemented by <typeparamref name="TCreateModel"/>:
+    /// <list type="bullet">
+    /// <item><description>If <typeparamref name="TCreateModel"/> implements <see cref="IHaveTenant{TKey}"/>, tenant-based behaviors are added.</description></item>
+    /// <item><description>If <typeparamref name="TCreateModel"/> implements <see cref="ITrackCreated"/>, creation tracking behaviors are added.</description></item>
+    /// </list>
+    /// Validation and change notification behaviors are always added.
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityCreateBehaviors<TKey, TReadModel, TCreateModel>(this IServiceCollection services)
         where TCreateModel : class
     {
@@ -241,11 +319,20 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity update behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
     /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method conditionally registers pipeline behaviors based on the interfaces implemented by <typeparamref name="TUpdateModel"/>:
+    /// <list type="bullet">
+    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="IHaveTenant{TKey}"/>, tenant-based behaviors are added.</description></item>
+    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="ITrackUpdated"/>, update tracking behaviors are added.</description></item>
+    /// </list>
+    /// Validation and change notification behaviors are always added.
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityUpdateBehaviors<TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TUpdateModel : class
     {
@@ -273,11 +360,20 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity upsert behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
     /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method conditionally registers pipeline behaviors based on the interfaces implemented by <typeparamref name="TUpdateModel"/>:
+    /// <list type="bullet">
+    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="IHaveTenant{TKey}"/>, tenant-based behaviors are added.</description></item>
+    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="ITrackUpdated"/>, update tracking behaviors are added.</description></item>
+    /// </list>
+    /// Validation and change notification behaviors are always added.
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityUpsertBehaviors<TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
         where TUpdateModel : class
     {
@@ -305,11 +401,15 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity patch behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
-    /// <typeparam name="TEntity">The type of entity being operated on</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers change notification behaviors for patch operations.
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityPatchBehaviors<TKey, TEntity, TReadModel>(this IServiceCollection services)
         where TEntity : class, IHaveIdentifier<TKey>, new()
     {
@@ -324,11 +424,15 @@ public static class CommandQueryExtensions
     /// <summary>
     /// Adds the entity delete behaviors to the service collection.
     /// </summary>
-    /// <typeparam name="TKey">The key type for the model.</typeparam>
-    /// <typeparam name="TEntity">The type of entity being operated on</typeparam>
+    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on.</typeparam>
     /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers change notification behaviors for delete operations.
+    /// Pipeline behaviors are registered in the order they should execute.
+    /// </remarks>
     public static IServiceCollection AddEntityDeleteBehaviors<TKey, TEntity, TReadModel>(this IServiceCollection services)
         where TEntity : class, IHaveIdentifier<TKey>, new()
     {
