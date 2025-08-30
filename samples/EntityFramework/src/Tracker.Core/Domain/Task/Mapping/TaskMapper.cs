@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using E = Tracker.Data.Entities;
-using M = Tracker.Domain.Models;
+using Entities = Tracker.Data.Entities;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<E.Task, M.TaskReadModel>>]
+[RegisterSingleton<IMapper<Entities.Task, Models.TaskReadModel>>]
 internal sealed class TaskToTaskReadModelMapper
-    : MapperBase<E.Task, M.TaskReadModel>
+    : MapperBase<Entities.Task, Models.TaskReadModel>
 {
-    protected override Expression<Func<E.Task, M.TaskReadModel>> CreateMapping()
+    protected override Expression<Func<Entities.Task, Models.TaskReadModel>> CreateMapping()
     {
-        return source => new M.TaskReadModel
+        return source => new Models.TaskReadModel
         {
             #region Generated Mappings
             Title = source.Title,
@@ -38,22 +38,17 @@ internal sealed class TaskToTaskReadModelMapper
             Updated = source.Updated,
             UpdatedBy = source.UpdatedBy,
             RowVersion = source.RowVersion,
-
-            // Navigation Mappings
-            TenantName = source.Tenant != null ? source.Tenant.Name : null,
-            StatusName = source.Status != null ? source.Status.Name : null,
-            PriorityName = source.Priority != null ? source.Priority.Name : null,
         };
     }
 }
 
-[RegisterSingleton<IMapper<E.Task, M.TaskUpdateModel>>]
+[RegisterSingleton<IMapper<Entities.Task, Models.TaskUpdateModel>>]
 internal sealed class TaskToTaskUpdateModelMapper
-    : MapperBase<E.Task, M.TaskUpdateModel>
+    : MapperBase<Entities.Task, Models.TaskUpdateModel>
 {
-    protected override Expression<Func<E.Task, M.TaskUpdateModel>> CreateMapping()
+    protected override Expression<Func<Entities.Task, Models.TaskUpdateModel>> CreateMapping()
     {
-        return source => new M.TaskUpdateModel
+        return source => new Models.TaskUpdateModel
         {
             #region Generated Mappings
             Title = source.Title,
@@ -76,13 +71,13 @@ internal sealed class TaskToTaskUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TaskCreateModel, E.Task>>]
+[RegisterSingleton<IMapper<Models.TaskCreateModel, Entities.Task>>]
 internal sealed class TaskCreateModelToTaskMapper
-    : MapperBase<M.TaskCreateModel, E.Task>
+    : MapperBase<Models.TaskCreateModel, Entities.Task>
 {
-    protected override Expression<Func<M.TaskCreateModel, E.Task>> CreateMapping()
+    protected override Expression<Func<Models.TaskCreateModel, Entities.Task>> CreateMapping()
     {
-        return source => new E.Task
+        return source => new Entities.Task
         {
             #region Generated Mappings
             Title = source.Title,
@@ -107,13 +102,13 @@ internal sealed class TaskCreateModelToTaskMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TaskUpdateModel, E.Task>>]
+[RegisterSingleton<IMapper<Models.TaskUpdateModel, Entities.Task>>]
 internal sealed class TaskUpdateModelToTaskMapper
-    : MapperBase<M.TaskUpdateModel, E.Task>
+    : MapperBase<Models.TaskUpdateModel, Entities.Task>
 {
-    protected override Expression<Func<M.TaskUpdateModel, E.Task>> CreateMapping()
+    protected override Expression<Func<Models.TaskUpdateModel, Entities.Task>> CreateMapping()
     {
-        return source => new E.Task
+        return source => new Entities.Task
         {
             #region Generated Mappings
             Title = source.Title,

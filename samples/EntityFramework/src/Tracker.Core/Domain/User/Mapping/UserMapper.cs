@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using E = Tracker.Data.Entities;
-using M = Tracker.Domain.Models;
+using Entities = Tracker.Data.Entities;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<E.User, M.UserReadModel>>]
+[RegisterSingleton<IMapper<Entities.User, Models.UserReadModel>>]
 internal sealed class UserToUserReadModelMapper
-    : MapperBase<E.User, M.UserReadModel>
+    : MapperBase<Entities.User, Models.UserReadModel>
 {
-    protected override Expression<Func<E.User, M.UserReadModel>> CreateMapping()
+    protected override Expression<Func<Entities.User, Models.UserReadModel>> CreateMapping()
     {
-        return source => new M.UserReadModel
+        return source => new Models.UserReadModel
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,
@@ -35,13 +35,13 @@ internal sealed class UserToUserReadModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<E.User, M.UserUpdateModel>>]
+[RegisterSingleton<IMapper<Entities.User, Models.UserUpdateModel>>]
 internal sealed class UserToUserUpdateModelMapper
-    : MapperBase<E.User, M.UserUpdateModel>
+    : MapperBase<Entities.User, Models.UserUpdateModel>
 {
-    protected override Expression<Func<E.User, M.UserUpdateModel>> CreateMapping()
+    protected override Expression<Func<Entities.User, Models.UserUpdateModel>> CreateMapping()
     {
-        return source => new M.UserUpdateModel
+        return source => new Models.UserUpdateModel
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,
@@ -57,13 +57,13 @@ internal sealed class UserToUserUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.UserCreateModel, E.User>>]
+[RegisterSingleton<IMapper<Models.UserCreateModel, Entities.User>>]
 internal sealed class UserCreateModelToUserMapper
-    : MapperBase<M.UserCreateModel, E.User>
+    : MapperBase<Models.UserCreateModel, Entities.User>
 {
-    protected override Expression<Func<M.UserCreateModel, E.User>> CreateMapping()
+    protected override Expression<Func<Models.UserCreateModel, Entities.User>> CreateMapping()
     {
-        return source => new E.User
+        return source => new Entities.User
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,
@@ -81,13 +81,13 @@ internal sealed class UserCreateModelToUserMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.UserUpdateModel, E.User>>]
+[RegisterSingleton<IMapper<Models.UserUpdateModel, Entities.User>>]
 internal sealed class UserUpdateModelToUserMapper
-    : MapperBase<M.UserUpdateModel, E.User>
+    : MapperBase<Models.UserUpdateModel, Entities.User>
 {
-    protected override Expression<Func<M.UserUpdateModel, E.User>> CreateMapping()
+    protected override Expression<Func<Models.UserUpdateModel, Entities.User>> CreateMapping()
     {
-        return source => new E.User
+        return source => new Entities.User
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,

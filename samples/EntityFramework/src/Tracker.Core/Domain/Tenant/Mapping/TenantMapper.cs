@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using E = Tracker.Data.Entities;
-using M = Tracker.Domain.Models;
+using Entities = Tracker.Data.Entities;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<E.Tenant, M.TenantReadModel>>]
+[RegisterSingleton<IMapper<Entities.Tenant, Models.TenantReadModel>>]
 internal sealed class TenantToTenantReadModelMapper
-    : MapperBase<E.Tenant, M.TenantReadModel>
+    : MapperBase<Entities.Tenant, Models.TenantReadModel>
 {
-    protected override Expression<Func<E.Tenant, M.TenantReadModel>> CreateMapping()
+    protected override Expression<Func<Entities.Tenant, Models.TenantReadModel>> CreateMapping()
     {
-        return source => new M.TenantReadModel
+        return source => new Models.TenantReadModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -34,13 +34,13 @@ internal sealed class TenantToTenantReadModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<E.Tenant, M.TenantUpdateModel>>]
+[RegisterSingleton<IMapper<Entities.Tenant, Models.TenantUpdateModel>>]
 internal sealed class TenantToTenantUpdateModelMapper
-    : MapperBase<E.Tenant, M.TenantUpdateModel>
+    : MapperBase<Entities.Tenant, Models.TenantUpdateModel>
 {
-    protected override Expression<Func<E.Tenant, M.TenantUpdateModel>> CreateMapping()
+    protected override Expression<Func<Entities.Tenant, Models.TenantUpdateModel>> CreateMapping()
     {
-        return source => new M.TenantUpdateModel
+        return source => new Models.TenantUpdateModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -55,13 +55,13 @@ internal sealed class TenantToTenantUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TenantCreateModel, E.Tenant>>]
+[RegisterSingleton<IMapper<Models.TenantCreateModel, Entities.Tenant>>]
 internal sealed class TenantCreateModelToTenantMapper
-    : MapperBase<M.TenantCreateModel, E.Tenant>
+    : MapperBase<Models.TenantCreateModel, Entities.Tenant>
 {
-    protected override Expression<Func<M.TenantCreateModel, E.Tenant>> CreateMapping()
+    protected override Expression<Func<Models.TenantCreateModel, Entities.Tenant>> CreateMapping()
     {
-        return source => new E.Tenant
+        return source => new Entities.Tenant
         {
             #region Generated Mappings
             Name = source.Name,
@@ -78,13 +78,13 @@ internal sealed class TenantCreateModelToTenantMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TenantUpdateModel, E.Tenant>>]
+[RegisterSingleton<IMapper<Models.TenantUpdateModel, Entities.Tenant>>]
 internal sealed class TenantUpdateModelToTenantMapper
-    : MapperBase<M.TenantUpdateModel, E.Tenant>
+    : MapperBase<Models.TenantUpdateModel, Entities.Tenant>
 {
-    protected override Expression<Func<M.TenantUpdateModel, E.Tenant>> CreateMapping()
+    protected override Expression<Func<Models.TenantUpdateModel, Entities.Tenant>> CreateMapping()
     {
-        return source => new E.Tenant
+        return source => new Entities.Tenant
         {
             #region Generated Mappings
             Name = source.Name,

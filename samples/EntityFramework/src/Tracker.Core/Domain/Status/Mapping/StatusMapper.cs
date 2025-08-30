@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using E = Tracker.Data.Entities;
-using M = Tracker.Domain.Models;
+using Entities = Tracker.Data.Entities;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<E.Status, M.StatusReadModel>>]
+[RegisterSingleton<IMapper<Entities.Status, Models.StatusReadModel>>]
 internal sealed class StatusToStatusReadModelMapper
-    : MapperBase<E.Status, M.StatusReadModel>
+    : MapperBase<Entities.Status, Models.StatusReadModel>
 {
-    protected override Expression<Func<E.Status, M.StatusReadModel>> CreateMapping()
+    protected override Expression<Func<Entities.Status, Models.StatusReadModel>> CreateMapping()
     {
-        return source => new M.StatusReadModel
+        return source => new Models.StatusReadModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -36,13 +36,13 @@ internal sealed class StatusToStatusReadModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<E.Status, M.StatusUpdateModel>>]
+[RegisterSingleton<IMapper<Entities.Status, Models.StatusUpdateModel>>]
 internal sealed class StatusToStatusUpdateModelMapper
-    : MapperBase<E.Status, M.StatusUpdateModel>
+    : MapperBase<Entities.Status, Models.StatusUpdateModel>
 {
-    protected override Expression<Func<E.Status, M.StatusUpdateModel>> CreateMapping()
+    protected override Expression<Func<Entities.Status, Models.StatusUpdateModel>> CreateMapping()
     {
-        return source => new M.StatusUpdateModel
+        return source => new Models.StatusUpdateModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -59,13 +59,13 @@ internal sealed class StatusToStatusUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.StatusCreateModel, E.Status>>]
+[RegisterSingleton<IMapper<Models.StatusCreateModel, Entities.Status>>]
 internal sealed class StatusCreateModelToStatusMapper
-    : MapperBase<M.StatusCreateModel, E.Status>
+    : MapperBase<Models.StatusCreateModel, Entities.Status>
 {
-    protected override Expression<Func<M.StatusCreateModel, E.Status>> CreateMapping()
+    protected override Expression<Func<Models.StatusCreateModel, Entities.Status>> CreateMapping()
     {
-        return source => new E.Status
+        return source => new Entities.Status
         {
             #region Generated Mappings
             Name = source.Name,
@@ -84,13 +84,13 @@ internal sealed class StatusCreateModelToStatusMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.StatusUpdateModel, E.Status>>]
+[RegisterSingleton<IMapper<Models.StatusUpdateModel, Entities.Status>>]
 internal sealed class StatusUpdateModelToStatusMapper
-    : MapperBase<M.StatusUpdateModel, E.Status>
+    : MapperBase<Models.StatusUpdateModel, Entities.Status>
 {
-    protected override Expression<Func<M.StatusUpdateModel, E.Status>> CreateMapping()
+    protected override Expression<Func<Models.StatusUpdateModel, Entities.Status>> CreateMapping()
     {
-        return source => new E.Status
+        return source => new Entities.Status
         {
             #region Generated Mappings
             Name = source.Name,

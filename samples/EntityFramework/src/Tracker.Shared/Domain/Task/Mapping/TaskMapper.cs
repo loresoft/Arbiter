@@ -5,17 +5,17 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using M = Tracker.Domain.Models;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<M.TaskReadModel, M.TaskCreateModel>>]
+[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
 internal sealed class TaskReadModelToTaskCreateModelMapper
-    : MapperBase<M.TaskReadModel, M.TaskCreateModel>
+    : MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
 {
-    protected override Expression<Func<M.TaskReadModel, M.TaskCreateModel>> CreateMapping()
+    protected override Expression<Func<Models.TaskReadModel, Models.TaskCreateModel>> CreateMapping()
     {
-        return source => new M.TaskCreateModel
+        return source => new Models.TaskCreateModel
         {
             #region Generated Mappings
             Title = source.Title,
@@ -40,13 +40,13 @@ internal sealed class TaskReadModelToTaskCreateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TaskReadModel, M.TaskUpdateModel>>]
+[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
 internal sealed class TaskReadModelToTaskUpdateModelMapper
-    : MapperBase<M.TaskReadModel, M.TaskUpdateModel>
+    : MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
 {
-    protected override Expression<Func<M.TaskReadModel, M.TaskUpdateModel>> CreateMapping()
+    protected override Expression<Func<Models.TaskReadModel, Models.TaskUpdateModel>> CreateMapping()
     {
-        return source => new M.TaskUpdateModel
+        return source => new Models.TaskUpdateModel
         {
             #region Generated Mappings
             Title = source.Title,
@@ -69,13 +69,13 @@ internal sealed class TaskReadModelToTaskUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.TaskUpdateModel, M.TaskCreateModel>>]
+[RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
 internal sealed class TaskUpdateModelToTaskCreateModelMapper
-    : MapperBase<M.TaskUpdateModel, M.TaskCreateModel>
+    : MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
 {
-    protected override Expression<Func<M.TaskUpdateModel, M.TaskCreateModel>> CreateMapping()
+    protected override Expression<Func<Models.TaskUpdateModel, Models.TaskCreateModel>> CreateMapping()
     {
-        return source => new M.TaskCreateModel
+        return source => new Models.TaskCreateModel
         {
             #region Generated Mappings
             Title = source.Title,

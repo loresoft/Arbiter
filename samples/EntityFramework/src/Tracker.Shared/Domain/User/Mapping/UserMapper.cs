@@ -5,17 +5,17 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using M = Tracker.Domain.Models;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<M.UserReadModel, M.UserCreateModel>>]
+[RegisterSingleton<IMapper<Models.UserReadModel, Models.UserCreateModel>>]
 internal sealed class UserReadModelToUserCreateModelMapper
-    : MapperBase<M.UserReadModel, M.UserCreateModel>
+    : MapperBase<Models.UserReadModel, Models.UserCreateModel>
 {
-    protected override Expression<Func<M.UserReadModel, M.UserCreateModel>> CreateMapping()
+    protected override Expression<Func<Models.UserReadModel, Models.UserCreateModel>> CreateMapping()
     {
-        return source => new M.UserCreateModel
+        return source => new Models.UserCreateModel
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,
@@ -33,13 +33,13 @@ internal sealed class UserReadModelToUserCreateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.UserReadModel, M.UserUpdateModel>>]
+[RegisterSingleton<IMapper<Models.UserReadModel, Models.UserUpdateModel>>]
 internal sealed class UserReadModelToUserUpdateModelMapper
-    : MapperBase<M.UserReadModel, M.UserUpdateModel>
+    : MapperBase<Models.UserReadModel, Models.UserUpdateModel>
 {
-    protected override Expression<Func<M.UserReadModel, M.UserUpdateModel>> CreateMapping()
+    protected override Expression<Func<Models.UserReadModel, Models.UserUpdateModel>> CreateMapping()
     {
-        return source => new M.UserUpdateModel
+        return source => new Models.UserUpdateModel
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,
@@ -55,13 +55,13 @@ internal sealed class UserReadModelToUserUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.UserUpdateModel, M.UserCreateModel>>]
+[RegisterSingleton<IMapper<Models.UserUpdateModel, Models.UserCreateModel>>]
 internal sealed class UserUpdateModelToUserCreateModelMapper
-    : MapperBase<M.UserUpdateModel, M.UserCreateModel>
+    : MapperBase<Models.UserUpdateModel, Models.UserCreateModel>
 {
-    protected override Expression<Func<M.UserUpdateModel, M.UserCreateModel>> CreateMapping()
+    protected override Expression<Func<Models.UserUpdateModel, Models.UserCreateModel>> CreateMapping()
     {
-        return source => new M.UserCreateModel
+        return source => new Models.UserCreateModel
         {
             #region Generated Mappings
             DisplayName = source.DisplayName,

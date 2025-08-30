@@ -56,9 +56,9 @@ public string WriteCode()
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
-        CodeBuilder.AppendLine($"using E = {entityNamespace};");
+        CodeBuilder.AppendLine($"using Entities = {entityNamespace};");
     }
-    CodeBuilder.AppendLine($"using M = {modelNamespace};");
+    CodeBuilder.AppendLine($"using Models = {modelNamespace};");
 
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine($"namespace {TemplateOptions.Namespace};");
@@ -174,8 +174,8 @@ private static (string? ClassNamespace, string? ClassName, IEnumerable<Property>
 {
     return value switch
     {
-        Model model => ("M", model.ModelClass.ToSafeName(), model.Properties),
-        Entity entity => ("E", entity.EntityClass.ToSafeName(), entity.Properties),
+        Model model => ("Models", model.ModelClass.ToSafeName(), model.Properties),
+        Entity entity => ("Entities", entity.EntityClass.ToSafeName(), entity.Properties),
         _ => (null, null, null)
     };
 }

@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Mapping;
 
-using E = Tracker.Data.Entities;
-using M = Tracker.Domain.Models;
+using Entities = Tracker.Data.Entities;
+using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<E.Priority, M.PriorityReadModel>>]
+[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityReadModel>>]
 internal sealed class PriorityToPriorityReadModelMapper
-    : MapperBase<E.Priority, M.PriorityReadModel>
+    : MapperBase<Entities.Priority, Models.PriorityReadModel>
 {
-    protected override Expression<Func<E.Priority, M.PriorityReadModel>> CreateMapping()
+    protected override Expression<Func<Entities.Priority, Models.PriorityReadModel>> CreateMapping()
     {
-        return source => new M.PriorityReadModel
+        return source => new Models.PriorityReadModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -36,13 +36,13 @@ internal sealed class PriorityToPriorityReadModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<E.Priority, M.PriorityUpdateModel>>]
+[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityUpdateModel>>]
 internal sealed class PriorityToPriorityUpdateModelMapper
-    : MapperBase<E.Priority, M.PriorityUpdateModel>
+    : MapperBase<Entities.Priority, Models.PriorityUpdateModel>
 {
-    protected override Expression<Func<E.Priority, M.PriorityUpdateModel>> CreateMapping()
+    protected override Expression<Func<Entities.Priority, Models.PriorityUpdateModel>> CreateMapping()
     {
-        return source => new M.PriorityUpdateModel
+        return source => new Models.PriorityUpdateModel
         {
             #region Generated Mappings
             Name = source.Name,
@@ -59,13 +59,13 @@ internal sealed class PriorityToPriorityUpdateModelMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.PriorityCreateModel, E.Priority>>]
+[RegisterSingleton<IMapper<Models.PriorityCreateModel, Entities.Priority>>]
 internal sealed class PriorityCreateModelToPriorityMapper
-    : MapperBase<M.PriorityCreateModel, E.Priority>
+    : MapperBase<Models.PriorityCreateModel, Entities.Priority>
 {
-    protected override Expression<Func<M.PriorityCreateModel, E.Priority>> CreateMapping()
+    protected override Expression<Func<Models.PriorityCreateModel, Entities.Priority>> CreateMapping()
     {
-        return source => new E.Priority
+        return source => new Entities.Priority
         {
             #region Generated Mappings
             Name = source.Name,
@@ -84,13 +84,13 @@ internal sealed class PriorityCreateModelToPriorityMapper
     }
 }
 
-[RegisterSingleton<IMapper<M.PriorityUpdateModel, E.Priority>>]
+[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Entities.Priority>>]
 internal sealed class PriorityUpdateModelToPriorityMapper
-    : MapperBase<M.PriorityUpdateModel, E.Priority>
+    : MapperBase<Models.PriorityUpdateModel, Entities.Priority>
 {
-    protected override Expression<Func<M.PriorityUpdateModel, E.Priority>> CreateMapping()
+    protected override Expression<Func<Models.PriorityUpdateModel, Entities.Priority>> CreateMapping()
     {
-        return source => new E.Priority
+        return source => new Entities.Priority
         {
             #region Generated Mappings
             Name = source.Name,
