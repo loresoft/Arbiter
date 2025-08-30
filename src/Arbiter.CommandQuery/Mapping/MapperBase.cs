@@ -10,7 +10,7 @@ namespace Arbiter.CommandQuery.Mapping;
 /// This class compiles mapping expressions at construction time for optimal runtime performance.
 /// </summary>
 /// <typeparam name="TSource">The source type to map from.</typeparam>
-/// <typeparam name="TDestination">The destination type to map to. Must be a reference type with a parameterless constructor.</typeparam>
+/// <typeparam name="TDestination">The destination type to map to.</typeparam>
 /// <remarks>
 /// For best performance, register implementations of <see cref="MapperBase{TSource, TDestination}"/> as singletons in your dependency injection container.
 /// The mapping expressions are compiled once at construction and reused for all mapping operations, making singleton registration ideal.
@@ -39,9 +39,8 @@ namespace Arbiter.CommandQuery.Mapping;
 /// </code>
 /// </example>
 public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDestination>
-    where TDestination : class, new()
 {
-    private readonly Action<TSource, TDestination> _compiledMapper;
+    private readonly Action<TSource, TDestination>? _compiledMapper;
     private readonly Func<TSource, TDestination> _compiledFactory;
     private readonly Expression<Func<TSource, TDestination>> _compiledProjection;
 
@@ -49,6 +48,8 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// Initializes a new instance of the <see cref="MapperBase{TSource, TDestination}"/> class.
     /// Creates and compiles the mapping expressions for optimal runtime performance.
     /// </summary>
+    [RequiresUnreferencedCode("Expression compilation requires unreferenced code for AOT scenarios")]
+    [RequiresDynamicCode("Expression compilation requires dynamic code generation")]
     protected MapperBase()
     {
         var (factory, mapper, projection) = CreateMappers();
@@ -56,6 +57,71 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
         _compiledFactory = factory;
         _compiledMapper = mapper;
         _compiledProjection = projection;
+    }
+
+
+    /// <summary>
+    /// Maps a source object to a new destination object.
+    /// </summary>
+    /// <param name="source">The source object to map from. Can be null.</param>
+    /// <returns>
+    /// A new instance of <typeparamref name="TDestination"/> with values mapped from the source,
+    /// or null if the source is null.
+    /// </returns>
+    [return: NotNullIfNotNull(nameof(source))]
+    public TDestination? Map(TSource? source)
+    {
+        if (source is null)
+            return default;
+
+        return _compiledFactory(source)!;
+    }
+
+    /// <summary>
+    /// Maps values from a source object to an existing destination object by updating the destination's properties.
+    /// </summary>
+    /// <param name="source">The source object to map from. Cannot be null.</param>
+    /// <param name="destination">The destination object to map to. Cannot be null.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="source"/> or <paramref name="destination"/> is null.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the mapping expression defined in <see cref="CreateMapping"/> does not support mapping to existing objects.
+    /// This occurs when the expression uses constructor parameters, record types, or other patterns that don't generate settable property assignments.
+    /// </exception>
+    /// <remarks>
+    /// This method updates the properties of an existing destination object rather than creating a new instance.
+    /// It requires the mapping expression to use object initializer syntax with settable properties.
+    /// </remarks>
+    public void Map(TSource source, TDestination destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+
+        if (_compiledMapper is null)
+        {
+            throw new InvalidOperationException(
+                $"Cannot map to existing instance of '{typeof(TDestination).Name}'. The mapping expression must use object initializer " +
+                $"syntax with settable properties (e.g., 'new {typeof(TDestination).Name} {{ Property = value }}'). This operation is not " +
+                $"supported for record types or mappings that use constructor parameters only.");
+        }
+
+        _compiledMapper(source, destination);
+    }
+
+    /// <summary>
+    /// Projects a queryable of source objects to a queryable of destination objects.
+    /// This method preserves the queryable nature, allowing for deferred execution and translation to SQL or other query languages.
+    /// </summary>
+    /// <param name="source">The source queryable to project from.</param>
+    /// <returns>A queryable of destination objects that represents the projected query.</returns>
+    /// <remarks>
+    /// This method is particularly useful with Entity Framework and other ORM frameworks as it allows
+    /// the mapping expression to be translated to SQL, avoiding loading unnecessary data into memory.
+    /// </remarks>
+    public IQueryable<TDestination> ProjectTo(IQueryable<TSource> source)
+    {
+        return source.Select(_compiledProjection);
     }
 
 
@@ -113,55 +179,6 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
 
 
     /// <summary>
-    /// Maps a source object to a new destination object.
-    /// </summary>
-    /// <param name="source">The source object to map from. Can be null.</param>
-    /// <returns>
-    /// A new instance of <typeparamref name="TDestination"/> with values mapped from the source,
-    /// or null if the source is null.
-    /// </returns>
-    [return: NotNullIfNotNull(nameof(source))]
-    public TDestination? Map(TSource? source)
-    {
-        if (source == null)
-            return null;
-
-        return _compiledFactory(source);
-    }
-
-    /// <summary>
-    /// Maps values from a source object to an existing destination object.
-    /// </summary>
-    /// <param name="source">The source object to map from. Cannot be null.</param>
-    /// <param name="destination">The destination object to map to. Cannot be null.</param>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown when <paramref name="source"/> or <paramref name="destination"/> is null.
-    /// </exception>
-    public void Map(TSource source, TDestination destination)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
-
-        _compiledMapper(source, destination);
-    }
-
-    /// <summary>
-    /// Projects a queryable of source objects to a queryable of destination objects.
-    /// This method preserves the queryable nature, allowing for deferred execution and translation to SQL or other query languages.
-    /// </summary>
-    /// <param name="source">The source queryable to project from.</param>
-    /// <returns>A queryable of destination objects that represents the projected query.</returns>
-    /// <remarks>
-    /// This method is particularly useful with Entity Framework and other ORM frameworks as it allows
-    /// the mapping expression to be translated to SQL, avoiding loading unnecessary data into memory.
-    /// </remarks>
-    public IQueryable<TDestination> ProjectTo(IQueryable<TSource> source)
-    {
-        return source.Select(_compiledProjection);
-    }
-
-
-    /// <summary>
     /// Creates the compiled mapping delegates and expression from the mapping definition.
     /// </summary>
     /// <returns>
@@ -170,7 +187,9 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// - Mapper action for updating existing destination instances
     /// - Projection expression for queryable operations
     /// </returns>
-    private (Func<TSource, TDestination>, Action<TSource, TDestination>, Expression<Func<TSource, TDestination>>) CreateMappers()
+    [RequiresUnreferencedCode("Expression compilation and member access requires unreferenced code for AOT scenarios")]
+    [RequiresDynamicCode("Expression compilation requires dynamic code generation")]
+    private (Func<TSource, TDestination>, Action<TSource, TDestination>?, Expression<Func<TSource, TDestination>>) CreateMappers()
     {
         // Get the mapping expression defined by the derived class
         var mappingExpression = CreateMapping();
@@ -185,7 +204,11 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
 
         // Extract individual property assignments from the mapping expression
         // This transforms "new Dest { Prop = src.Value }" into "dest.Prop = src.Value" assignments
-        var assignments = ExtractAssignments(mappingExpression, sourceParam, destinationParam);
+        if (!TryExtractAssignments(mappingExpression, sourceParam, destinationParam, out var assignments))
+        {
+            // If assignments could not be extracted (unsupported mapping expression),
+            return (factory, null, mappingExpression);
+        }
 
         if (assignments.Count == 0)
         {
@@ -202,87 +225,68 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
 
         // Create the lambda expression for the mapper action and compile it
         var mapperLambda = Expression.Lambda<Action<TSource, TDestination>>(block, sourceParam, destinationParam);
+        var mapper = mapperLambda.Compile();
 
-        return (factory, mapperLambda.Compile(), mappingExpression);
+        return (factory, mapper, mappingExpression);
     }
 
     /// <summary>
-    /// Extracts assignment expressions from a mapping expression for use in updating existing destination objects.
+    /// Attempts to extract assignment expressions from a mapping expression for use in updating existing destination objects.
     /// </summary>
     /// <param name="mappingExpression">The original mapping expression that creates a new destination instance.</param>
     /// <param name="sourceParam">The parameter expression representing the source object.</param>
     /// <param name="destinationParam">The parameter expression representing the destination object to update.</param>
-    /// <returns>A list of assignment expressions that can be used to update an existing destination object.</returns>
+    /// <param name="assignments">When successful, contains a list of assignment expressions that can be used to update an existing destination object.</param>
+    /// <returns>
+    /// <c>true</c> if the assignments were successfully extracted; otherwise, <c>false</c>.
+    /// Returns <c>false</c> when the mapping expression body is not a <see cref="MemberInitExpression"/>.
+    /// </returns>
     /// <remarks>
-    /// This method handles both <see cref="MemberInitExpression"/> (object initializer syntax) and
-    /// <see cref="NewExpression"/> (constructor with named parameters) to extract property assignments.
+    /// This method handles <see cref="MemberInitExpression"/> (object initializer syntax) to extract property assignments.
+    /// Only object initializer syntax is supported (e.g., <c>new Destination { Property = value }</c>).
     /// </remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Lots of comments")]
-    private static List<Expression> ExtractAssignments(
+    [RequiresUnreferencedCode("Member access and expression manipulation requires unreferenced code for AOT scenarios")]
+    private static bool TryExtractAssignments(
         Expression<Func<TSource, TDestination>> mappingExpression,
         ParameterExpression sourceParam,
-        ParameterExpression destinationParam)
+        ParameterExpression destinationParam,
+        out List<Expression> assignments)
     {
-        var assignments = new List<Expression>();
+        // Handle object initializer syntax: new Dest { Prop1 = value1, Prop2 = value2 }
+        if (mappingExpression.Body is not MemberInitExpression memberInitExpression)
+        {
+            assignments = [];
+            return false;
+        }
+
+        // Pre-allocate capacity for better performance
+        assignments = new List<Expression>(memberInitExpression.Bindings.Count);
 
         // Create a visitor that will replace the original source parameter with our new one
         // This is needed because we're changing from "source => new Dest { ... }" to "source, dest => dest.Prop = ..."
         var parameterReplacer = new ParameterReplacer(mappingExpression.Parameters[0], sourceParam);
 
-        // Analyze the body of the mapping expression to extract assignments
-        switch (mappingExpression.Body)
+        // Process each property binding in the member initializer
+        for (int i = 0; i < memberInitExpression.Bindings.Count; i++)
         {
-            case MemberInitExpression memberInitExpression:
-                // Handle object initializer syntax: new Dest { Prop1 = value1, Prop2 = value2 }
+            MemberBinding? binding = memberInitExpression.Bindings[i];
 
-                // Pre-allocate capacity for better performance
-                assignments.Capacity = memberInitExpression.Bindings.Count;
+            // We only handle member assignments (Prop = value), not other binding types
+            if (binding is not MemberAssignment assignment)
+                continue;
 
-                // Process each property binding in the member initializer
-                for (int i = 0; i < memberInitExpression.Bindings.Count; i++)
-                {
-                    MemberBinding? binding = memberInitExpression.Bindings[i];
+            // Replace the source parameter in the value expression
+            var value = parameterReplacer.Visit(assignment.Expression);
 
-                    // We only handle member assignments (Prop = value), not other binding types
-                    if (binding is not MemberAssignment assignment)
-                        continue;
+            // Create member access on the destination parameter (dest.Prop)
+            var memberAccess = Expression.MakeMemberAccess(destinationParam, assignment.Member);
 
-                    // Replace the source parameter in the value expression
-                    var value = parameterReplacer.Visit(assignment.Expression);
-
-                    // Create member access on the destination parameter (dest.Prop)
-                    var memberAccess = Expression.MakeMemberAccess(destinationParam, assignment.Member);
-
-                    // Create assignment expression: dest.Prop = value
-                    assignments.Add(Expression.Assign(memberAccess, value));
-                }
-                break;
-
-            case NewExpression newExpression when newExpression.Arguments.Count > 0 && newExpression.Members != null:
-                // Handle constructor with named parameters: new Dest(prop1: value1, prop2: value2)
-
-                // Pre-allocate capacity for better performance
-                assignments.Capacity = newExpression.Arguments.Count;
-
-                // Process each constructor argument
-                for (int i = 0; i < newExpression.Arguments.Count; i++)
-                {
-                    // Get the member (property/field) that corresponds to this constructor parameter
-                    var member = newExpression.Members[i];
-
-                    // Replace the source parameter in the argument expression
-                    var value = parameterReplacer.Visit(newExpression.Arguments[i]);
-
-                    // Create member access on the destination parameter (dest.Member)
-                    var memberAccess = Expression.MakeMemberAccess(destinationParam, member);
-
-                    // Create assignment expression: dest.Member = value
-                    assignments.Add(Expression.Assign(memberAccess, value));
-                }
-                break;
+            // Create assignment expression: dest.Prop = value
+            assignments.Add(Expression.Assign(memberAccess, value));
         }
 
-        return assignments;
+        return true;
     }
 
     /// <summary>

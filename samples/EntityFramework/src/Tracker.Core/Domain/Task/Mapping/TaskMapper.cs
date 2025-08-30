@@ -38,6 +38,11 @@ internal sealed class TaskToTaskReadModelMapper
             Updated = source.Updated,
             UpdatedBy = source.UpdatedBy,
             RowVersion = source.RowVersion,
+
+            // Navigation Mappings
+            TenantName = source.Tenant != null ? source.Tenant.Name : null,
+            StatusName = source.Status != null ? source.Status.Name : null,
+            PriorityName = source.Priority != null ? source.Priority.Name : null,
         };
     }
 }

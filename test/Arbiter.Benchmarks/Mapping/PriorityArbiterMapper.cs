@@ -4,7 +4,7 @@ using Arbiter.CommandQuery.Mapping;
 
 namespace Arbiter.Benchmarks.Mapping;
 
-public class PriorityBaseMapper : MapperBase<Priority, PriorityReadModel>
+public class PriorityArbiterMapper : MapperBase<Priority, PriorityReadModel>
 {
     protected override Expression<Func<Priority, PriorityReadModel>> CreateMapping()
     {

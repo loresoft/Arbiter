@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Dispatcher;
 using Arbiter.CommandQuery.Models;
+using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery;
 
@@ -13,6 +14,12 @@ namespace Arbiter.CommandQuery;
 /// This context enables efficient serialization and deserialization of <see cref="DispatchRequest"/>
 /// and <see cref="ProblemDetails"/> types in Blazor WebAssembly and other .NET applications.
 /// </remarks>
+[JsonSerializable(typeof(CompleteModel))]
 [JsonSerializable(typeof(DispatchRequest))]
+[JsonSerializable(typeof(EntityFilter))]
+[JsonSerializable(typeof(EntityQuery))]
+[JsonSerializable(typeof(EntitySelect))]
+[JsonSerializable(typeof(EntitySort))]
 [JsonSerializable(typeof(ProblemDetails))]
+[JsonSerializable(typeof(ValidationResult))]
 public partial class MediatorJsonContext : JsonSerializerContext;

@@ -85,7 +85,6 @@ script:
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '{Project.Directory}\Domain\{Entity.Name}\Mapping'
       merge: true
-      overwrite: true
       parameters:
         excludeDomain: true
         readMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy,RowVersion'
@@ -98,7 +97,6 @@ script:
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '..\{Project.Namespace}.Shared\Domain\{Entity.Name}\Mapping'
       merge: true
-      overwrite: true
       parameters:
         excludeEntity: true
         readMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy,RowVersion'

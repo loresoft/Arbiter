@@ -20,6 +20,7 @@ public sealed class ServiceProviderMapper(IServiceProvider serviceProvider) : IM
     /// <param name="source">The source object to map from.</param>
     /// <returns>The mapped destination object, or <see langword="null"/> if <paramref name="source"/> is <see langword="null"/>.</returns>
     [return: NotNullIfNotNull(nameof(source))]
+    [RequiresUnreferencedCode("Generic service resolution may require unreferenced code for AOT scenarios")]
     public TDestination? Map<TSource, TDestination>(TSource? source)
     {
         if (source is null)
@@ -36,6 +37,7 @@ public sealed class ServiceProviderMapper(IServiceProvider serviceProvider) : IM
     /// <typeparam name="TDestination">The destination type.</typeparam>
     /// <param name="source">The source object to map from.</param>
     /// <param name="destination">The destination object to map into.</param>
+    [RequiresUnreferencedCode("Generic service resolution may require unreferenced code for AOT scenarios")]
     public void Map<TSource, TDestination>(TSource source, TDestination destination)
     {
         var mapper = serviceProvider.GetRequiredService<IMapper<TSource, TDestination>>();
@@ -49,6 +51,7 @@ public sealed class ServiceProviderMapper(IServiceProvider serviceProvider) : IM
     /// <typeparam name="TDestination">The destination type.</typeparam>
     /// <param name="source">The source queryable to project from.</param>
     /// <returns>A queryable of the mapped destination type.</returns>
+    [RequiresUnreferencedCode("Generic service resolution may require unreferenced code for AOT scenarios")]
     public IQueryable<TDestination> ProjectTo<TSource, TDestination>(IQueryable<TSource> source)
     {
         var mapper = serviceProvider.GetRequiredService<IMapper<TSource, TDestination>>();
