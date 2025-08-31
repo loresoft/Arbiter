@@ -47,15 +47,15 @@ public static class CsvReader
     /// The first argument is the current row's fields, and the second is the header fields (if present).
     /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <c>true</c>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <c>false</c>, all rows are treated as data and <paramref name="parser"/> receives <c>null</c> for the headers argument.
-    /// Default is <c>true</c>.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
     /// </param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> or <paramref name="parser"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> or <paramref name="parser"/> is <see langword="null"/>.</exception>
     public static async Task<IReadOnlyList<T>> ReadAsync<T>(
         TextReader reader,
         Func<string[], string[]?, T> parser,
@@ -82,16 +82,16 @@ public static class CsvReader
     /// The first argument is the current row's fields, and the second is the header fields (if present).
     /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <c>true</c>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <c>false</c>, all rows are treated as data and <paramref name="parser"/> receives <c>null</c> for the headers argument.
-    /// Default is <c>true</c>.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
     /// </param>
-    /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <c>null</c>.</param>
+    /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <see langword="null"/>.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="parser"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="parser"/> is <see langword="null"/>.</exception>
     public static async Task<IReadOnlyList<T>> ReadAsync<T>(
         Stream stream,
         Func<string[], string[]?, T> parser,
@@ -117,7 +117,7 @@ public static class CsvReader
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of string arrays, each representing a row in the CSV data.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is <see langword="null"/>.</exception>
     public static async Task<IReadOnlyList<string[]>> ReadAsync(
         TextReader reader,
         CancellationToken cancellationToken = default)
@@ -136,12 +136,12 @@ public static class CsvReader
     /// The first row is typically the header row.
     /// </summary>
     /// <param name="stream">The input <see cref="Stream"/> to read the CSV content from.</param>
-    /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <c>null</c>.</param>
+    /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <see langword="null"/>.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of string arrays, each representing a row in the CSV data.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is <see langword="null"/>.</exception>
     public static async Task<IReadOnlyList<string[]>> ReadAsync(
         Stream stream,
         Encoding? encoding = null,
@@ -165,14 +165,14 @@ public static class CsvReader
     /// The first argument is the current row's fields, and the second is the header fields (if present).
     /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <c>true</c>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <c>false</c>, all rows are treated as data and <paramref name="parser"/> receives <c>null</c> for the headers argument.
-    /// Default is <c>true</c>.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="parser"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="parser"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<T> Read<T>(
         ReadOnlySpan<char> csvContent,
         Func<string[], string[]?, T> parser,

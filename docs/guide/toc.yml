@@ -61,6 +61,17 @@ items:
       - name: Base Behaviors
         href: behaviors/abstracts.md
 
+  - name: Communication
+    items:
+      - name: Communication Overview
+        href: communication/overview.md
+      - name: Azure Communication Services
+        href: communication/azure.md
+      - name: Twilio and SendGrid
+        href: communication/twilio.md
+      - name: Template Best Practices
+        href: communication/templates.md
+
   - name: Script Templates
     href: scripts.md
   - name: Migration Guide

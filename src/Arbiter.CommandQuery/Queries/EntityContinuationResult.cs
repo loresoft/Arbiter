@@ -19,7 +19,7 @@ public class EntityContinuationResult<TReadModel>
     /// </summary>
     /// <value>
     /// A string token that can be used in subsequent queries to fetch the next set of results,
-    /// or <c>null</c> if there are no more results.
+    /// or <see langword="null"/> if there are no more results.
     /// </value>
     [JsonPropertyName("continuationToken")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -30,7 +30,7 @@ public class EntityContinuationResult<TReadModel>
     /// </summary>
     /// <value>
     /// A read-only collection of <typeparamref name="TReadModel"/> representing the data for the current page,
-    /// or <c>null</c> if no data is available.
+    /// or <see langword="null"/> if no data is available.
     /// </value>
     [JsonPropertyName("data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

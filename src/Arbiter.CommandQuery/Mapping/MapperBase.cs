@@ -238,8 +238,8 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// <param name="destinationParam">The parameter expression representing the destination object to update.</param>
     /// <param name="assignments">When successful, contains a list of assignment expressions that can be used to update an existing destination object.</param>
     /// <returns>
-    /// <c>true</c> if the assignments were successfully extracted; otherwise, <c>false</c>.
-    /// Returns <c>false</c> when the mapping expression body is not a <see cref="MemberInitExpression"/>.
+    /// <see langword="true"/> if the assignments were successfully extracted; otherwise, <see langword="false"/>.
+    /// Returns <see langword="false"/> when the mapping expression body is not a <see cref="MemberInitExpression"/>.
     /// </returns>
     /// <remarks>
     /// This method handles <see cref="MemberInitExpression"/> (object initializer syntax) to extract property assignments.

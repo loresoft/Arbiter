@@ -26,7 +26,7 @@ public interface ISupportWriter<T>
     /// </summary>
     /// <returns>
     /// An <see cref="IEnumerable{String}"/> representing the headers,
-    /// or <c>null</c> if headers are not applicable.
+    /// or <see langword="null"/> if headers are not applicable.
     /// </returns>
     static abstract IEnumerable<string>? Headers();
 

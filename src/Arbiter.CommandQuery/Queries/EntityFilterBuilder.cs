@@ -20,7 +20,7 @@ public static class EntityFilterBuilder
     /// <param name="pageSize">The size of the page for the query. The default page size is 20.</param>
     /// <returns>
     /// An instance of <see cref="EntityQuery"/> configured for the search text, page, and page size,
-    /// or <c>null</c> if the search text is invalid.
+    /// or <see langword="null"/> if the search text is invalid.
     /// </returns>
     public static EntityQuery? CreateSearchQuery<TModel>(string searchText, int page = 1, int pageSize = 20)
         where TModel : class, ISupportSearch
@@ -38,7 +38,7 @@ public static class EntityFilterBuilder
     /// <param name="searchText">The text to search for.</param>
     /// <returns>
     /// An instance of <see cref="EntitySelect"/> configured for the search text,
-    /// or <c>null</c> if the search text is invalid.
+    /// or <see langword="null"/> if the search text is invalid.
     /// </returns>
     public static EntitySelect? CreateSearchSelect<TModel>(string searchText)
         where TModel : class, ISupportSearch
@@ -56,7 +56,7 @@ public static class EntityFilterBuilder
     /// <param name="searchText">The text to search for.</param>
     /// <returns>
     /// An instance of <see cref="EntityFilter"/> for the search text,
-    /// or <c>null</c> if the search text is invalid.
+    /// or <see langword="null"/> if the search text is invalid.
     /// </returns>
     public static EntityFilter? CreateSearchFilter<TModel>(string searchText)
         where TModel : class, ISupportSearch
@@ -95,7 +95,7 @@ public static class EntityFilterBuilder
     /// <param name="searchText">The text to search for.</param>
     /// <returns>
     /// An instance of <see cref="EntityFilter"/> for the search text,
-    /// or <c>null</c> if the fields or search text are invalid.
+    /// or <see langword="null"/> if the fields or search text are invalid.
     /// </returns>
     public static EntityFilter? CreateSearchFilter(IEnumerable<string> fields, string searchText)
     {
@@ -140,7 +140,7 @@ public static class EntityFilterBuilder
     /// <param name="filters">The list of filters to group.</param>
     /// <returns>
     /// An instance of <see cref="EntityFilter"/> representing the group,
-    /// or <c>null</c> if no valid filters are provided.
+    /// or <see langword="null"/> if no valid filters are provided.
     /// </returns>
     /// <remarks>
     /// Any invalid filters will be removed from the group.
@@ -155,7 +155,7 @@ public static class EntityFilterBuilder
     /// <param name="filters">The list of filters to group.</param>
     /// <returns>
     /// An instance of <see cref="EntityFilter"/> representing the group,
-    /// or <c>null</c> if no valid filters are provided.
+    /// or <see langword="null"/> if no valid filters are provided.
     /// </returns>
     /// <remarks>
     /// Any invalid filters will be removed from the group.

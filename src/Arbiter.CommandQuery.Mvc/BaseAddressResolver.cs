@@ -47,7 +47,7 @@ public sealed class BaseAddressResolver : IBaseAddressResolver
     /// The configuration key used to look up the base address. Defaults to <c>"BaseAddress"</c>.
     /// </param>
     /// <returns>
-    /// The resolved base address string if available; otherwise, <c>null</c>.
+    /// The resolved base address string if available; otherwise, <see langword="null"/>.
     /// </returns>
     public string? GetBaseAddress(string? configurationKey = "BaseAddress")
     {

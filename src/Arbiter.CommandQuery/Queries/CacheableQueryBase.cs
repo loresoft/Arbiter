@@ -34,7 +34,7 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
     /// <summary>
     /// Gets the cache tag for this query instance.
     /// </summary>
-    /// <returns>A string representing the cache tag, or <c>null</c> if not set.</returns>
+    /// <returns>A string representing the cache tag, or <see langword="null"/> if not set.</returns>
     public virtual string? GetCacheTag() => null;
 
     /// <summary>
@@ -52,7 +52,7 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
     /// <summary>
     /// Sets the absolute expiration for the cache entry associated with this query.
     /// </summary>
-    /// <param name="absoluteExpiration">The absolute expiration date and time, or <c>null</c> to unset.</param>
+    /// <param name="absoluteExpiration">The absolute expiration date and time, or <see langword="null"/> to unset.</param>
     public void Cache(DateTimeOffset? absoluteExpiration)
     {
         _absoluteExpiration = absoluteExpiration;
@@ -61,7 +61,7 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
     /// <summary>
     /// Sets the sliding expiration for the cache entry associated with this query.
     /// </summary>
-    /// <param name="expiration">The sliding expiration time span, or <c>null</c> to unset.</param>
+    /// <param name="expiration">The sliding expiration time span, or <see langword="null"/> to unset.</param>
     public void Cache(TimeSpan? expiration)
     {
         _slidingExpiration = expiration;
@@ -71,7 +71,7 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
     /// Gets the absolute expiration date and time for the cache entry.
     /// </summary>
     /// <returns>
-    /// The absolute expiration as a <see cref="DateTimeOffset"/> if set; otherwise, <c>null</c>.
+    /// The absolute expiration as a <see cref="DateTimeOffset"/> if set; otherwise, <see langword="null"/>.
     /// </returns>
     DateTimeOffset? ICacheResult.AbsoluteExpiration()
     {
@@ -82,7 +82,7 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
     /// Gets the sliding expiration time span for the cache entry.
     /// </summary>
     /// <returns>
-    /// The sliding expiration as a <see cref="TimeSpan"/> if set; otherwise, <c>null</c>.
+    /// The sliding expiration as a <see cref="TimeSpan"/> if set; otherwise, <see langword="null"/>.
     /// </returns>
     TimeSpan? ICacheResult.SlidingExpiration()
     {
