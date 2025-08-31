@@ -7,6 +7,16 @@ items:
     href: mediation.md
   - name: Command Query
     href: commandQuery.md
+
+  - name: Mapping
+    items:
+      - name: Mapping Process
+        href: mapping/mapping.md
+      - name: Mapperly Implementation
+        href: mapping/mapperly.md
+      - name: AutoMapper Implementation
+        href: mapping/automapper.md
+
   - name: Queries
     items:
       - name: Identifier Query
