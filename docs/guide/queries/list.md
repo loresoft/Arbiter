@@ -1,38 +1,250 @@
 # List Query
 
-Represents a query for selecting entities based on an `EntitySelect`. The result of the query will be a collection of type `TReadModel`.
+The `EntitySelectQuery<TReadModel>` represents a query to select entities based on filtering and sorting criteria defined in an `EntitySelect`. This query follows the CQRS (Command Query Responsibility Segregation) pattern and returns a collection of read models representing the selected entities.
 
-This query is typically used in a CQRS (Command Query Responsibility Segregation) pattern to retrieve a collection of entities based on filtering and sorting criteria defined in an `EntitySelect`.
+## Overview
 
-```c#
-public record EntitySelectQuery<TReadModel>(
-    ClaimsPrincipal? principal, 
-    EntitySelect? select
-)
+The list query is a fundamental part of the Arbiter framework's filtering and sorting operations. It inherits from `CacheableQueryBase<IReadOnlyCollection<TReadModel>>` which provides automatic security context, caching support, and JSON serialization.
+
+```csharp
+public record EntitySelectQuery<TReadModel> : CacheableQueryBase<IReadOnlyCollection<TReadModel>>
 ```
+
+## Key Features
+
+- **Security Context**: Built-in `ClaimsPrincipal` support for authentication and authorization
+- **Audit Tracking**: Automatic tracking of who activated the query and when
+- **Cache Integration**: Built-in caching support with hash-based cache keys for selection criteria
+- **Validation**: Integrated with validation pipeline behaviors
+- **Mapping**: Uses Mapper for converting between entities and read models
+- **Tenant Support**: Optional multi-tenant support through pipeline behaviors
+- **Flexible Filtering**: Support for complex filtering using `EntityFilter` with multiple operators
+- **Dynamic Sorting**: Support for multiple sort criteria with `EntitySort`
+- **Raw Queries**: Support for raw query expressions using Dynamic LINQ
+- **Multiple Constructors**: Various constructor overloads for different use cases
 
 ## Type Parameters
 
-`TReadModel`
+| Parameter    | Description                                                    |
+| ------------ | -------------------------------------------------------------- |
+| `TReadModel` | The type of the read model returned as the result of the query |
 
-The type of the read model returned as the result of the query.
+## Constructor Parameters
 
-## Parameters
+| Parameter   | Type               | Description                                                                     |
+| ----------- | ------------------ | ------------------------------------------------------------------------------- |
+| `principal` | `ClaimsPrincipal?` | The user's security context. Used for audit tracking and authorization          |
+| `select`    | `EntitySelect?`    | The selection criteria defining filters and sorting (defaults to empty if null) |
 
-`principal ClaimsPrincipal`
+## Constructor Overloads
 
-The ClaimsPrincipal representing the user executing the query.
+The query provides multiple constructor overloads for convenience:
 
-`select EntitySelect`
+### Default Constructor
 
-The EntitySelect defining the filter and sort criteria for the query.
+```csharp
+public EntitySelectQuery(ClaimsPrincipal? principal)
+```
 
-## Examples
+Creates a query with no filtering or sorting criteria.
 
-The following example demonstrates how to use the `EntitySelectQuery<TReadModel>`:
+### Filter Only Constructor
 
-```C#
-// sample user claims, usually gotten from controller context or equivalent
+```csharp
+public EntitySelectQuery(ClaimsPrincipal? principal, EntityFilter filter)
+```
+
+Creates a query with only filtering criteria.
+
+### Filter and Single Sort Constructor
+
+```csharp
+public EntitySelectQuery(ClaimsPrincipal? principal, EntityFilter filter, EntitySort sort)
+```
+
+Creates a query with filtering and a single sort expression.
+
+### Filter and Multiple Sorts Constructor
+
+```csharp
+public EntitySelectQuery(ClaimsPrincipal? principal, EntityFilter filter, IEnumerable<EntitySort> sort)
+```
+
+Creates a query with filtering and multiple sort expressions.
+
+### Full EntitySelect Constructor
+
+```csharp
+public EntitySelectQuery(ClaimsPrincipal? principal, EntitySelect? select)
+```
+
+Creates a query with a complete `EntitySelect` object.
+
+## Properties
+
+| Property | Type           | Description                                         |
+| -------- | -------------- | --------------------------------------------------- |
+| `Select` | `EntitySelect` | The selection criteria defining filters and sorting |
+
+## EntitySelect Structure
+
+The `EntitySelect` class defines the filtering and sorting criteria:
+
+```csharp
+public class EntitySelect
+{
+    public string? Query { get; set; }           // Raw LINQ query expression
+    public IList<EntitySort>? Sort { get; set; } // Sort criteria
+    public EntityFilter? Filter { get; set; }    // Filter criteria
+}
+```
+
+### EntityFilter Properties
+
+- **Name**: Property name to filter on
+- **Operator**: Filter operator (eq, ne, gt, lt, ge, le, contains, etc.)
+- **Value**: Filter value
+- **Logic**: Logic operator for combining filters (and, or)
+- **Filters**: Nested filters for complex criteria
+
+### EntitySort Properties
+
+- **Name**: Property name to sort on
+- **Direction**: Sort direction (asc, desc)
+
+## Caching Features
+
+The list query automatically implements caching capabilities with hash-based cache keys:
+
+### Cache Key Generation
+
+```csharp
+public override string GetCacheKey()
+    => CacheTagger.GetKey<TReadModel, int>(CacheTagger.Buckets.List, Select.GetHashCode());
+```
+
+The cache key is generated by hashing the entire `EntitySelect` object, ensuring that queries with the same selection criteria can share cached results.
+
+### Cache Tag Support
+
+```csharp
+public override string? GetCacheTag()
+    => CacheTagger.GetTag<TReadModel>();
+```
+
+Cache tags enable efficient cache invalidation when related entities are modified.
+
+## Handler Implementations
+
+The Arbiter framework provides built-in handlers for different data access patterns:
+
+### Entity Framework Handler
+
+```csharp
+EntitySelectQueryHandler<TContext, TEntity, TReadModel>
+```
+
+Uses Entity Framework with Dynamic LINQ for filtering and sorting, then projects results to read models.
+
+### MongoDB Handler
+
+```csharp
+EntitySelectQueryHandler<TRepository, TEntity, TKey, TReadModel>
+```
+
+Uses MongoDB repository pattern with LINQ expressions and maps results to read models.
+
+## Service Registration
+
+Register list query support using the provided extension methods:
+
+### Entity Framework
+
+```csharp
+services.AddEntityQueries<MyDbContext, Product, int, ProductReadModel>();
+```
+
+### MongoDB
+
+```csharp
+services.AddEntityQueries<IProductRepository, Product, int, ProductReadModel>();
+```
+
+## Model Mapping with IMapper
+
+The list query relies on `IMapper<TSource, TDestination>` to convert between entities and read models:
+
+### Entity Framework Mapping
+
+```csharp
+var projected = Mapper.ProjectTo<TEntity, TReadModel>(query);
+return await projected.ToListAsync(cancellationToken);
+```
+
+### MongoDB Mapping
+
+```csharp
+return Mapper.Map<IList<TEntity>, IReadOnlyCollection<TReadModel>>(results);
+```
+
+## Pipeline Behaviors
+
+The list query automatically includes several pipeline behaviors:
+
+- **Tenant Security**: `TenantSelectQueryBehavior` (if read model implements `IHaveTenant<TKey>`)
+  - Validates that the user has access to the specified tenant
+  - Automatically filters results to the user's tenant
+
+- **Soft Delete Filtering**: `DeletedFilterQueryBehavior` (if read model implements `ITrackDeleted`)
+  - Automatically filters out soft-deleted entities from query results
+  - Respects the `IsDeleted` flag on entities
+
+- **Caching**: `MemoryCacheQueryBehavior` or `HybridCacheQueryBehavior`
+  - Automatically caches query results based on the selection criteria hash
+  - Respects cache expiration policies set on the query
+  - Handles cache invalidation using cache tags
+
+## Cache Configuration
+
+Configure caching policies on your queries:
+
+### Sliding Expiration
+
+```csharp
+var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
+query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
+
+var result = await mediator.Send(query);
+```
+
+### Absolute Expiration
+
+```csharp
+var select = new EntitySelect(filter, sort);
+var query = new EntitySelectQuery<ProductReadModel>(principal, select);
+query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // Expires at specific time
+
+var result = await mediator.Send(query);
+```
+
+### Memory Cache Registration
+
+```csharp
+services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+```
+
+### Hybrid Cache Registration
+
+```csharp
+services.AddEntityHybridCache<int, ProductReadModel>();
+```
+
+## Usage Examples
+
+### Basic Usage with Filter
+
+```csharp
 var principal = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.Name, "JohnDoe")]));
 
 var filter = new EntityFilter
@@ -41,16 +253,151 @@ var filter = new EntityFilter
     Operator = "eq",
     Value = "Active"
 };
+
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
+var result = await mediator.Send(query);
+Console.WriteLine($"Retrieved {result?.Count} active products.");
+```
+
+### With Filter and Sorting
+
+```csharp
+var filter = new EntityFilter
+{
+    Name = "Status",
+    Operator = "eq",
+    Value = "Active"
+};
+
 var sort = new EntitySort
 {
     Name = "Name",
     Direction = "asc"
 };
-var select = new EntitySelect(filter, sort);
 
-var query = new EntitySelectQuery<ProductReadModel>(principal, select);
-
-// Send the query to the mediator instance
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter, sort);
 var result = await mediator.Send(query);
-Console.WriteLine($"Retrieved {result?.Count} entities.");
 ```
+
+### Complex Filtering
+
+```csharp
+var filter = new EntityFilter
+{
+    Logic = "and",
+    Filters = new List<EntityFilter>
+    {
+        new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" },
+        new EntityFilter { Name = "Price", Operator = "gt", Value = "10.00" },
+        new EntityFilter { Name = "CategoryId", Operator = "in", Value = "1,2,3" }
+    }
+};
+
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
+var result = await mediator.Send(query);
+```
+
+### Multiple Sorting Criteria
+
+```csharp
+var sorts = new List<EntitySort>
+{
+    new EntitySort { Name = "CategoryId", Direction = "asc" },
+    new EntitySort { Name = "Name", Direction = "asc" },
+    new EntitySort { Name = "Price", Direction = "desc" }
+};
+
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter, sorts);
+var result = await mediator.Send(query);
+```
+
+### In ASP.NET Core Controller
+
+```csharp
+[HttpPost("search")]
+public async Task<IReadOnlyCollection<ProductReadModel>> SearchProducts([FromBody] EntitySelect select)
+{
+    var query = new EntitySelectQuery<ProductReadModel>(User, select);
+    return await mediator.Send(query) ?? new List<ProductReadModel>();
+}
+```
+
+### In Minimal API Endpoint
+
+```csharp
+app.MapPost("/products/search", async (
+    [FromServices] IMediator mediator,
+    [FromBody] EntitySelect select,
+    ClaimsPrincipal user) =>
+{
+    var query = new EntitySelectQuery<ProductReadModel>(user, select);
+    var result = await mediator.Send(query);
+    return Results.Ok(result ?? new List<ProductReadModel>());
+});
+```
+
+### With Caching
+
+```csharp
+var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
+var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
+
+// Configure 30-minute sliding cache
+query.Cache(TimeSpan.FromMinutes(30));
+
+var result = await mediator.Send(query);
+```
+
+## Return Values
+
+- **Success**: Returns `IReadOnlyCollection<TReadModel>` containing the matching entities
+- **No Results**: Returns empty collection if no entities match the criteria
+- **Exception**: Throws appropriate exceptions for validation or data access errors
+
+## Error Handling
+
+The query handlers include built-in error handling and will throw appropriate exceptions:
+
+- **`ArgumentNullException`**: When the request parameter is null
+- **`DomainException`**: For business rule violations
+- **Database exceptions**: For data access errors
+- **Filter exceptions**: For invalid filter expressions
+- **Authorization exceptions**: When user lacks access to entities
+
+## Best Practices
+
+1. **Filter Design**: Design efficient filters that can leverage database indexes
+2. **Cache Appropriately**: Use caching for frequently used filter/sort combinations
+3. **Security**: Always pass the current user's `ClaimsPrincipal` for proper authorization
+4. **Complex Filters**: Use nested filters with proper logic operators for complex scenarios
+5. **Sorting**: Limit the number of sort criteria to maintain performance
+6. **Raw Queries**: Use raw query expressions judiciously and validate input
+7. **Result Limits**: Consider using `EntityPagedQuery` for potentially large result sets
+8. **Tenant Isolation**: Implement `IHaveTenant<TKey>` on read models for multi-tenant scenarios
+
+## Performance Considerations
+
+1. **Entity Framework**:
+   - Uses `AsNoTracking()` for read-only operations
+   - Uses `ProjectTo` for efficient database projection
+   - Applies filters at the database level using Dynamic LINQ
+   - Uses proper SQL generation for sorting
+
+2. **MongoDB**:
+   - Uses LINQ expressions that translate to MongoDB queries
+   - Applies filters and sorting at the database level
+   - Uses efficient MongoDB query operators
+
+3. **Caching**:
+   - Hash-based cache keys ensure consistent caching for identical selection criteria
+   - Implement appropriate cache expiration to balance performance and data freshness
+
+4. **Database Optimization**:
+   - Ensure proper database indexes on filtered and sorted columns
+   - Monitor query performance for complex filter expressions
+   - Consider the impact of multiple sort criteria on performance
+
+5. **Filter Complexity**:
+   - Avoid overly complex nested filters that may not translate efficiently
+   - Use appropriate operators that can leverage database indexes
+   - Test filter performance with realistic data volumes

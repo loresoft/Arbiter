@@ -27,7 +27,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
 
 - Capturing the user's security context through `ClaimsPrincipal`
 - Tracking when the command was activated and by whom
-- Implementing the `IRequest<TResponse>` interface for Arbiter.Mediation compatibility
+- Implementing the `IRequest<TResponse>` interface for `Arbiter.Mediation` compatibility
 
 ### Type Parameters
 
@@ -53,9 +53,7 @@ public record GetUserDetailsCommand : PrincipalCommandBase<UserDetails>
     }
 }
 
-var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { 
-    new Claim(ClaimTypes.Name, "JohnDoe") 
-}));
+var principal = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.Name, "JohnDoe")]));
 var command = new GetUserDetailsCommand(principal);
 
 var result = await mediator.Send(command);
