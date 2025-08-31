@@ -157,11 +157,6 @@ public class EmailNotificationService
         var recipients = new EmailRecipients([order.CustomerEmail]);
         
         var result = await _emailService.Send("order-confirmation", model, recipients);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send email: {result.ErrorMessage}");
-        }
     }
 }
 ```
@@ -188,11 +183,6 @@ public class SmsNotificationService
         };
         
         var result = await _smsService.Send("delivery-update", model, phoneNumber);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send SMS: {result.ErrorMessage}");
-        }
     }
 }
 ```
@@ -228,11 +218,6 @@ public class AdvancedEmailService
         };
         
         var result = await _emailDelivery.Send(message);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send email: {result.ErrorMessage}");
-        }
     }
 }
 ```
@@ -259,11 +244,6 @@ public class CustomSmsService
         };
         
         var result = await _smsDelivery.Send(smsMessage);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send SMS: {result.ErrorMessage}");
-        }
     }
 }
 ```

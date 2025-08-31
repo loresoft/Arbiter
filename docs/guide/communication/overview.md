@@ -179,12 +179,6 @@ public class UserService
             "welcome-email", 
             model, 
             recipients);
-            
-        if (!result.IsSuccess)
-        {
-            // Handle error
-            throw new InvalidOperationException(result.ErrorMessage);
-        }
     }
 }
 ```
@@ -244,12 +238,6 @@ public class SmsService
             "verification-code", 
             model, 
             phoneNumber);
-            
-        if (!result.IsSuccess)
-        {
-            // Handle error
-            throw new InvalidOperationException(result.ErrorMessage);
-        }
     }
 }
 ```
@@ -320,31 +308,6 @@ services.AddSmtpEmailDeliver(options =>
 });
 ```
 
-## Error Handling
-
-All send operations return result objects that indicate success or failure:
-
-```csharp
-var result = await _emailService.Send(templateName, model, recipients);
-
-if (result.Successful)
-{
-    // Email sent successfully
-    Console.WriteLine($"Email sent successfully: {result.Message}");
-}
-else
-{
-    // Handle error
-    Console.WriteLine($"Failed to send email: {result.Message}");
-    
-    if (result.Exception != null)
-    {
-        // Log the exception for debugging
-        _logger.LogError(result.Exception, "Email send failed");
-    }
-}
-```
-
 ## Template Development
 
 ### Creating Templates
@@ -386,9 +349,3 @@ public async Task TestEmailTemplate()
     Assert.Single(memoryService.Messages);
 }
 ```
-
-## Next Steps
-
-- [Azure Communication Services Setup](communication/azure.md)
-- [Twilio and SendGrid Setup](communication/twilio.md)
-- [Template Best Practices](communication/templates.md)

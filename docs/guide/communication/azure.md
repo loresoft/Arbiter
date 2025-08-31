@@ -130,11 +130,6 @@ public class NotificationService
         var recipients = new EmailRecipients([user.Email]);
         
         var result = await _emailService.Send("welcome-email", model, recipients);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send email: {result.ErrorMessage}");
-        }
     }
 }
 ```
@@ -156,11 +151,6 @@ public class SmsNotificationService
         var model = new { Code = code };
         
         var result = await _smsService.Send("verification-code", model, phoneNumber);
-        
-        if (!result.Success)
-        {
-            throw new InvalidOperationException($"Failed to send SMS: {result.ErrorMessage}");
-        }
     }
 }
 ```
@@ -266,7 +256,6 @@ services.AddAzureEmailDeliver(serviceProvider =>
 - Enable diagnostic logging in Azure
 - Monitor delivery rates and failures
 - Set up alerts for quota limits
-
 
 ## Troubleshooting
 
