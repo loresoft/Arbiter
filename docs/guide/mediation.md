@@ -1,3 +1,8 @@
+---
+title: Mediation
+description: A lightweight and extensible implementation of the Mediator pattern for .NET applications
+---
+
 # Mediation
 
 A lightweight and extensible implementation of the Mediator pattern for .NET applications, designed for clean, modular architectures like Vertical Slice Architecture and CQRS.

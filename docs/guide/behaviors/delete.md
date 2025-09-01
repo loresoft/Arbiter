@@ -1,3 +1,8 @@
+---
+title: Soft Delete Behaviors
+description: Pipeline behaviors that implement soft delete functionality by automatically filtering out deleted entities
+---
+
 # Soft Delete Behaviors
 
 Pipeline behaviors that implement soft delete functionality by automatically filtering out deleted entities and providing consistent deletion semantics across your application. These behaviors work in conjunction with the `EntityDeleteCommand` to provide seamless soft delete capabilities.

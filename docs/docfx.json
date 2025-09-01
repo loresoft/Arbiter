@@ -40,7 +40,7 @@
     "sitemap": {
       "baseUrl": "https://loresoft.com/Arbiter",
       "priority": 0.5,
-      "changefreq": "daily"
+      "changefreq": "weekly"
     },
     "output": "_site",
     "template": [

@@ -1,3 +1,8 @@
+---
+title: Update Command
+description: Command to update an entire entity identified by a specific key using the provided update model
+---
+
 # Update Command
 
 The `EntityUpdateCommand<TKey, TUpdateModel, TReadModel>` represents a command to update an entire entity identified by a specific key using the provided update model. Unlike patch operations that modify specific fields, update commands replace the complete entity data while preserving its identity.

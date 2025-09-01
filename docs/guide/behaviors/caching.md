@@ -1,3 +1,8 @@
+---
+title: Caching Behaviors
+description: Pipeline behaviors that implement intelligent caching strategies to improve query performance and reduce database load
+---
+
 # Caching Behaviors
 
 Pipeline behaviors that implement intelligent caching strategies to improve query performance and reduce database load. These behaviors work with queries that inherit from `CacheableQueryBase<TResponse>` to provide automatic caching capabilities.

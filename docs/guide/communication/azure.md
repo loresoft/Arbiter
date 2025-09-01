@@ -1,3 +1,8 @@
+---
+title: Azure Communication Services
+description: Integration with Azure Communication Services for both email and SMS delivery
+---
+
 # Azure Communication Services
 
 The `Arbiter.Communication.Azure` package provides integration with Azure Communication Services for both email and SMS delivery. This is Microsoft's cloud-based communication platform that offers reliable, scalable messaging services.

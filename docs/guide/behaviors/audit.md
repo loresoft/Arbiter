@@ -1,3 +1,8 @@
+---
+title: Audit Behavior
+description: Pipeline behaviors that automatically track and audit entity changes with metadata
+---
+
 # Audit Behavior
 
 Pipeline behaviors that automatically track and audit entity changes with metadata such as creation and modification timestamps and user information. These behaviors integrate seamlessly with entity commands to provide consistent audit trails across your application.

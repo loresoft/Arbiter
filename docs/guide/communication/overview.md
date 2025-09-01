@@ -1,3 +1,8 @@
+---
+title: Communication Overview
+description: Powerful and flexible messaging system for sending templated emails and SMS messages
+---
+
 # Communication Overview
 
 Arbiter.Communication provides a powerful and flexible messaging system for sending templated emails and SMS messages. The library consists of three main packages:

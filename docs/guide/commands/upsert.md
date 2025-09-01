@@ -1,3 +1,8 @@
+---
+title: Upsert Command
+description: Command to create or update an entity identified by a specific key using the provided update model
+---
+
 # Upsert Command
 
 The `EntityUpsertCommand<TKey, TUpdateModel, TReadModel>` represents a command to create or update an entity identified by a specific key using the provided update model. This command intelligently determines whether to create a new entity or update an existing one based on whether the entity with the specified key already exists.

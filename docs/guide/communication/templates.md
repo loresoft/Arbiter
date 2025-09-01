@@ -1,3 +1,8 @@
+---
+title: Template Best Practices
+description: Best practices for creating and managing templates in Arbiter.Communication
+---
+
 # Template Best Practices
 
 This guide covers best practices for creating and managing templates in Arbiter.Communication, including design patterns, performance considerations, and maintenance strategies.

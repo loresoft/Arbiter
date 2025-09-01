@@ -1,3 +1,8 @@
+---
+title: Create Command
+description: Command to create a new entity using the specified create model
+---
+
 # Create Command
 
 The `EntityCreateCommand<TCreateModel, TReadModel>` represents a command to create a new entity using the specified create model. This command follows the CQRS (Command Query Responsibility Segregation) pattern and returns a read model representing the created entity.

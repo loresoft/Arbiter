@@ -1,3 +1,8 @@
+---
+title: List Query
+description: Query to select entities based on filtering and sorting criteria defined in an EntitySelect
+---
+
 # List Query
 
 The `EntitySelectQuery<TReadModel>` represents a query to select entities based on filtering and sorting criteria defined in an `EntitySelect`. This query follows the CQRS (Command Query Responsibility Segregation) pattern and returns a collection of read models representing the selected entities.

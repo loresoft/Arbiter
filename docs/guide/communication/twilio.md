@@ -1,3 +1,8 @@
+---
+title: Twilio and SendGrid Integration
+description: Integration with Twilio for SMS delivery and SendGrid for email delivery
+---
+
 # Twilio and SendGrid Integration
 
 The `Arbiter.Communication.Twilio` package provides integration with Twilio for SMS delivery and SendGrid for email delivery. These are popular third-party communication services that offer reliable global messaging capabilities.

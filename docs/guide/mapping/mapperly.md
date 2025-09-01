@@ -1,3 +1,8 @@
+---
+title: Mapperly Implementation
+description: High-performance source generator for object mapping that creates mapping code at compile time
+---
+
 # Mapperly Implementation
 
 Riok.Mapperly is a high-performance source generator for object mapping that creates mapping code at compile time. The Arbiter framework supports Mapperly as an alternative to the built-in `MapperBase` implementation, providing excellent performance with minimal runtime overhead.

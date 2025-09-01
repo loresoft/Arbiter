@@ -1,3 +1,8 @@
+---
+title: Migration
+description: Guide to migrate from MediatR.CommandQuery to Arbiter
+---
+
 # Migration
 
 The following is a guide to migrate from MediatR.CommandQuery to Arbiter.

@@ -1,4 +1,8 @@
-# Arbiter
+---
+title: Quick Start
+description: Mediator pattern and Command Query Responsibility Segregation (CQRS) implementation in .NET
+---
+# Quick Start
 
 Mediator pattern and Command Query Responsibility Segregation (CQRS) implementation in .NET
 

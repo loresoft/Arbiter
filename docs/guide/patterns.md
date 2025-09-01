@@ -1,3 +1,8 @@
+---
+title: Patterns
+description: Design patterns relevant to this framework
+---
+
 # Patterns
 
 Design patterns relevant to this framework

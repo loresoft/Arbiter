@@ -1,3 +1,8 @@
+---
+title: Query Result Caching
+description: Powerful caching capabilities to improve query performance and reduce database load
+---
+
 # Query Result Caching
 
 The Arbiter framework provides powerful caching capabilities to improve query performance and reduce database load. The caching system supports multiple cache providers, configurable expiration policies, and automatic cache invalidation strategies.

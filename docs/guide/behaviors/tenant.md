@@ -1,3 +1,8 @@
+---
+title: Multi-Tenant Behaviors
+description: Pipeline behaviors that enforce tenant isolation and data security in multi-tenant applications
+---
+
 # Multi-Tenant Behaviors
 
 Pipeline behaviors that enforce tenant isolation and data security in multi-tenant applications by automatically applying tenant-specific filtering and validation. These behaviors work in conjunction with entity commands to provide seamless multi-tenant capabilities.

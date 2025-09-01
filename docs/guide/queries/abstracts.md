@@ -1,3 +1,8 @@
+---
+title: Query Abstracts
+description: Comprehensive set of abstract base classes for implementing CQRS queries
+---
+
 # Query Abstracts
 
 The Arbiter framework provides a comprehensive set of abstract base classes for implementing CQRS queries. These base classes follow consistent patterns and provide built-in support for security, caching, and type safety.

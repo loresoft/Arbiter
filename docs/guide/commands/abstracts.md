@@ -1,3 +1,8 @@
+---
+title: Command Abstracts
+description: Comprehensive set of abstract base classes for implementing CQRS commands
+---
+
 # Command Abstracts
 
 The Arbiter framework provides a comprehensive set of abstract base classes for implementing CQRS commands. These base classes follow consistent patterns and provide built-in support for security, auditing, and type safety.

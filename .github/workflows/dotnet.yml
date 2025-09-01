@@ -117,6 +117,30 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+  bing-index:
+    name: Update Bing Index
+    needs: pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bojieyang/indexnow-action@v2
+        with:
+          sitemap-location: ${{ needs.pages.outputs.page_url }}/sitemap.xml
+          key: ${{ secrets.INDEXNOW_KEY }}
+          endpoint: www.bing.com
+
+  google-index:
+    name: Update Google Index
+    needs: pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: robingenz/action-google-indexing@v1.0.2
+        with:
+          siteUrl: ${{ needs.pages.outputs.page_url }}
+          gcpServiceAccountKey: ${{ secrets.GCP_SA_KEY }}

@@ -1,3 +1,8 @@
+---
+title: Command Query
+description: Command Query Responsibility Segregation (CQRS) framework based on mediator pattern
+---
+
 # Command Query
 
 Command Query Responsibility Segregation (CQRS) framework based on mediator pattern

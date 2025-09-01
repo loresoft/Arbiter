@@ -1,3 +1,8 @@
+---
+title: Query Filters
+description: Powerful mechanisms for filtering and sorting entity queries dynamically
+---
+
 # Query Filters
 
 The `EntityFilter` and `EntitySort` classes provide powerful mechanisms for filtering and sorting entity queries dynamically. These components enable complex filtering and sorting operations on entity collections with support for nested logical operations, operator mapping, and dynamic LINQ expression generation.

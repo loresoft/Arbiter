@@ -1,3 +1,8 @@
+---
+title: MongoDB Handlers
+description: Comprehensive CQRS implementation for MongoDB with built-in support for caching, auditing, validation, and security
+---
+
 # MongoDB Handlers
 
 The MongoDB handlers provide a comprehensive CQRS (Command Query Responsibility Segregation) implementation for MongoDB, enabling you to perform standardized CRUD operations with built-in support for caching, auditing, validation, and security using the MongoDB.Abstracts library.

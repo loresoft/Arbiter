@@ -1,3 +1,8 @@
+---
+title: Identifiers Query
+description: Query to retrieve multiple entities identified by a collection of keys
+---
+
 # Identifiers Query
 
 The `EntityIdentifiersQuery<TKey, TReadModel>` represents a query to retrieve multiple entities identified by a collection of keys. This query follows the CQRS (Command Query Responsibility Segregation) pattern and returns a collection of read models representing the requested entities.

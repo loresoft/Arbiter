@@ -82,6 +82,13 @@ items:
       - name: Template Best Practices
         href: communication/templates.md
 
+  - name: Endpoints
+    items:
+      - name: ASP.NET Core Controllers
+        href: endpoints/controller.md
+      - name: Minimal API Endpoints
+        href: endpoints/minimal.md
+
   - name: Script Templates
     href: scripts.md
   - name: Migration Guide

@@ -1,3 +1,8 @@
+---
+title: Behavior Abstracts
+description: Abstract base classes and interfaces for implementing pipeline behaviors in the Arbiter framework
+---
+
 # Behavior Abstracts
 
 Abstract base classes and interfaces for implementing pipeline behaviors in the Arbiter framework.

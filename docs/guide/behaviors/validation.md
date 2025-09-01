@@ -1,3 +1,8 @@
+---
+title: Validation Behaviors
+description: Pipeline behaviors that validate commands and entity models before processing to ensure data integrity and business rule compliance
+---
+
 # Validation Behaviors
 
 Pipeline behaviors that validate commands and entity models before processing to ensure data integrity and business rule compliance. These behaviors work in conjunction with entity commands to provide automatic validation capabilities.

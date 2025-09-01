@@ -1,3 +1,8 @@
+---
+title: AutoMapper Implementation
+description: Object-to-object mapping library integration with Arbiter framework
+---
+
 # AutoMapper Implementation
 
 AutoMapper is a popular object-to-object mapping library that simplifies the task of mapping between different object types. The Arbiter framework supports AutoMapper through adapter implementations that integrate seamlessly with the existing mapping infrastructure.

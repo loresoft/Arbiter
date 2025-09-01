@@ -1,3 +1,8 @@
+---
+title: Entity Framework Core Handlers
+description: Comprehensive CQRS implementation for Entity Framework Core with built-in support for caching, auditing, validation, and security
+---
+
 # Entity Framework Core Handlers
 
 The Entity Framework Core handlers provide a comprehensive CQRS (Command Query Responsibility Segregation) implementation for Entity Framework Core, enabling you to perform standardized CRUD operations with built-in support for caching, auditing, validation, and security.

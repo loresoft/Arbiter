@@ -1,3 +1,8 @@
+---
+title: Delete Command
+description: Command to delete an entity by its identifier
+---
+
 # Delete Command
 
 The `EntityDeleteCommand<TKey, TReadModel>` represents a command to delete an entity by its identifier. This command follows the CQRS (Command Query Responsibility Segregation) pattern and returns a read model representing the deleted entity.

@@ -1,3 +1,8 @@
+---
+title: Patch Command
+description: Command to apply a JSON patch to an entity identified by a specific key
+---
+
 # Patch Command
 
 The `EntityPatchCommand<TKey, TReadModel>` represents a command to apply a JSON patch to an entity identified by a specific key. This command follows the CQRS (Command Query Responsibility Segregation) pattern and is designed for applying partial updates to entities using standardized JSON patch operations.

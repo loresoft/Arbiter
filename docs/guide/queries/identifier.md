@@ -1,3 +1,8 @@
+---
+title: Identifier Query
+description: Query to retrieve a single entity identified by a specific key
+---
+
 # Identifier Query
 
 The `EntityIdentifierQuery<TKey, TReadModel>` represents a query to retrieve a single entity identified by a specific key. This query follows the CQRS (Command Query Responsibility Segregation) pattern and returns a read model representing the requested entity.

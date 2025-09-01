@@ -1,3 +1,8 @@
+---
+title: Paged Query
+description: Query to retrieve entities in a paginated format based on filtering, sorting, and pagination criteria
+---
+
 # Paged Query
 
 The `EntityPagedQuery<TReadModel>` represents a query to retrieve entities in a paginated format based on filtering, sorting, and pagination criteria defined in an `EntityQuery`. This query follows the CQRS (Command Query Responsibility Segregation) pattern and returns an `EntityPagedResult<TReadModel>` containing the paged data and total count.
