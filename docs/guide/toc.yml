@@ -15,7 +15,7 @@ items:
       - name: Mapperly Implementation
         href: mapping/mapperly.md
       - name: AutoMapper Implementation
-        href: mapping/automapper.md
+        href: mapping/autoMapper.md
 
   - name: Queries
     items:
