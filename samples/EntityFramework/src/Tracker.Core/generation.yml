@@ -72,6 +72,13 @@ model:
     attributes: '[RegisterSingleton<FluentValidation.IValidator<{Model.Name}>>]'
     document: false
 script:
+  context:
+    - templatePath: '..\..\..\..\templates\DomainJsonContext.csx'
+      fileName: 'DomainJsonContext.cs'
+      namespace: '{Project.Namespace}.Domain'
+      directory: '..\{Project.Namespace}.Shared\Domain'
+      merge: true
+
   entity:
     - templatePath: '..\..\..\..\templates\DomainServiceRegistration.csx'
       fileName: '{Entity.Name}ServiceRegistration.cs'
@@ -91,7 +98,6 @@ script:
         createMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy'
         updateMapping: 'Updated,UpdatedBy,RowVersion'
 
-
     - templatePath: '..\..\..\..\templates\EntityMapping.csx'
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
@@ -102,6 +108,13 @@ script:
         readMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy,RowVersion'
         createMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy'
         updateMapping: 'Updated,UpdatedBy,RowVersion'
+
+    - templatePath: '..\..\..\..\templates\EntityEndpoint.csx'
+      fileName: '{Entity.Name}Endpoint.cs'
+      namespace: '{Project.Namespace}.Service.Endpoints'
+      directory: '..\{Project.Namespace}.Service\Endpoints'
+      parameters:
+        keyType: int
 
     - templatePath: '..\..\..\..\templates\EntityStore.csx'
       fileName: '{Entity.Name}Store.cs'

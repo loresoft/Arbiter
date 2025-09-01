@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tracker.Service\Tracker.Service.csproj" />
     <ProjectReference Include="..\Tracker.Web\Tracker.Web.csproj" />
   </ItemGroup>
 

@@ -89,7 +89,7 @@ items:
       - name: Minimal API Endpoints
         href: endpoints/minimal.md
 
-  - name: Script Templates
-    href: scripts.md
+  - name: Code Generation
+    href: codeGeneration.md
   - name: Migration Guide
     href: migration.md

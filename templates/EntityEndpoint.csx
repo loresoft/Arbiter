@@ -29,12 +29,10 @@ public string WriteCode()
 
     CodeBuilder.Clear();
 
-    CodeBuilder.AppendLine("using System;");
-    CodeBuilder.AppendLine("using Arbiter.Mediation;");
     CodeBuilder.AppendLine("using Arbiter.CommandQuery.Endpoints;");
 
     if (!string.IsNullOrEmpty(modelNamespace))
-        CodeBuilder.AppendLine($"using {modelNamespace};");
+        CodeBuilder.AppendLine().AppendLine($"using {modelNamespace};");
 
     CodeBuilder.AppendLine();
 
@@ -73,11 +71,10 @@ private void GenerateClass(string readModel, string createModel, string updateMo
 
 private void GenerateConstructor(string className)
 {
-    CodeBuilder.AppendLine($"public {className}(IMediator mediator) : base(mediator, \"{Entity.EntityClass}\")");
+    CodeBuilder.AppendLine($"public {className}(ILoggerFactory loggerFactory) : base(loggerFactory, \"{Entity.EntityClass}\")");
     CodeBuilder.AppendLine("{");
     CodeBuilder.AppendLine();
     CodeBuilder.AppendLine("}");
-    CodeBuilder.AppendLine();
 }
 
 // run script

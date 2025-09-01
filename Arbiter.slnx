@@ -19,6 +19,7 @@
     <Project Path="samples/EntityFramework/src/Tracker.Client/Tracker.Client.csproj" />
     <Project Path="samples/EntityFramework/src/Tracker.Core/Tracker.Core.csproj" Id="448cd95f-bc9c-4130-8b83-0ba107e7eb9f" />
     <Project Path="samples/EntityFramework/src/Tracker.Host/Tracker.Host.csproj" />
+    <Project Path="samples/EntityFramework/src/Tracker.Service/Tracker.Service.csproj" />
     <Project Path="samples/EntityFramework/src/Tracker.Shared/Tracker.Shared.csproj" />
     <Project Path="samples/EntityFramework/src/Tracker.Web/Tracker.Web.csproj" />
   </Folder>

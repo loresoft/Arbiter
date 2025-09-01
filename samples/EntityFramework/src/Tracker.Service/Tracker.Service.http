@@ -1,0 +1,39 @@
+@baseUrl = http://localhost:5085/api
+@apiKey = 01K43JG6X34F0Z8WDT653Y9W0M
+
+### Get all priorities
+
+GET {{baseUrl}}/Priority
+Accept: application/json
+X-API-KEY: {{apiKey}}
+
+### Get a specific priority by ID
+
+GET {{baseUrl}}/Priority/1
+Accept: application/json
+X-API-KEY: {{apiKey}}
+
+### Create a new priority
+
+POST {{baseUrl}}/Priority
+Content-Type: application/json
+Accept: application/json
+X-API-KEY: {{apiKey}}
+
+{
+  "name": "High Priority",
+  "description": "Tasks that need immediate attention"
+}
+
+### Update an existing priority
+
+PUT {{baseUrl}}/Priority/4
+Content-Type: application/json
+Accept: application/json
+X-API-KEY: {{apiKey}}
+
+
+{
+  "name": "Updated Priority",
+  "description": "Updated description for the priority"
+}
