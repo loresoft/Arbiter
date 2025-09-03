@@ -117,8 +117,9 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
         if (entityQuery.Page > 0 && entityQuery.PageSize > 0)
             queryable = queryable.Page(entityQuery.Page, entityQuery.PageSize);
 
-        var results = await queryable.ToListAsync(cancellationToken).ConfigureAwait(false);
-
-        return Mapper.Map<IList<TEntity>, IReadOnlyCollection<TReadModel>>(results);
+        return await queryable
+            .ProjectTo<TEntity, TReadModel>(Mapper)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 }

@@ -1,10 +1,9 @@
 using Arbiter.CommandQuery.Commands;
+using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.MongoDB.Tests.Constants;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
-
-using AutoMapper;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -75,7 +74,7 @@ public class TaskTests : DatabaseTestBase
         patchResult.Title.Should().Be("Patch Update");
 
         // Update Entity
-        var updateModel = mapper.Map<TaskUpdateModel>(patchResult);
+        var updateModel = mapper.Map<TaskReadModel, TaskUpdateModel>(patchResult);
         updateModel.Title = "Update Command";
 
         var updateCommand = new EntityUpdateCommand<string, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel);
@@ -212,6 +211,7 @@ public class TaskTests : DatabaseTestBase
 
         var selectResult = await mediator.Send(selectQuery);
         selectResult.Should().NotBeNull();
+        selectResult.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
@@ -255,5 +255,19 @@ public class TaskTests : DatabaseTestBase
 
         var selectResult = await mediator.Send(selectQuery);
         selectResult.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task EntitySelectQueryProject()
+    {
+        var mediator = ServiceProvider.GetService<IMediator>();
+        mediator.Should().NotBeNull();
+
+        var select = new EntitySelect();
+        var selectQuery = new EntitySelectQuery<TaskNameModel>(MockPrincipal.Default, select);
+
+        var selectResult = await mediator.Send(selectQuery);
+        selectResult.Should().NotBeNull();
+        selectResult.Count.Should().BeGreaterThan(0);
     }
 }

@@ -8,14 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="[14.0.0]" />
     <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Injectio" Version="5.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.4" />
     <PackageReference Include="Testcontainers.MongoDb" Version="4.7.0" />
     <PackageReference Include="TestHost.Abstracts" Version="1.2.0" />
     <PackageReference Include="TUnit" Version="0.57.24" />
@@ -34,6 +33,10 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\UserLogin\Mapping\" />
   </ItemGroup>
 
 </Project>

@@ -55,7 +55,6 @@ public class TestApplication : TestHostApplication, IAsyncInitializer
 
         services.AddHostedService<DatabaseInitializer>();
         services.AddMongoRepository("Tracker");
-        services.AddAutoMapper(typeof(TestApplication).Assembly);
         services.AddCommandQuery();
 
         services.AddArbiterCommandQueryMongoDBTests();

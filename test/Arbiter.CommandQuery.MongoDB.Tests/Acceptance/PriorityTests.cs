@@ -1,9 +1,8 @@
+using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.MongoDB.Tests.Constants;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
-
-using AutoMapper;
 
 using Microsoft.Extensions.DependencyInjection;
 

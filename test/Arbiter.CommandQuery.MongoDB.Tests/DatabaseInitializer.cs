@@ -46,6 +46,11 @@ public class DatabaseInitializer : IHostedService
         await userRepository.UpsertAsync(Constants.UserConstants.LeeAdama, cancellationToken);
         await userRepository.UpsertAsync(Constants.UserConstants.GaiusBaltar, cancellationToken);
         await userRepository.UpsertAsync(Constants.UserConstants.SaulTigh, cancellationToken);
+
+        var taskRepository = _serviceProvider.GetRequiredService<IMongoEntityRepository<Data.Entities.Task>>();
+        await taskRepository.UpsertAsync(Constants.TaskConstants.FindEarth, cancellationToken);
+        await taskRepository.UpsertAsync(Constants.TaskConstants.ProtectThePresident, cancellationToken);
+        await taskRepository.UpsertAsync(Constants.TaskConstants.DefendTheFleet, cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

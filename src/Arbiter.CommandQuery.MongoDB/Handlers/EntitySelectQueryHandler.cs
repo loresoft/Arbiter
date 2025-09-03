@@ -84,11 +84,10 @@ public class EntitySelectQueryHandler<TRepository, TEntity, TKey, TReadModel>
     /// <returns>A collection of read models.</returns>
     protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryList(EntitySelectQuery<TReadModel> request, IQueryable<TEntity> query, CancellationToken cancellationToken)
     {
-        var results = await query
+        return await query
             .Sort(request?.Select?.Sort)
+            .ProjectTo<TEntity, TReadModel>(Mapper)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        return Mapper.Map<IList<TEntity>, IReadOnlyCollection<TReadModel>>(results);
     }
 }

@@ -39,14 +39,12 @@ public static class ServiceRegistration
         if (tags.Contains("WebAssembly"))
         {
             services
-                .AddHttpClient<RemoteDispatcher>((sp, client) =>
+                .AddRemoteDispatcher((sp, client) =>
                 {
                     var hostEnvironment = sp.GetRequiredService<IOptions<EnvironmentOptions>>();
                     client.BaseAddress = new Uri(hostEnvironment.Value.BaseAddress);
                 })
                 .AddHttpMessageHandler<ProgressBarHandler>();
-
-            services.AddRemoteDispatcher();
         }
 
         if (tags.Contains("Server"))

@@ -1,10 +1,9 @@
 using Arbiter.CommandQuery.Commands;
+using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.MongoDB.Tests.Data.Entities;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
-
-using AutoMapper;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -79,7 +78,7 @@ public class AuditTests : DatabaseTestBase
         patchResult.Content.Should().Be("Patch Update");
 
         // Update Entity
-        var updateModel = mapper.Map<AuditUpdateModel>(patchResult);
+        var updateModel = mapper.Map<AuditReadModel, AuditUpdateModel>(patchResult);
         updateModel.Content = "Update Command";
 
         var updateCommand = new EntityUpdateCommand<string, AuditUpdateModel, AuditReadModel>(MockPrincipal.Default, key, updateModel);

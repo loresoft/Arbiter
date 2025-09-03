@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
 
 using Microsoft.Extensions.Logging;
@@ -44,12 +45,11 @@ public class EntityIdentifiersQueryHandler<TRepository, TEntity, TKey, TReadMode
 
         var keys = new HashSet<TKey>(request.Ids);
 
-        var results = await Repository.Collection
+        return await Repository.Collection
             .AsQueryable()
             .Where(p => keys.Contains(p.Id))
+            .ProjectTo<TEntity, TReadModel>(Mapper)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        return Mapper.Map<IList<TEntity>, IReadOnlyCollection<TReadModel>>(results);
     }
 }
