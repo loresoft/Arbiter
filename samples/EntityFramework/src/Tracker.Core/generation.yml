@@ -115,10 +115,3 @@ script:
       directory: '..\{Project.Namespace}.Service\Endpoints'
       parameters:
         keyType: int
-
-    - templatePath: '..\..\..\..\templates\EntityStore.csx'
-      fileName: '{Entity.Name}Store.cs'
-      namespace: '{Project.Namespace}.Client.Stores'
-      directory: '..\{Project.Namespace}.Client\Stores'
-      parameters:
-        keyType: int

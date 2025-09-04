@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.State;
 
 using Blazored.Modal.Services;
 
@@ -6,12 +7,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 using Tracker.Client.Services;
-using Tracker.Client.Stores.Abstracts;
 
 namespace Tracker.Client.Components.Abstracts;
 
-public abstract class StorePageBase<TStore, TReadModel, TUpdateModel> : PrincipalBase, IDisposable
-    where TStore : StoreEditBase<TReadModel, TUpdateModel>
+public abstract class StorePageBase<TReadModel, TUpdateModel> : PrincipalBase, IDisposable
     where TReadModel : class, IHaveIdentifier<int>, new()
     where TUpdateModel : class, new()
 {
@@ -19,7 +18,7 @@ public abstract class StorePageBase<TStore, TReadModel, TUpdateModel> : Principa
     public required IModalService Modal { get; set; }
 
     [Inject]
-    public required TStore Store { get; set; }
+    public required ModelStateEditor<int, TReadModel, TUpdateModel> Store { get; set; }
 
     [Inject]
     public required NotificationService Notification { get; set; }
@@ -43,7 +42,7 @@ public abstract class StorePageBase<TStore, TReadModel, TUpdateModel> : Principa
 
     protected override async Task OnInitializedAsync()
     {
-        Store.OnChange += HandleModelChange;
+        Store.OnStateChanged += HandleModelChange;
 
         try
         {
@@ -71,7 +70,7 @@ public abstract class StorePageBase<TStore, TReadModel, TUpdateModel> : Principa
         }
     }
 
-    protected void HandleModelChange()
+    protected void HandleModelChange(object? sender, EventArgs e)
     {
         InvokeAsync(StateHasChanged);
     }
@@ -83,7 +82,7 @@ public abstract class StorePageBase<TStore, TReadModel, TUpdateModel> : Principa
 
     public virtual void Dispose()
     {
-        Store.OnChange -= HandleModelChange;
+        Store.OnStateChanged -= HandleModelChange;
         GC.SuppressFinalize(this);
     }
 }

@@ -1,6 +1,6 @@
 @page "/tasks/{id:int}"
 
-@inherits EditPageBase<TaskStore, TaskReadModel, TaskUpdateModel>
+@inherits EditPageBase<TaskReadModel, TaskUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -61,6 +61,7 @@
                                               TValue="int"
                                               @bind-Value="Store.Model!.TenantId"
                                               DisplayName="Tenant"
+                                              CacheTime="TimeSpan.FromMinutes(5)"
                                               id="TenantId"
                                               name="TenantId"
                                               class="form-select"
@@ -75,6 +76,7 @@
                                               TValue="int"
                                               @bind-Value="Store.Model!.StatusId"
                                               DisplayName="Status"
+                                              CacheTime="TimeSpan.FromMinutes(5)"
                                               id="StatusId"
                                               name="StatusId"
                                               class="form-select"
@@ -89,6 +91,7 @@
                                               TValue="int?"
                                               @bind-Value="Store.Model!.PriorityId"
                                               DisplayName="Priority"
+                                              CacheTime="TimeSpan.FromMinutes(5)"
                                               id="PriorityId"
                                               name="PriorityId"
                                               class="form-select"
@@ -105,6 +108,7 @@
                                               TValue="int?"
                                               @bind-Value="Store.Model!.AssignedId"
                                               DisplayName="Assigned"
+                                              CacheTime="TimeSpan.FromMinutes(5)"
                                               id="AssignedId"
                                               name="AssignedId"
                                               class="form-select"

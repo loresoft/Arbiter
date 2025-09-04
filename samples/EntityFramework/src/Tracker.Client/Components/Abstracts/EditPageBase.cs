@@ -4,13 +4,11 @@ using Arbiter.CommandQuery.Extensions;
 using Microsoft.AspNetCore.Components.Forms;
 
 using Tracker.Client.Extensions;
-using Tracker.Client.Stores.Abstracts;
 
 
 namespace Tracker.Client.Components.Abstracts;
 
-public abstract class EditPageBase<TStore, TReadModel, TUpdateModel> : StorePageBase<TStore, TReadModel, TUpdateModel>
-    where TStore : StoreEditBase<TReadModel, TUpdateModel>
+public abstract class EditPageBase<TReadModel, TUpdateModel> : StorePageBase<TReadModel, TUpdateModel>
     where TReadModel : class, IHaveIdentifier<int>, new()
     where TUpdateModel : class, new()
 {

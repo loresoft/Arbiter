@@ -6,6 +6,7 @@ using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Mapping;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
+using Arbiter.CommandQuery.State;
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -113,6 +114,11 @@ public static class CommandQueryExtensions
 
         services.TryAddTransient<IDispatcherDataService, DispatcherDataService>();
 
+        // Model State Open Generic Registrations
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateManager<>), typeof(ModelStateManager<>)));
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateLoader<,>), typeof(ModelStateLoader<,>)));
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateEditor<,,>), typeof(ModelStateEditor<,,>)));
+
         return services;
     }
 
@@ -132,6 +138,11 @@ public static class CommandQueryExtensions
         services.AddOptions<DispatcherOptions>();
 
         services.TryAddTransient<IDispatcherDataService, DispatcherDataService>();
+
+        // Model State Open Generic Registrations
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateManager<>), typeof(ModelStateManager<>)));
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateLoader<,>), typeof(ModelStateLoader<,>)));
+        services.Add(ServiceDescriptor.Scoped(typeof(ModelStateEditor<,,>), typeof(ModelStateEditor<,,>)));
 
         return services;
     }
