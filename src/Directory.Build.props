@@ -37,9 +37,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AssemblyMetadata.Generators" Version="2.1.0" PrivateAssets="All" />
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.213" PrivateAssets="All" />
+    <PackageReference Include="AssemblyMetadata.Generators" PrivateAssets="All" />
+    <PackageReference Include="MinVer" PrivateAssets="All" />
+    <PackageReference Include="Meziantou.Analyzer" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
