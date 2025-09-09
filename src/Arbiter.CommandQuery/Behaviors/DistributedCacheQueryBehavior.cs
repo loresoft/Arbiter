@@ -12,7 +12,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// <typeparam name="TRequest">The type of the request.</typeparam>
 /// <typeparam name="TResponse">The type of the response.</typeparam>
 public partial class DistributedCacheQueryBehavior<TRequest, TResponse> : PipelineBehaviorBase<TRequest, TResponse>
-    where TRequest : class, IRequest<TResponse>
+    where TRequest : class, IRequest<TResponse>, ICacheResult
 {
     private readonly IDistributedCache _distributedCache;
     private readonly IDistributedCacheSerializer _distributedCacheSerializer;

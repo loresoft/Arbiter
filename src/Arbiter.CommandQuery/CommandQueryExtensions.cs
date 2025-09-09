@@ -61,6 +61,7 @@ public static class CommandQueryExtensions
         return services;
     }
 
+
     /// <summary>
     /// Adds the remote dispatcher to the service collection with configuration for the HTTP client.
     /// </summary>
@@ -247,6 +248,31 @@ public static class CommandQueryExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Adds the hybrid cache behaviors for entity commands and queries to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers generic hybrid cache behaviors for all requests that implement the appropriate interfaces:
+    /// <list type="bullet">
+    /// <item><description>Query behaviors are registered for requests implementing <see cref="ICacheResult"/> - these provide automatic caching of query results.</description></item>
+    /// <item><description>Expire behaviors are registered for requests implementing <see cref="ICacheExpire"/> - these handle automatic cache invalidation for commands.</description></item>
+    /// </list>
+    /// This is a more flexible alternative to the strongly-typed entity-specific cache registration methods,
+    /// allowing any request type to participate in caching by implementing the appropriate marker interfaces.
+    /// </remarks>
+    public static IServiceCollection AddEntityHybridCache(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HybridCacheQueryBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HybridCacheExpireBehavior<,>));
+
+        return services;
+    }
+
 
     /// <summary>
     /// Adds the entity query behaviors to the service collection.
