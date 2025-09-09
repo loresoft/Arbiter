@@ -11,5 +11,6 @@ internal static class ServiceRegistration
     {
         services.AddCommandQuery();
         services.AddHybridCache();
+        services.AddEntityHybridCache();
     }
 }
