@@ -112,7 +112,7 @@ Uses `IMemoryCache` for in-process caching:
 ```csharp
 // Service registration
 services.AddMemoryCache();
-services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+services.AddEntityMemoryCache();
 
 // Usage
 var query = new GetProductByIdQuery(principal, 123);
@@ -131,7 +131,7 @@ services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = "localhost:6379";
 });
-services.AddEntityQueryDistributedCache<int, ProductReadModel>();
+services.AddEntityDistributedCache();
 
 // Usage
 var query = new GetProductByIdQuery(principal, 123);
@@ -151,7 +151,7 @@ services.AddHybridCache()
     {
         options.Configuration = "localhost:6379";
     });
-services.AddEntityHybridCache<int, ProductReadModel>();
+services.AddEntityHybridCache();
 
 // Usage
 var query = new GetProductByIdQuery(principal, 123);
@@ -243,7 +243,7 @@ Register memory cache behaviors for all entity queries:
 
 ```csharp
 services.AddMemoryCache();
-services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+services.AddEntityMemoryCache();
 ```
 
 ### Distributed Cache Only
@@ -256,7 +256,7 @@ services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = connectionString;
 });
-services.AddEntityQueryDistributedCache<int, ProductReadModel>();
+services.AddEntityDistributedCache();
 
 // With SQL Server
 services.AddSqlServerCache(options =>
@@ -265,7 +265,7 @@ services.AddSqlServerCache(options =>
     options.SchemaName = "dbo";
     options.TableName = "CacheEntries";
 });
-services.AddEntityQueryDistributedCache<int, ProductReadModel>();
+services.AddEntityDistributedCache();
 ```
 
 ### Hybrid Cache (Recommended)
@@ -278,19 +278,7 @@ services.AddHybridCache()
     {
         options.Configuration = connectionString;
     });
-services.AddEntityHybridCache<int, ProductReadModel>();
-```
-
-### With Cache Invalidation
-
-Include cache invalidation for commands that modify data:
-
-```csharp
-// Query caching only
-services.AddEntityHybridCache<int, ProductReadModel>();
-
-// Query caching + command invalidation
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 ```
 
 ## Entity Query Examples
@@ -345,7 +333,7 @@ When using the full cache registration (with create/update models), cache entrie
 
 ```csharp
 // This registration includes automatic invalidation
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 
 // Create command will automatically invalidate product cache entries
 var createCommand = new EntityCreateCommand<ProductCreateModel, ProductReadModel>(principal, createModel);
@@ -497,5 +485,5 @@ services.AddHybridCache(options =>
 });
 
 // Register caching with invalidation
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 ```

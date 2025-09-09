@@ -40,7 +40,7 @@ The `MemoryCacheQueryBehavior<TRequest, TResponse>` behavior caches query result
 ```csharp
 // Register memory cache and cache behavior
 services.AddMemoryCache();
-services.AddEntityQueryMemoryCache<int, UserReadModel>();
+services.AddEntityMemoryCache();
 ```
 
 ### Memory Cache Usage
@@ -94,7 +94,7 @@ services.AddStackExchangeRedisCache(options =>
     options.Configuration = "localhost:6379";
     options.InstanceName = "MyApp";
 });
-services.AddEntityQueryDistributedCache<int, UserReadModel>();
+services.AddEntityDistributedCache();
 
 // Or with SQL Server
 services.AddSqlServerCache(options =>
@@ -103,7 +103,7 @@ services.AddSqlServerCache(options =>
     options.SchemaName = "dbo";
     options.TableName = "CacheEntries";
 });
-services.AddEntityQueryDistributedCache<int, UserReadModel>();
+services.AddEntityDistributedCache();
 ```
 
 ### Distributed Cache Usage
@@ -166,10 +166,7 @@ services.AddHybridCache()
         options.Configuration = "localhost:6379";
         options.InstanceName = "MyApp";
     });
-services.AddEntityHybridCache<int, UserReadModel>();
-
-// With cache invalidation for commands
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 ```
 
 ### Hybrid Cache Usage
@@ -209,7 +206,7 @@ When using the full cache registration (with create/update models), cache entrie
 
 ```csharp
 // This registration includes automatic invalidation
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 
 // Create command will automatically invalidate product cache entries
 var createCommand = new EntityCreateCommand<ProductCreateModel, ProductReadModel>(principal, createModel);
@@ -347,7 +344,7 @@ services.AddHybridCache(options =>
 });
 
 // Register caching with automatic invalidation
-services.AddEntityHybridCache<int, ProductReadModel, ProductCreateModel, ProductUpdateModel>();
+services.AddEntityHybridCache();
 ```
 
 ### Performance Guidelines

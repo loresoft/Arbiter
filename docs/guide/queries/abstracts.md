@@ -286,13 +286,13 @@ Arbiter provides two main caching behaviors:
 ### Memory Cache Integration
 
 ```csharp
-services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+services.AddEntityMemoryCache();
 ```
 
 ### Hybrid Cache Integration
 
 ```csharp
-services.AddEntityHybridCache<int, ProductReadModel>();
+services.AddEntityHybridCache();
 ```
 
 Both behaviors automatically handle:

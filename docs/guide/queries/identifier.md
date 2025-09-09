@@ -163,13 +163,13 @@ var result = await mediator.Send(query);
 ### Memory Cache Registration
 
 ```csharp
-services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+services.AddEntityMemoryCache();
 ```
 
 ### Hybrid Cache Registration
 
 ```csharp
-services.AddEntityHybridCache<int, ProductReadModel>();
+services.AddEntityHybridCache();
 ```
 
 ## Usage Examples

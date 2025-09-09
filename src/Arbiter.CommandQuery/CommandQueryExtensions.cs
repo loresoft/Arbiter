@@ -160,6 +160,7 @@ public static class CommandQueryExtensions
     /// This method registers memory cache behaviors for all standard entity query operations:
     /// identifier, identifiers, paged, select, and continuation queries.
     /// </remarks>
+    [Obsolete("Use AddEntityMemoryCache() instead. This method will be removed in a future release.")]
     public static IServiceCollection AddEntityQueryMemoryCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -169,6 +170,23 @@ public static class CommandQueryExtensions
         services.AddTransient<IPipelineBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, MemoryCacheQueryBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, MemoryCacheQueryBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>, MemoryCacheQueryBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the caching query behaviors for <see cref="IMemoryCache"/> to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers generic memory cache behaviors for all requests that implement <see cref="ICacheResult"/>
+    /// </remarks>
+    public static IServiceCollection AddEntityMemoryCache(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MemoryCacheQueryBehavior<,>));
 
         return services;
     }
@@ -184,6 +202,7 @@ public static class CommandQueryExtensions
     /// This method registers distributed cache behaviors for all standard entity query operations:
     /// identifier, identifiers, paged, select, and continuation queries.
     /// </remarks>
+    [Obsolete("Use AddEntityDistributedCache() instead. This method will be removed in a future release.")]
     public static IServiceCollection AddEntityQueryDistributedCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -193,6 +212,23 @@ public static class CommandQueryExtensions
         services.AddTransient<IPipelineBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, DistributedCacheQueryBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, DistributedCacheQueryBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>, DistributedCacheQueryBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the caching query behaviors for <see cref="IDistributedCache"/> to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// This method registers generic distributed cache behaviors for all requests that implement <see cref="ICacheResult"/>
+    /// </remarks>
+    public static IServiceCollection AddEntityDistributedCache(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(DistributedCacheQueryBehavior<,>));
 
         return services;
     }
@@ -208,6 +244,7 @@ public static class CommandQueryExtensions
     /// This method registers hybrid cache behaviors for all standard entity query operations:
     /// identifier, identifiers, paged, select, and continuation queries.
     /// </remarks>
+    [Obsolete("Use AddEntityHybridCache() instead. This method will be removed in a future release.")]
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -234,6 +271,7 @@ public static class CommandQueryExtensions
     /// This method registers hybrid cache behaviors for both queries and commands.
     /// Query behaviors provide caching, while command behaviors handle cache expiration.
     /// </remarks>
+    [Obsolete("Use AddEntityHybridCache() instead. This method will be removed in a future release.")]
     public static IServiceCollection AddEntityHybridCache<TKey, TReadModel, TCreateModel, TUpdateModel>(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);

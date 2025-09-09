@@ -337,13 +337,13 @@ services.AddTransient<IPipelineBehavior<EntityCreateCommand<ProductCreateModel, 
 
 ```csharp
 // Enable memory caching for entity queries
-services.AddEntityQueryMemoryCache<int, ProductReadModel>();
+services.AddEntityMemoryCache();
 
 // Enable distributed caching
-services.AddEntityQueryDistributedCache<int, ProductReadModel>();
+services.AddEntityDistributedCache();
 
 // Enable hybrid caching
-services.AddEntityHybridCache<int, ProductReadModel>();
+services.AddEntityHybridCache();
 ```
 
 ### Multi-Tenant Setup
