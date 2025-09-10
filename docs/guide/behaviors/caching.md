@@ -166,6 +166,7 @@ services.AddHybridCache()
         options.Configuration = "localhost:6379";
         options.InstanceName = "MyApp";
     });
+
 services.AddEntityHybridCache();
 ```
 
