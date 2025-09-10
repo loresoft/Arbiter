@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
@@ -26,25 +26,24 @@
     <PackageVersion Include="MailKit" Version="4.13.0" />
     <PackageVersion Include="MediatR" Version="[12.5.0]" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.218" />
-    <PackageVersion Include="MicroSoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Bcl.Memory" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0-rc.1.25451.107" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-rc.1.25451.107" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0-rc.1.25451.107" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.2" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.14.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
@@ -67,7 +66,7 @@
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.7" />
-    <PackageVersion Include="System.Text.Json" Version="9.0.9" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.0-rc.1.25451.107" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestHost.Abstracts" Version="1.2.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.7.0" />
