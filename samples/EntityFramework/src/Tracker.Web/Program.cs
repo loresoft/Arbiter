@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using Arbiter.CommandQuery.Endpoints;
 using Arbiter.Mediation.OpenTelemetry;
 
@@ -11,7 +13,6 @@ using OpenTelemetry.Trace;
 
 using Tracker.Extensions;
 using Tracker.Options;
-using Tracker.Web.Components;
 
 namespace Tracker;
 
@@ -92,6 +93,9 @@ public static class Program
             .AddHttpContextAccessor();
 
         services
+            .AddValidation();
+
+        services
             .AddTrackerShared()
             .AddTrackerCore()
             .AddTrackerClient("Server")
@@ -153,4 +157,13 @@ public static class Program
         app.MapEndpointRoutes();
 
     }
+}
+
+[ValidatableType]
+public class Person
+{
+    [Required]
+    public string Name { get; set; } = null!;
+    public int Age { get; set; }
+    public int Birth { get; set; }
 }

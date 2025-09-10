@@ -1,4 +1,3 @@
-
 using Arbiter.CommandQuery.Endpoints;
 using Arbiter.Mediation.OpenTelemetry;
 
@@ -87,6 +86,9 @@ public static class Program
 
         services
            .AddProblemDetails();
+
+        services
+            .AddValidation();
 
         services
             .AddTrackerShared()

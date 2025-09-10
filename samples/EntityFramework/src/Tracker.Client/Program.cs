@@ -15,6 +15,8 @@ public static class Program
             .AddCascadingAuthenticationState()
             .AddAuthenticationStateDeserialization();
 
+        builder.Services.AddValidation();
+
         builder.Services
             .AddTrackerShared()
             .AddTrackerClient("WebAssembly");

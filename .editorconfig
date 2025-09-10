@@ -49,6 +49,8 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = true
 dotnet_style_namespace_match_folder = true
 
+dotnet_diagnostic.ASP0029.severity = none
+
 [*.cs]
 csharp_using_directive_placement = outside_namespace
 csharp_style_namespace_declarations = file_scoped:warning

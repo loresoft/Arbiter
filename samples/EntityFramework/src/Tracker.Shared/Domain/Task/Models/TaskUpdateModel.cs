@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+using Microsoft.Extensions.Validation;
 
 namespace Tracker.Domain.Models;
 
-[Equatable]
+[Equatable, ValidatableType]
 public partial class TaskUpdateModel
     : EntityUpdateModel
 {
     #region Generated Properties
+    [Required]
     public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
