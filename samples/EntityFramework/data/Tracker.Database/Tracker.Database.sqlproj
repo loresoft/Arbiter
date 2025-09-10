@@ -9,10 +9,12 @@
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{0210d856-b45c-49d0-a208-1eb435cbb3f1}</ProjectGuid>
   </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Tables" />
     <Folder Include="Seed" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="local.publish.xml" />
     <None Include="Seed\Priority.sql" />
@@ -21,7 +23,17 @@
     <None Include="Seed\User.sql" />
     <None Include="Seed\Task.sql" />
   </ItemGroup>
+
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
+  
+  <!-- 
+    Building through visual studio will fail with `Your project does not reference ".NETFramework,Version=v4.7.2" framework.` if a previous build through the dotnet core cli
+    has run and created the obj/project.assets.json file. This custom target will delete the file before the visual studio build starts.
+  -->
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(MSBuildRuntimeType)' != 'Core'">
+    <Delete Files="$(MSBuildThisFileDirectory)\obj\project.assets.json" />
+  </Target>
+  
 </Project>
