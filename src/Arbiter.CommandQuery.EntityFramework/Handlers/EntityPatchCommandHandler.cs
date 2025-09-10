@@ -4,6 +4,14 @@ using Arbiter.CommandQuery.Definitions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+#if NET10_0_OR_GREATER
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
+#else
+using SystemTextJsonPatch;
+using SystemTextJsonPatch.Operations;
+#endif
+
 namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 
 /// <summary>
@@ -45,7 +53,16 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
             return default!;
 
         // apply json patch to entity
-        var jsonPatch = request.Patch;
+        var patchOperations = request.Patch;
+
+        // convert to JsonPatchDocument
+        var jsonPatch = new JsonPatchDocument();
+        foreach (var operation in patchOperations)
+        {
+            Operation<TEntity> patchOperation = new(operation.Operation, operation.Path, operation.From, operation.Value);
+            jsonPatch.Operations.Add(patchOperation);
+        }
+
         jsonPatch.ApplyTo(entity);
 
         // apply update metadata

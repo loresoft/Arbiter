@@ -1,19 +1,19 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using Microsoft.Extensions.DependencyInjection;
-
-using SystemTextJsonPatch;
-using SystemTextJsonPatch.Operations;
 
 using Task = System.Threading.Tasks.Task;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Acceptance;
 
 public class AuditTests : DatabaseTestBase
-{   
+{
     [Test]
     public async Task FullTest()
     {
@@ -57,13 +57,10 @@ public class AuditTests : DatabaseTestBase
         listResult.Should().NotBeNull();
 
         // Patch Entity
-        var patchModel = new JsonPatchDocument();
-        patchModel.Operations.Add(new Operation
+        var patchModel = new List<JsonPatchOperation>
         {
-            Op = "replace",
-            Path = "/Content",
-            Value = "Patch Update"
-        });
+            new("replace", "/Content", "Patch Update")
+        };
 
         var patchCommand = new EntityPatchCommand<int, AuditReadModel>(MockPrincipal.Default, createResult.Id, patchModel);
         var patchResult = await mediator.Send(patchCommand);

@@ -1,7 +1,6 @@
 using Arbiter.CommandQuery.Commands;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Tests.Models;
-
-using SystemTextJsonPatch;
 
 namespace Arbiter.CommandQuery.Tests.Commands;
 
@@ -18,10 +17,12 @@ public class EntityPatchCommandTests
     public void ConstructorWithPatch()
     {
         var id = Guid.NewGuid();
-        var jsonPatch = new JsonPatchDocument();
-        jsonPatch.Replace("Name", "Test");
+        var patchModel = new List<JsonPatchOperation>
+        {
+            new("replace", "/Name", "Test")
+        };
 
-        var updateCommand = new EntityPatchCommand<Guid, LocationReadModel>(MockPrincipal.Default, id, jsonPatch);
+        var updateCommand = new EntityPatchCommand<Guid, LocationReadModel>(MockPrincipal.Default, id, patchModel);
         updateCommand.Should().NotBeNull();
 
         updateCommand.Id.Should().NotBe(Guid.Empty);

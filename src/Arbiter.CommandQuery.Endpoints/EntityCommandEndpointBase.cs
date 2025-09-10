@@ -1,6 +1,7 @@
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Commands;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Queries;
 
 using Microsoft.AspNetCore.Builder;
@@ -9,8 +10,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-
-using SystemTextJsonPatch;
 
 namespace Arbiter.CommandQuery.Endpoints;
 
@@ -248,7 +247,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> PatchCommand(
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
-        [FromBody] JsonPatchDocument jsonPatch,
+        [FromBody] IReadOnlyList<JsonPatchOperation> jsonPatch,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {

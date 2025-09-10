@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.MongoDB.Tests.Constants;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;
@@ -8,9 +9,6 @@ using Arbiter.Mediation;
 using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Bson;
-
-using SystemTextJsonPatch;
-using SystemTextJsonPatch.Operations;
 
 using Task = System.Threading.Tasks.Task;
 
@@ -60,14 +58,11 @@ public class TaskTests : DatabaseTestBase
         listResult.Should().NotBeNull();
 
         // Patch Entity
-        var patchModel = new JsonPatchDocument();
-        patchModel.Operations.Add(new Operation
+        var patchModel = new List<JsonPatchOperation>
         {
-            Op = "replace",
-            Path = "/Title",
-            Value = "Patch Update"
-        });
-
+            new("replace", "/Title", "Patch Update")
+        };
+        
         var patchCommand = new EntityPatchCommand<string, TaskReadModel>(MockPrincipal.Default, key, patchModel);
         var patchResult = await mediator.Send(patchCommand);
         patchResult.Should().NotBeNull();

@@ -3,9 +3,8 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Services;
-
-using SystemTextJsonPatch;
 
 namespace Arbiter.CommandQuery.Commands;
 
@@ -43,7 +42,7 @@ public record EntityPatchCommand<TKey, TReadModel>
     /// <param name="id">The identifier of the entity to which the JSON patch will be applied.</param>
     /// <param name="patch">The JSON patch document containing the updates to apply.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> or <paramref name="patch"/> is <see langword="null"/>.</exception>
-    public EntityPatchCommand(ClaimsPrincipal? principal, [NotNull] TKey id, [NotNull] JsonPatchDocument patch)
+    public EntityPatchCommand(ClaimsPrincipal? principal, [NotNull] TKey id, [NotNull] IReadOnlyList<JsonPatchOperation> patch)
         : base(principal, id)
     {
         ArgumentNullException.ThrowIfNull(patch);
@@ -58,7 +57,7 @@ public record EntityPatchCommand<TKey, TReadModel>
     /// The JSON patch document containing the updates.
     /// </value>
     [JsonPropertyName("patch")]
-    public JsonPatchDocument Patch { get; }
+    public IReadOnlyList<JsonPatchOperation> Patch { get; }
 
     /// <summary>
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.

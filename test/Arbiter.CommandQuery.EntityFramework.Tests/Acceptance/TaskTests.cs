@@ -1,13 +1,12 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using SystemTextJsonPatch;
-using SystemTextJsonPatch.Operations;
 
 using Task = System.Threading.Tasks.Task;
 
@@ -63,13 +62,10 @@ public class TaskTests : DatabaseTestBase
         listResult.Should().NotBeNull();
 
         // Patch Entity
-        var patchModel = new JsonPatchDocument();
-        patchModel.Operations.Add(new Operation
+        var patchModel = new List<JsonPatchOperation>
         {
-            Op = "replace",
-            Path = "/Title",
-            Value = "Patch Update"
-        });
+            new("replace", "/Title", "Patch Update")
+        };
 
         var patchCommand = new EntityPatchCommand<int, TaskReadModel>(MockPrincipal.Default, createResult.Id, patchModel);
         var patchResult = await mediator.Send(patchCommand);

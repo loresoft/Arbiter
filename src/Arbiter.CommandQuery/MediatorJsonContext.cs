@@ -22,4 +22,6 @@ namespace Arbiter.CommandQuery;
 [JsonSerializable(typeof(EntitySort))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationResult))]
+[JsonSerializable(typeof(IReadOnlyList<JsonPatchOperation>))]
+[JsonSerializable(typeof(JsonPatchOperation))]
 public partial class MediatorJsonContext : JsonSerializerContext;
