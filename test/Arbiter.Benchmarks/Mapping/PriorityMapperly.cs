@@ -1,3 +1,5 @@
+#pragma warning disable RMG012 // Source member was not found for target member
+
 using System.Diagnostics.CodeAnalysis;
 
 using Arbiter.CommandQuery.Definitions;
