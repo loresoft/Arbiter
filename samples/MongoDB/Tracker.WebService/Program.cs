@@ -111,6 +111,7 @@ public static class Program
 
         services.AddMediator(builder => builder
             .AddAssembly<CompleteModel>()
+            .AddAssembly(typeof(Arbiter.CommandQuery.MongoDB.Handlers.RepositoryHandlerBase<,,,,>).Assembly)
         );
 
         services
