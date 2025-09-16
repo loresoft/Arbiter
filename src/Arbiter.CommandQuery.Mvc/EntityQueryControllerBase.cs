@@ -1,7 +1,8 @@
 using System.Net.Mime;
 
 using Arbiter.CommandQuery.Queries;
-using Arbiter.Mediation;
+
+using Foundatio.Mediator;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -135,7 +136,7 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     protected virtual async Task<TReadModel?> GetQuery(TKey id, CancellationToken cancellationToken = default)
     {
         var command = new EntityIdentifierQuery<TKey, TReadModel>(User, id);
-        return await Mediator.Send(command, cancellationToken);
+        return await Mediator.InvokeAsync<TReadModel>(command, cancellationToken);
     }
 
     /// <summary>
@@ -147,7 +148,7 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     protected virtual async Task<EntityPagedResult<TListModel>?> PagedQuery(EntityQuery entityQuery, CancellationToken cancellationToken = default)
     {
         var command = new EntityPagedQuery<TListModel>(User, entityQuery);
-        return await Mediator.Send(command, cancellationToken);
+        return await Mediator.InvokeAsync<EntityPagedResult<TListModel>>(command, cancellationToken);
     }
 
     /// <summary>
@@ -159,6 +160,6 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     protected virtual async Task<IReadOnlyCollection<TListModel>?> SelectQuery(EntitySelect entitySelect, CancellationToken cancellationToken = default)
     {
         var command = new EntitySelectQuery<TListModel>(User, entitySelect);
-        return await Mediator.Send(command, cancellationToken);
+        return await Mediator.InvokeAsync<IReadOnlyCollection<TListModel>>(command, cancellationToken);
     }
 }

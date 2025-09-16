@@ -7,18 +7,17 @@ namespace Arbiter.CommandQuery.Queries;
 /// <summary>
 /// Represents a base class for cacheable queries that use a specified <see cref="ClaimsPrincipal"/> for user context.
 /// </summary>
-/// <typeparam name="TResponse">The type of the response returned by the query.</typeparam>
 /// <remarks>
 /// This class provides support for cache key generation, cache tagging, and cache expiration policies.
 /// It is intended for use in scenarios where query results can be cached and associated with a user principal.
 /// </remarks>
-public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TResponse>, ICacheResult
+public abstract record CacheableQueryBase : PrincipalQueryBase, ICacheResult
 {
     private DateTimeOffset? _absoluteExpiration;
     private TimeSpan? _slidingExpiration;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CacheableQueryBase{TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="CacheableQueryBase"/> class.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user for whom the query is executed.</param>
     protected CacheableQueryBase(ClaimsPrincipal? principal) : base(principal)

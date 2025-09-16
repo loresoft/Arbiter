@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Foundatio.Mediator;
+
 namespace Arbiter.CommandQuery.Dispatcher;
 
 /// <summary>
@@ -23,17 +25,20 @@ public class MediatorDispatcher : IDispatcher
     public async ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResponse>
     {
-        return await _mediator.Send<TRequest, TResponse>(request, cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(request);
+
+        return await _mediator.InvokeAsync<TResponse>(request, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
     public async ValueTask<TResponse?> Send<TResponse>(
-        IRequest<TResponse> request,
+        object request,
         CancellationToken cancellationToken = default)
     {
-        return await _mediator.Send(request, cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(request);
+
+        return await _mediator.InvokeAsync<TResponse>(request, cancellationToken).ConfigureAwait(false);
     }
 }

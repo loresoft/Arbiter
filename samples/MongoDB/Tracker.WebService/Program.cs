@@ -1,7 +1,10 @@
 
 using Arbiter.CommandQuery.Endpoints;
+using Arbiter.CommandQuery.Models;
 
 using AspNetCore.SecurityKey;
+
+using Foundatio.Mediator;
 
 using Microsoft.AspNetCore.ResponseCompression;
 
@@ -105,6 +108,10 @@ public static class Program
 
         services
             .AddMemoryCache();
+
+        services.AddMediator(builder => builder
+            .AddAssembly<CompleteModel>()
+        );
 
         services
             .AddOpenApi(options => options

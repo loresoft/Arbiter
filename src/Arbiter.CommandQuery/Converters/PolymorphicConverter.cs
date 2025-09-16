@@ -79,3 +79,4 @@ public class PolymorphicConverter<T> : JsonConverter<T>
         writer.WriteEndObject();
     }
 }
+

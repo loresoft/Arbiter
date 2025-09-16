@@ -18,7 +18,6 @@ namespace Arbiter.CommandQuery.MongoDB.Handlers;
 public abstract class RepositoryHandlerBase<TRepository, TEntity, TKey, TRequest, TResponse>
     : RequestHandlerBase<TRequest, TResponse>
     where TRepository : IMongoRepository<TEntity, TKey>
-    where TRequest : IRequest<TResponse>
     where TEntity : class
 {
     /// <summary>

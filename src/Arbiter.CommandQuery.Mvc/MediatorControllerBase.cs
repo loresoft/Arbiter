@@ -1,5 +1,4 @@
-
-using Arbiter.Mediation;
+using Foundatio.Mediator;
 
 using Microsoft.AspNetCore.Mvc;
 

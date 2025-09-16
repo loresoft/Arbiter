@@ -47,14 +47,15 @@ public class RemoteDispatcher : IDispatcher
     public ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResponse>
     {
-        return Send(request, cancellationToken);
+        ArgumentNullException.ThrowIfNull(request);
+
+        return Send<TResponse>(request, cancellationToken);
     }
 
     /// <inheritdoc />
     public async ValueTask<TResponse?> Send<TResponse>(
-        IRequest<TResponse> request,
+        object request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -62,7 +63,7 @@ public class RemoteDispatcher : IDispatcher
         // cache only if implements interface
         var cacheRequest = request as ICacheResult;
         if (_hybridCache is null || cacheRequest?.IsCacheable() != true)
-            return await SendCore(request, cancellationToken).ConfigureAwait(false);
+            return await SendCore<TResponse>(request, cancellationToken).ConfigureAwait(false);
 
         var cacheKey = cacheRequest.GetCacheKey();
         var cacheTag = cacheRequest.GetCacheTag();
@@ -74,14 +75,14 @@ public class RemoteDispatcher : IDispatcher
         return await _hybridCache
             .GetOrCreateAsync(
                 key: cacheKey,
-                factory: async token => await SendCore(request, token).ConfigureAwait(false),
+                factory: async token => await SendCore<TResponse>(request, token).ConfigureAwait(false),
                 options: cacheOptions,
                 tags: string.IsNullOrEmpty(cacheTag) ? null : [cacheTag],
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private async ValueTask<TResponse?> SendCore<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken)
+    private async ValueTask<TResponse?> SendCore<TResponse>(object request, CancellationToken cancellationToken)
     {
         var requestUri = _dispatcherOptions.FeaturePrefix
             .Combine(_dispatcherOptions.DispatcherPrefix)

@@ -20,7 +20,6 @@ public abstract class EntityDataContextHandlerBase<TContext, TEntity, TKey, TRea
     : DataContextHandlerBase<TContext, TRequest, TResponse>
     where TContext : DbContext
     where TEntity : class, IHaveIdentifier<TKey>, new()
-    where TRequest : IRequest<TResponse>
 {
 
     private static readonly string _contextName = typeof(TContext).Name;

@@ -6,7 +6,7 @@ namespace Arbiter.CommandQuery.Notifications;
 /// An entity change notification
 /// </summary>
 /// <typeparam name="TEntityModel">The type of the entity model.</typeparam>
-public class EntityChangeNotification<TEntityModel> : INotification
+public class EntityChangeNotification<TEntityModel>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityChangeNotification{TEntityModel}"/> class.

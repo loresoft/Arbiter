@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
-using Arbiter.Mediation;
 
 namespace Tracker.Extensions;
 
@@ -16,7 +15,7 @@ public static class JsonSerializerOptionsExtensions
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 
         options.Converters.Add(new ClaimsPrincipalConverter());
-        options.Converters.Add(new PolymorphicConverter<IRequest>());
+        options.Converters.Add(new PolymorphicConverter<object>());
 
         return options;
     }

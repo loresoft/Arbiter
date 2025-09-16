@@ -2,6 +2,8 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Queries;
 
+using Foundatio.Mediator;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -136,7 +138,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         {
             var command = new EntityIdentifierQuery<TKey, TReadModel>(user, id);
 
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -176,7 +178,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
             var entityQuery = new EntityQuery(q, page ?? 1, size ?? 20, sort);
             var command = new EntityPagedQuery<TListModel>(user, entityQuery);
 
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<EntityPagedResult<TListModel>>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -210,7 +212,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         {
             var command = new EntityPagedQuery<TListModel>(user, entityQuery);
 
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<EntityPagedResult<TListModel>>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -248,7 +250,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
 
             var command = new EntitySelectQuery<TListModel>(user, entitySelect);
 
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<IReadOnlyCollection<TListModel>>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -282,7 +284,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         {
             var command = new EntitySelectQuery<TListModel>(user, entitySelect);
 
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<IReadOnlyCollection<TListModel>>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }

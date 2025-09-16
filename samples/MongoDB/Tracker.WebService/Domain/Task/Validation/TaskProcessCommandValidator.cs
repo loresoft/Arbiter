@@ -2,7 +2,7 @@
 
 using FluentValidation;
 
-using Tracker.WebService.Domain.Task.Commands;
+using Tracker.WebService.Domain.Commands;
 
 namespace Tracker.WebService.Domain.Validation;
 

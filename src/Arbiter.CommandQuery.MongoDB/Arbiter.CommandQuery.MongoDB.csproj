@@ -13,9 +13,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Arbiter.Mediation" />
-  </ItemGroup>
-
 </Project>

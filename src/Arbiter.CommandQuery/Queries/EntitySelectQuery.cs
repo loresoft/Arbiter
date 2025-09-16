@@ -36,7 +36,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Retrieved {result?.Count} entities.");
 /// </code>
 /// </example>
-public record EntitySelectQuery<TReadModel> : CacheableQueryBase<IReadOnlyCollection<TReadModel>>
+public record EntitySelectQuery<TReadModel> : CacheableQueryBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntitySelectQuery{TReadModel}"/> class with a default <see cref="EntitySelect"/>.

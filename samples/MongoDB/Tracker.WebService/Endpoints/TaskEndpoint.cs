@@ -2,14 +2,15 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Endpoints;
 using Arbiter.CommandQuery.Models;
-using Arbiter.Mediation;
+
+using Foundatio.Mediator;
 
 using Microsoft.AspNetCore.Http.HttpResults;
 
 using Microsoft.AspNetCore.Mvc;
 
+using Tracker.WebService.Domain.Commands;
 using Tracker.WebService.Domain.Models;
-using Tracker.WebService.Domain.Task.Commands;
 
 namespace Tracker.WebService.Endpoints;
 
@@ -42,7 +43,7 @@ public class TaskEndpoint : EntityCommandEndpointBase<string, TaskReadModel, Tas
         try
         {
             var command = new TaskProcessCommand(user, action!);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<CompleteModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }

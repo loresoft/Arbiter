@@ -14,8 +14,4 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Arbiter.Mediation" />
-  </ItemGroup>
-
 </Project>

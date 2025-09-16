@@ -3,6 +3,8 @@ using System.Security.Claims;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Queries;
 
+using Foundatio.Mediator;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -121,7 +123,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityIdentifierQuery<TKey, TUpdateModel>(user, id);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TUpdateModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -153,7 +155,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityCreateCommand<TCreateModel, TReadModel>(user, createModel);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -187,7 +189,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityUpdateCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -221,7 +223,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityUpsertCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -255,7 +257,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityPatchCommand<TKey, TReadModel>(user, id, jsonPatch);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }
@@ -287,7 +289,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         try
         {
             var command = new EntityDeleteCommand<TKey, TReadModel>(user, id);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<TReadModel>(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
         }

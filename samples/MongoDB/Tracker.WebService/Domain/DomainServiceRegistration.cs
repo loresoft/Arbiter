@@ -10,8 +10,7 @@ public static class DomainServiceRegistration
         services.AddAutoMapper(typeof(DomainServiceRegistration).Assembly);
 
         services
-            .AddCommandQuery()
-            .AddCommandValidation();
+            .AddCommandQuery();
 
     }
 }

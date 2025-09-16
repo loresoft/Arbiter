@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Foundatio.Mediator;
 
 namespace Arbiter.CommandQuery.Dispatcher;
 
@@ -22,8 +23,7 @@ public interface IDispatcher
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
     ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
-        CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResponse>;
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a request to the message dispatcher.
@@ -34,6 +34,6 @@ public interface IDispatcher
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
     ValueTask<TResponse?> Send<TResponse>(
-        IRequest<TResponse> request,
+        object request,
         CancellationToken cancellationToken = default);
 }

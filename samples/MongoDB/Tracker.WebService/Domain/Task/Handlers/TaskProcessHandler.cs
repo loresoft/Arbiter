@@ -1,16 +1,12 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Handlers;
 using Arbiter.CommandQuery.Models;
-using Arbiter.Mediation;
 
-using Tracker.WebService.Domain.Task.Commands;
+using Tracker.WebService.Domain.Commands;
 
 namespace Tracker.WebService.Domain.Handlers;
 
-[RegisterTransient<IRequestHandler<TaskProcessCommand, CompleteModel>>]
-//[RegisterTransient<IPipelineBehavior<TaskProcessCommand, CompleteModel>, ValidateCommandBehavior<TaskProcessCommand, CompleteModel>>]
 public class TaskProcessHandler : RequestHandlerBase<TaskProcessCommand, CompleteModel>
 {
     public TaskProcessHandler(ILoggerFactory loggerFactory) : base(loggerFactory)

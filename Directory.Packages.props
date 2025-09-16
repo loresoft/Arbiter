@@ -1,11 +1,9 @@
 <Project>
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.2" />
     <PackageVersion Include="AspNetCore.SecurityKey" Version="3.0.0" />
@@ -23,6 +21,7 @@
     <PackageVersion Include="Equatable.Generator" Version="2.0.0" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="Fluid.Core" Version="2.25.0" />
+    <PackageVersion Include="Foundatio.Mediator" Version="1.0.0-preview9" />
     <PackageVersion Include="Injectio" Version="5.0.0" />
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="11.5.0" />
     <PackageVersion Include="MailKit" Version="4.13.0" />
@@ -79,5 +78,4 @@
     <PackageVersion Include="Verify.TUnit" Version="30.10.0" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
-
 </Project>

@@ -31,7 +31,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Continuation Token: {result?.ContinuationToken}");
 /// </code>
 /// </example>
-public record EntityContinuationQuery<TReadModel> : CacheableQueryBase<EntityContinuationResult<TReadModel>>
+public record EntityContinuationQuery<TReadModel> : CacheableQueryBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityContinuationQuery{TReadModel}"/> class.

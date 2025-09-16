@@ -9,8 +9,7 @@ namespace Arbiter.CommandQuery.Handlers;
 /// </summary>
 /// <typeparam name="TRequest">The type of request being handled.</typeparam>
 /// <typeparam name="TResponse">The type of response from the handler.</typeparam>
-public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+public abstract partial class RequestHandlerBase<TRequest, TResponse>
 {
     private static readonly string _typeName = typeof(RequestHandlerBase<TRequest, TResponse>).Name;
 
@@ -62,8 +61,8 @@ public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequest
 
 
     [LoggerMessage(1, LogLevel.Trace, "Processing handler '{Handler}' for request '{Request}' ...")]
-    static partial void LogStart(ILogger logger, string handler, IRequest<TResponse> request);
+    static partial void LogStart(ILogger logger, string handler, object request);
 
     [LoggerMessage(2, LogLevel.Trace, "Processed handler '{Handler}' for request '{Request}': {Elapsed} ms")]
-    static partial void LogFinish(ILogger logger, string handler, IRequest<TResponse> request, double elapsed);
+    static partial void LogFinish(ILogger logger, string handler, object request, double elapsed);
 }

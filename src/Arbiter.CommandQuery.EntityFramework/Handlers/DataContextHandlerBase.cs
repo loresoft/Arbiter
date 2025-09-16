@@ -15,7 +15,6 @@ namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 public abstract class DataContextHandlerBase<TContext, TRequest, TResponse>
     : RequestHandlerBase<TRequest, TResponse>
     where TContext : DbContext
-    where TRequest : IRequest<TResponse>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DataContextHandlerBase{TContext, TRequest, TResponse}"/> class.

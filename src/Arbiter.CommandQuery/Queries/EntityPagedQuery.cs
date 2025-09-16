@@ -33,7 +33,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Total Results: {result?.Total}");
 /// </code>
 /// </example>
-public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResult<TReadModel>>
+public record EntityPagedQuery<TReadModel> : CacheableQueryBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityPagedQuery{TReadModel}"/> class.

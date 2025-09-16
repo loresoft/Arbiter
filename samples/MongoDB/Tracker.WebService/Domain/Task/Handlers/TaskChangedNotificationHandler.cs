@@ -1,13 +1,12 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
 using Arbiter.CommandQuery.Notifications;
-using Arbiter.Mediation;
 
 using Tracker.WebService.Domain.Models;
 
 namespace Tracker.WebService.Domain.Handlers;
 
-public class TaskChangedNotificationHandler : INotificationHandler<EntityChangeNotification<TaskReadModel>>
+public class TaskChangedNotificationHandler
 {
     private readonly ILogger<TaskChangedNotificationHandler> _logger;
 

@@ -40,7 +40,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public abstract record EntityModelCommand<TEntityModel, TReadModel>
-    : PrincipalCommandBase<TReadModel>
+    : PrincipalCommandBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityModelCommand{TEntityModel, TReadModel}"/> class.

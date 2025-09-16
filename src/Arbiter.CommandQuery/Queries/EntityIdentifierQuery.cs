@@ -27,7 +27,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Product Name: {result?.Name}");
 /// </code>
 /// </example>
-public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TReadModel>
+public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifierQuery{TKey, TReadModel}"/> class.

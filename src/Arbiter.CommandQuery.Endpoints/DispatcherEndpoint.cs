@@ -2,6 +2,8 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Dispatcher;
 
+using Foundatio.Mediator;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -58,7 +60,7 @@ public partial class DispatcherEndpoint : IEndpointRoute
     /// <param name="user">The current security claims principal</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>Awaitable task returning the mediator response</returns>
-    protected virtual async Task<IResult> Send(
+    protected virtual async Task<Microsoft.AspNetCore.Http.IResult> Send(
         [FromBody] DispatchRequest dispatchRequest,
         [FromServices] IMediator mediator,
         ClaimsPrincipal? user = default,
@@ -68,7 +70,7 @@ public partial class DispatcherEndpoint : IEndpointRoute
 
         try
         {
-            var result = await mediator.Send(request, cancellationToken).ConfigureAwait(false);
+            var result = await mediator.InvokeAsync<object>(request, cancellationToken).ConfigureAwait(false);
             return TypedResults.Ok(result);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

@@ -33,7 +33,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public abstract record EntityIdentifierCommand<TKey, TResponse>
-    : PrincipalCommandBase<TResponse>
+    : PrincipalCommandBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifierCommand{TKey, TResponse}"/> class.

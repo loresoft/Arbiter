@@ -13,6 +13,6 @@ public class DispatchRequest
     /// The request to be dispatched.
     /// </summary>
     [JsonPropertyName("request")]
-    [JsonConverter(typeof(PolymorphicConverter<IRequest>))]
-    public IRequest Request { get; set; } = null!;
+    [JsonConverter(typeof(PolymorphicConverter<object>))]
+    public object Request { get; set; } = null!;
 }

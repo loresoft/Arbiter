@@ -8,13 +8,12 @@ namespace Arbiter.CommandQuery.Commands;
 /// <summary>
 /// Represents a base command type that uses a specified <see cref="ClaimsPrincipal"/> to execute operations.
 /// </summary>
-/// <typeparam name="TResponse">The type of the response returned by the command.</typeparam>
 /// <remarks>
 /// This class is typically used in a CQRS (Command Query Responsibility Segregation) pattern to define commands
 /// that require user context, such as authentication or authorization, provided by a <see cref="ClaimsPrincipal"/>.
 /// </remarks>
 /// <example>
-/// The following example demonstrates how to use the <see cref="PrincipalCommandBase{TResponse}"/>:
+/// The following example demonstrates how to use the <see cref="PrincipalCommandBase"/>:
 /// <code>
 /// public record GetUserDetailsCommand : PrincipalCommandBase&lt;UserDetails&gt;
 /// {
@@ -31,10 +30,10 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"User Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
+public abstract record PrincipalCommandBase
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="PrincipalCommandBase"/> class.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     protected PrincipalCommandBase(ClaimsPrincipal? principal)
