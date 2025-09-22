@@ -1,5 +1,6 @@
 using System.Text.Json;
 
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Tests.Queries;
@@ -15,7 +16,7 @@ public class EntityFilterJsonTests
 
         filter.Should().NotBeNull();
         filter.Name.Should().Be("Name");
-        filter.Operator.Should().Be("eq");
+        filter.Operator.Should().Be(FilterOperators.Equal);
 
         filter.Value.Should().BeOfType<string>();
         filter.Value.Should().Be("test");
@@ -64,17 +65,17 @@ public class EntityFilterJsonTests
         query.Sort[0].Direction.Should().Be("asc");
 
         query.Filter.Should().NotBeNull();
-        query.Filter.Logic.Should().Be("or");
+        query.Filter.Logic.Should().Be(FilterLogic.Or);
         query.Filter.Filters.Should().HaveCount(2);
 
         query.Filter.Filters[0].Name.Should().Be("Name");
-        query.Filter.Filters[0].Operator.Should().Be("eq");
+        query.Filter.Filters[0].Operator.Should().Be(FilterOperators.Equal);
 
         query.Filter.Filters[0].Value.Should().BeOfType<string>();
         query.Filter.Filters[0].Value.Should().Be("test");
 
         query.Filter.Filters[1].Name.Should().Be("Description");
-        query.Filter.Filters[1].Operator.Should().Be("eq");
+        query.Filter.Filters[1].Operator.Should().Be(FilterOperators.Equal);
 
         query.Filter.Filters[1].Value.Should().BeOfType<string>();
         query.Filter.Filters[1].Value.Should().Be("test");
@@ -86,11 +87,11 @@ public class EntityFilterJsonTests
     {
         var filter = new EntityFilter
         {
-            Logic = EntityFilterLogic.And,
+            Logic = FilterLogic.And,
             Filters = new List<EntityFilter>
             {
-                new EntityFilter { Name = "IsDeleted", Value = true, Operator = EntityFilterOperators.Equal },
-                new EntityFilter { Name = "StatusId", Value = "1234", Operator = EntityFilterOperators.Equal }
+                new EntityFilter { Name = "IsDeleted", Value = true, Operator = FilterOperators.Equal },
+                new EntityFilter { Name = "StatusId", Value = "1234", Operator = FilterOperators.Equal }
             }
         };
 
@@ -101,17 +102,17 @@ public class EntityFilterJsonTests
         var filterDeserialize = JsonSerializer.Deserialize<EntityFilter>(json);
         filterDeserialize.Should().NotBeNull();
 
-        filterDeserialize.Logic.Should().Be("and");
+        filterDeserialize.Logic.Should().Be(FilterLogic.And);
         filterDeserialize.Filters.Should().HaveCount(2);
 
         filterDeserialize.Filters[0].Name.Should().Be("IsDeleted");
-        filterDeserialize.Filters[0].Operator.Should().Be("eq");
+        filterDeserialize.Filters[0].Operator.Should().Be(FilterOperators.Equal);
 
         filterDeserialize.Filters[0].Value.Should().BeOfType<bool>();
         filterDeserialize.Filters[0].Value.Should().Be(true);
 
         filterDeserialize.Filters[1].Name.Should().Be("StatusId");
-        filterDeserialize.Filters[1].Operator.Should().Be("eq");
+        filterDeserialize.Filters[1].Operator.Should().Be(FilterOperators.Equal);
 
         filterDeserialize.Filters[1].Value.Should().BeOfType<string>();
         filterDeserialize.Filters[1].Value.Should().Be("1234");

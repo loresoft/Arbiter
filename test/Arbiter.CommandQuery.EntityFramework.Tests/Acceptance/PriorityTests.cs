@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
@@ -65,7 +66,7 @@ public class PriorityTests : DatabaseTestBase
         var entityQuery = new EntityQuery
         {
             Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
-            Filter = new EntityFilter { Name = "Id", Operator = "in", Value = identifiers }
+            Filter = new EntityFilter { Name = "Id", Operator = FilterOperators.In, Value = identifiers }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
 
@@ -87,7 +88,7 @@ public class PriorityTests : DatabaseTestBase
         var entityQuery = new EntityQuery
         {
             Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
-            Filter = new EntityFilter { Name = "Description", Operator = "IsNull" }
+            Filter = new EntityFilter { Name = "Description", Operator = FilterOperators.IsNull }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
 
@@ -108,7 +109,7 @@ public class PriorityTests : DatabaseTestBase
         var entityQuery = new EntityQuery
         {
             Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
-            Filter = new EntityFilter { Name = "Description", Operator = "is not null" }
+            Filter = new EntityFilter { Name = "Description", Operator = FilterOperators.IsNotNull }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
 
@@ -133,8 +134,8 @@ public class PriorityTests : DatabaseTestBase
             Filter = new EntityFilter
             {
                 Filters = new List<EntityFilter> {
-                    new EntityFilter { Name = "Description", Operator = "is null" },
-                    new EntityFilter { Name = "Name", Operator = "equals", Value = "High" }
+                    new EntityFilter { Name = "Description", Operator = FilterOperators.IsNull },
+                    new EntityFilter { Name = "Name", Operator = FilterOperators.Equal, Value = "High" }
                 }
             }
         };

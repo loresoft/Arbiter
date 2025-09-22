@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.MongoDB.Tests.Constants;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;
@@ -66,7 +67,7 @@ public class PriorityTests : DatabaseTestBase
         var entityQuery = new EntityQuery
         {
             Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
-            Filter = new EntityFilter { Name = "Id", Operator = "in", Value = identifiers }
+            Filter = new EntityFilter { Name = "Id", Operator = FilterOperators.In, Value = identifiers }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
 

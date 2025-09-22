@@ -1,7 +1,7 @@
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 using Microsoft.Extensions.Logging;
 
@@ -47,7 +47,7 @@ public abstract class DeletedFilterBehaviorBase<TEntityModel, TRequest, TRespons
         {
             Name = nameof(ITrackDeleted.IsDeleted),
             Value = false,
-            Operator = EntityFilterOperators.Equal,
+            Operator = FilterOperators.Equal,
         };
 
         if (originalFilter == null)
@@ -55,7 +55,7 @@ public abstract class DeletedFilterBehaviorBase<TEntityModel, TRequest, TRespons
 
         var boolFilter = new EntityFilter
         {
-            Logic = EntityFilterLogic.And,
+            Logic = FilterLogic.And,
             Filters = [deletedFilter, originalFilter],
         };
 

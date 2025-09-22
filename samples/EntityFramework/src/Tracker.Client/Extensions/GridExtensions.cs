@@ -1,5 +1,6 @@
 using System.Data;
 
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 
 using LoreSoft.Blazor.Controls;
@@ -58,7 +59,7 @@ public static class GridExtensions
             return null;
 
         var filter = new EntityFilter();
-        filter.Logic = queryGroup.Logic;
+        filter.Logic = TranslateLogic(queryGroup.Logic);
 
         foreach (var rule in queryGroup.Filters)
         {
@@ -103,28 +104,41 @@ public static class GridExtensions
         );
     }
 
-    private static string? TranslateOperator(string? value)
+    private static FilterOperators? TranslateOperator(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return value;
+            return default;
 
         return value switch
         {
-            QueryOperators.Equal => EntityFilterOperators.Equal,
-            QueryOperators.NotEqual => EntityFilterOperators.NotEqual,
-            QueryOperators.Contains => EntityFilterOperators.Contains,
-            QueryOperators.NotContains => $"!{EntityFilterOperators.Contains}",
-            QueryOperators.StartsWith => EntityFilterOperators.StartsWith,
-            QueryOperators.NotStartsWith => $"!{EntityFilterOperators.StartsWith}",
-            QueryOperators.EndsWith => EntityFilterOperators.EndsWith,
-            QueryOperators.NotEndsWith => $"!{EntityFilterOperators.EndsWith}",
-            QueryOperators.GreaterThan => EntityFilterOperators.GreaterThan,
-            QueryOperators.GreaterThanOrEqual => EntityFilterOperators.GreaterThanOrEqual,
-            QueryOperators.LessThan => EntityFilterOperators.LessThan,
-            QueryOperators.LessThanOrEqual => EntityFilterOperators.LessThanOrEqual,
-            QueryOperators.IsNull => EntityFilterOperators.IsNull,
-            QueryOperators.IsNotNull => EntityFilterOperators.IsNotNull,
-            _ => value,
+            QueryOperators.Equal => FilterOperators.Equal,
+            QueryOperators.NotEqual => FilterOperators.NotEqual,
+            QueryOperators.Contains => FilterOperators.Contains,
+            QueryOperators.NotContains => FilterOperators.NotContains,
+            QueryOperators.StartsWith => FilterOperators.StartsWith,
+            QueryOperators.NotStartsWith => FilterOperators.NotStartsWith,
+            QueryOperators.EndsWith => FilterOperators.EndsWith,
+            QueryOperators.NotEndsWith => FilterOperators.NotEndsWith,
+            QueryOperators.GreaterThan => FilterOperators.GreaterThan,
+            QueryOperators.GreaterThanOrEqual => FilterOperators.GreaterThanOrEqual,
+            QueryOperators.LessThan => FilterOperators.LessThan,
+            QueryOperators.LessThanOrEqual => FilterOperators.LessThanOrEqual,
+            QueryOperators.IsNull => FilterOperators.IsNull,
+            QueryOperators.IsNotNull => FilterOperators.IsNotNull,
+            _ => default,
+        };
+    }
+
+    private static FilterLogic? TranslateLogic(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return default;
+
+        return value switch
+        {
+            "and" => FilterLogic.And,
+            "or" => FilterLogic.Or,
+            _ => default,
         };
     }
 }

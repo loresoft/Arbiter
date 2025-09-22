@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Queries;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Filters;
 
 /// <summary>
 /// Provides static helper methods for building common entity filters, queries, and sort expressions.
@@ -104,7 +105,7 @@ public static class EntityFilterBuilder
 
         var groupFilter = new EntityFilter
         {
-            Logic = EntityFilterLogic.Or,
+            Logic = FilterLogic.Or,
             Filters = [],
         };
 
@@ -114,7 +115,7 @@ public static class EntityFilterBuilder
             {
                 Name = field,
                 Value = searchText,
-                Operator = EntityFilterOperators.Contains,
+                Operator = FilterOperators.Contains,
             };
             groupFilter.Filters.Add(filter);
         }
@@ -131,7 +132,7 @@ public static class EntityFilterBuilder
     /// <returns>
     /// An instance of <see cref="EntityFilter"/> for the specified field, value, and operator.
     /// </returns>
-    public static EntityFilter CreateFilter(string field, object? value, string? @operator = null)
+    public static EntityFilter CreateFilter(string field, object? value, FilterOperators? @operator = null)
         => new() { Name = field, Value = value, Operator = @operator };
 
     /// <summary>
@@ -146,7 +147,7 @@ public static class EntityFilterBuilder
     /// Any invalid filters will be removed from the group.
     /// </remarks>
     public static EntityFilter? CreateGroup(params IEnumerable<EntityFilter?> filters)
-        => CreateGroup(EntityFilterLogic.And, filters);
+        => CreateGroup(FilterLogic.And, filters);
 
     /// <summary>
     /// Creates a filter group for the specified logic and filters.
@@ -160,7 +161,7 @@ public static class EntityFilterBuilder
     /// <remarks>
     /// Any invalid filters will be removed from the group.
     /// </remarks>
-    public static EntityFilter? CreateGroup(string logic, params IEnumerable<EntityFilter?> filters)
+    public static EntityFilter? CreateGroup(FilterLogic logic, params IEnumerable<EntityFilter?> filters)
     {
         // check for any valid filters
         if (!filters.Any(f => f?.IsValid() == true))

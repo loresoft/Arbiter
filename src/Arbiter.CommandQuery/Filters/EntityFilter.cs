@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Filters;
 
 /// <summary>
 /// Represents a filter for selecting entities based on specific criteria.
@@ -47,17 +47,6 @@ public class EntityFilter
     public string? Name { get; set; }
 
     /// <summary>
-    /// Gets or sets the operator to use for the filter. This can be "eq" (equals), "ne" (not equals), "gt" (greater than),
-    /// "lt" (less than), "ge" (greater than or equal), "le" (less than or equal), "contains", "startswith", or "endswith".
-    /// </summary>
-    /// <value>
-    /// The operator to use for the filter.
-    /// </value>
-    /// <seealso cref="EntityFilterOperators"/>
-    [JsonPropertyName("operator")]
-    public string? Operator { get; set; }
-
-    /// <summary>
     /// Gets or sets the value to filter on.
     /// </summary>
     /// <value>
@@ -67,14 +56,28 @@ public class EntityFilter
     public object? Value { get; set; }
 
     /// <summary>
+    /// Gets or sets the operator to use for the filter. This can be "eq" (equals), "ne" (not equals), "gt" (greater than),
+    /// "lt" (less than), "ge" (greater than or equal), "le" (less than or equal), "contains", "startswith", or "endswith".
+    /// </summary>
+    /// <value>
+    /// The operator to use for the filter.
+    /// </value>
+    /// <seealso cref="FilterOperators"/>
+    [JsonPropertyName("operator")]
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterOperators>))]
+    public FilterOperators? Operator { get; set; }
+
+
+    /// <summary>
     /// Gets or sets the logical operator to use for combining filters. This can be "and" or "or".
     /// </summary>
     /// <value>
     /// The logical operator to use for combining filters.
     /// </value>
-    /// <seealso cref="EntityFilterLogic"/>
+    /// <seealso cref="FilterLogic"/>
     [JsonPropertyName("logic")]
-    public string? Logic { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterLogic>))]
+    public FilterLogic? Logic { get; set; }
 
     /// <summary>
     /// Gets or sets the list of nested filters to apply to the query. The logic for these filters is defined by the <see cref="Logic"/> property.
@@ -85,13 +88,41 @@ public class EntityFilter
     [JsonPropertyName("filters")]
     public IList<EntityFilter>? Filters { get; set; }
 
+
+    /// <summary>
+    /// Determines whether this query filter represents a group containing nested filters.
+    /// A filter is considered a group if it has a non-empty Filters collection.
+    /// </summary>
+    /// <returns><c>true</c> if the filter contains nested filters; otherwise, <c>false</c>.</returns>
+    public bool IsGroup()
+    {
+        return Filters is not null && Filters.Count > 0;
+    }
+
     /// <summary>
     /// Determines whether this filter is valid. A filter is considered valid if it has a name or if it contains a list of valid nested filters.
     /// </summary>
     /// <returns>
     /// <see langword="true" /> if the filter is valid; otherwise, <see langword="false" />.
     /// </returns>
-    public bool IsValid() => Filters?.Any(f => f.IsValid()) == true || Name is not null;
+    public bool IsValid()
+    {
+        // Groups are valid if they contain at least one valid filter
+        if (IsGroup())
+            return Filters!.Any(f => f.IsValid());
+
+        // Individual filters require a field name
+        if (string.IsNullOrWhiteSpace(Name))
+            return false;
+
+        // Operators that don't require a value
+        if (Operator is FilterOperators.IsNull or FilterOperators.IsNotNull)
+            return true;
+
+        // All other operators require a value
+        return Value is not null;
+    }
+
 
     /// <summary>
     /// Computes the hash code for the current <see cref="EntityFilter"/> instance.

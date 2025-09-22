@@ -1,4 +1,4 @@
-using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
@@ -21,42 +21,42 @@ public class LinqExpressionBuilderBenchmark
         _simpleFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = EntityFilterOperators.Equal,
+            Operator = FilterOperators.Equal,
             Value = "Test"
         };
 
         _complexFilter = new EntityFilter
         {
-            Logic = "and",
+            Logic = FilterLogic.And,
             Filters = new List<EntityFilter>
             {
                 new EntityFilter
                 {
                     Name = "Age",
-                    Operator = EntityFilterOperators.GreaterThan,
+                    Operator = FilterOperators.GreaterThan,
                     Value = 18
                 },
                 new EntityFilter
                 {
                     Name = "IsActive",
-                    Operator = EntityFilterOperators.Equal,
+                    Operator = FilterOperators.Equal,
                     Value = true
                 },
                 new EntityFilter
                 {
-                    Logic = "or",
+                    Logic = FilterLogic.Or,
                     Filters = new List<EntityFilter>
                     {
                         new EntityFilter
                         {
                             Name = "Country",
-                            Operator = EntityFilterOperators.Equal,
+                            Operator = FilterOperators.Equal,
                             Value = "US"
                         },
                         new EntityFilter
                         {
                             Name = "Country",
-                            Operator = EntityFilterOperators.Equal,
+                            Operator = FilterOperators.Equal,
                             Value = "CA"
                         }
                     }

@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Security.Principal;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 using Microsoft.Extensions.Logging;
 
@@ -62,7 +62,7 @@ public abstract class TenantFilterBehaviorBase<TKey, TEntityModel, TRequest, TRe
         {
             Name = nameof(IHaveTenant<TKey>.TenantId),
             Value = tenantId,
-            Operator = EntityFilterOperators.Equal,
+            Operator = FilterOperators.Equal,
         };
 
         if (originalFilter == null)
@@ -70,7 +70,7 @@ public abstract class TenantFilterBehaviorBase<TKey, TEntityModel, TRequest, TRe
 
         return new EntityFilter
         {
-            Logic = EntityFilterLogic.And,
+            Logic = FilterLogic.And,
             Filters = [tenantFilter, originalFilter],
         };
     }

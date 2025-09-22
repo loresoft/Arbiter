@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Tests.Queries;
@@ -24,7 +25,7 @@ public class LinqExpressionBuilderTest
     {
         var entityFilter = new EntityFilter
         {
-            Logic = "or",
+            Logic = FilterLogic.Or,
             Filters =
             [
                 new EntityFilter{ Name = "Rank", Value = 7 },
@@ -97,10 +98,10 @@ public class LinqExpressionBuilderTest
         {
             Filters =
             [
-                new EntityFilter{ Name = "Rank", Operator = ">", Value = 5 },
+                new EntityFilter{ Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
                 new EntityFilter
                 {
-                    Logic = "or",
+                    Logic = FilterLogic.Or,
                     Filters =
                     [
                         new EntityFilter{ Name = "Name", Value = "Strawberry" },
@@ -129,10 +130,10 @@ public class LinqExpressionBuilderTest
         {
             Filters =
             [
-                new EntityFilter{ Name = "Rank", Operator = ">", Value = 5 },
+                new EntityFilter{ Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
                 new EntityFilter
                 {
-                    Logic = "or",
+                    Logic = FilterLogic.Or,
                     Filters =
                     [
                         new EntityFilter(),
@@ -158,14 +159,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "Contains",
+            Operator = FilterOperators.Contains,
             Value = "Berry"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("Name.Contains(@0)");
+        builder.Expression.Should().Be("Name != NULL && Name.Contains(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("Berry");
@@ -177,7 +178,7 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = EntityFilterOperators.IsNull
+            Operator = FilterOperators.IsNull
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
@@ -194,7 +195,7 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = EntityFilterOperators.IsNotNull
+            Operator = FilterOperators.IsNotNull
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
@@ -211,7 +212,7 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "in",
+            Operator = FilterOperators.In,
             Value = new[] { "Test", "Tester" }
         };
         var builder = new LinqExpressionBuilder();
@@ -230,14 +231,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "!Contains",
+            Operator = FilterOperators.NotContains,
             Value = "Berry"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("!Name.Contains(@0)");
+        builder.Expression.Should().Be("Name != NULL && !Name.Contains(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("Berry");
@@ -249,14 +250,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "StartsWith",
+            Operator = FilterOperators.StartsWith,
             Value = "P"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("Name.StartsWith(@0)");
+        builder.Expression.Should().Be("Name != NULL && Name.StartsWith(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("P");
@@ -268,14 +269,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "!StartsWith",
+            Operator = FilterOperators.NotStartsWith,
             Value = "P"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("!Name.StartsWith(@0)");
+        builder.Expression.Should().Be("Name != NULL && !Name.StartsWith(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("P");
@@ -287,14 +288,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "EndsWith",
+            Operator = FilterOperators.EndsWith,
             Value = "berry"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("Name.EndsWith(@0)");
+        builder.Expression.Should().Be("Name != NULL && Name.EndsWith(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("berry");
@@ -306,14 +307,14 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Name",
-            Operator = "!EndsWith",
+            Operator = FilterOperators.NotEndsWith,
             Value = "berry"
         };
         var builder = new LinqExpressionBuilder();
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("!Name.EndsWith(@0)");
+        builder.Expression.Should().Be("Name != NULL && !Name.EndsWith(@0)");
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().Be("berry");
@@ -349,7 +350,7 @@ public class LinqExpressionBuilderTest
         var entityFilter = new EntityFilter
         {
             Name = "Locations.Any(it.Id in @0)",
-            Operator = EntityFilterOperators.Expression,
+            Operator = FilterOperators.Expression,
             Value = new[] { 100, 200 }
         };
         var builder = new LinqExpressionBuilder();
@@ -367,20 +368,20 @@ public class LinqExpressionBuilderTest
     {
         var entityFilter = new EntityFilter
         {
-            Logic = EntityFilterLogic.And,
+            Logic = FilterLogic.And,
             Filters =
             [
                 new EntityFilter
                 {
                     Name = "Id",
                     Value = new[] { 1000, 1001 },
-                    Operator = EntityFilterOperators.In
+                    Operator = FilterOperators.In
                 },
                 new EntityFilter
                 {
                     Name = "Locations.Any(it.Id in @0)",
                     Value = new[] { 100, 200 },
-                    Operator = EntityFilterOperators.Expression
+                    Operator = FilterOperators.Expression
                 }
             ]
         };

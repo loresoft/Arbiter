@@ -1,5 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 namespace Arbiter.CommandQuery.Tests.Queries;
 
@@ -24,7 +24,7 @@ public class EntityFilterBuilderTests
         var filter = result.Filter;
         filter.Should().NotBeNull();
 
-        filter.Logic.Should().Be(EntityFilterLogic.Or);
+        filter.Logic.Should().Be(FilterLogic.Or);
         filter.Filters.Should().HaveCount(2);
         filter.Filters[0].Name.Should().Be("Field1");
         filter.Filters[0].Value.Should().Be("test");
@@ -56,7 +56,7 @@ public class EntityFilterBuilderTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Logic.Should().Be(EntityFilterLogic.Or);
+        result.Logic.Should().Be(FilterLogic.Or);
         result.Filters.Should().HaveCount(2);
         result.Filters[0].Name.Should().Be("Field1");
         result.Filters[0].Value.Should().Be("test");
@@ -87,7 +87,7 @@ public class EntityFilterBuilderTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Logic.Should().Be(EntityFilterLogic.Or);
+        result.Logic.Should().Be(FilterLogic.Or);
         result.Filters.Should().HaveCount(2);
         result.Filters[0].Name.Should().Be("Field1");
         result.Filters[0].Value.Should().Be("test");
@@ -107,7 +107,7 @@ public class EntityFilterBuilderTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Logic.Should().Be(EntityFilterLogic.And);
+        result.Logic.Should().Be(FilterLogic.And);
         result.Filters.Should().HaveCount(2);
         result.Filters[0].Name.Should().Be("Field1");
         result.Filters[0].Value.Should().Be("Value1");
@@ -123,11 +123,11 @@ public class EntityFilterBuilderTests
         var filter2 = new EntityFilter { Name = "Field2", Value = "Value2" };
 
         // Act
-        var result = EntityFilterBuilder.CreateGroup(EntityFilterLogic.Or, filter1, filter2);
+        var result = EntityFilterBuilder.CreateGroup(FilterLogic.Or, filter1, filter2);
 
         // Assert
         result.Should().NotBeNull();
-        result.Logic.Should().Be(EntityFilterLogic.Or);
+        result.Logic.Should().Be(FilterLogic.Or);
         result.Filters.Should().HaveCount(2);
         result.Filters[0].Name.Should().Be("Field1");
         result.Filters[0].Value.Should().Be("Value1");
@@ -157,12 +157,12 @@ public class EntityFilterBuilderTests
         var filter2 = new EntityFilter();
 
         // Act
-        var result = EntityFilterBuilder.CreateGroup(EntityFilterLogic.Or, filter1, filter2);
+        var result = EntityFilterBuilder.CreateGroup(FilterLogic.Or, filter1, filter2);
 
         // Assert
         result.Should().NotBeNull();
         result.Filters.Should().BeNullOrEmpty();
-        result.Logic.Should().BeNullOrEmpty();
+        result.Logic.Should().BeNull();
         result.Name.Should().Be("Field1");
         result.Value.Should().Be("Value1");
     }

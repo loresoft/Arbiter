@@ -5,6 +5,7 @@ using Arbiter.CommandQuery.Tests.Models;
 
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 namespace Arbiter.CommandQuery.Tests.Extensions;
 
@@ -240,7 +241,7 @@ public class QueryExtensionsTests
             .AsQueryable()
             .Filter(new EntityFilter
             {
-                Logic = "or",
+                Logic = FilterLogic.Or,
                 Filters = new List<EntityFilter>
                 {
                     new EntityFilter{ Name = "Rank", Value = 7 },
@@ -288,10 +289,10 @@ public class QueryExtensionsTests
             {
                 Filters = new List<EntityFilter>
                 {
-                    new EntityFilter{ Name = "Rank", Operator = ">", Value = 5 },
+                    new EntityFilter{ Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
                     new EntityFilter
                     {
-                        Logic = "or",
+                        Logic = FilterLogic.Or,
                         Filters = new List<EntityFilter>
                         {
                             new EntityFilter{ Name = "Name", Value = "Strawberry" },
@@ -314,7 +315,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "Contains", Value = "berry" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.Contains, Value = "berry" })
             .ToList();
 
         list.Should().NotBeEmpty();
@@ -329,7 +330,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "!Contains", Value = "berry" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.NotContains, Value = "berry" })
             .ToList();
 
         list.Should().NotBeEmpty();
@@ -344,7 +345,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "StartsWith", Value = "P" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.StartsWith, Value = "P" })
             .ToList();
 
         list.Should().NotBeEmpty();
@@ -359,7 +360,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "!StartsWith", Value = "P" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.NotStartsWith, Value = "P" })
             .ToList();
 
         list.Should().NotBeEmpty();
@@ -374,7 +375,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "EndsWith", Value = "berry" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.EndsWith, Value = "berry" })
             .ToList();
 
         list.Should().NotBeEmpty();
@@ -389,7 +390,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Filter(new EntityFilter { Name = "Name", Operator = "!EndsWith", Value = "berry" })
+            .Filter(new EntityFilter { Name = "Name", Operator = FilterOperators.NotEndsWith, Value = "berry" })
             .ToList();
 
         list.Should().NotBeEmpty();

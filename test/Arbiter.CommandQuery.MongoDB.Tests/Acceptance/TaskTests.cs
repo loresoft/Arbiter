@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.MongoDB.Tests.Constants;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 using Arbiter.CommandQuery.Queries;

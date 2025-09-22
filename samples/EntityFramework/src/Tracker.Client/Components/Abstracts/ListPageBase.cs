@@ -1,5 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
+using Arbiter.CommandQuery.Filters;
 
 using Blazored.Modal.Services;
 
