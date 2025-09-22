@@ -108,15 +108,15 @@ public class LinqExpressionBuilder
     /// <summary>
     /// Visits the specified <see cref="EntityFilter"/> and writes its expression.
     /// </summary>
-    /// <param name="queryRule">The query rule to visit.</param>
-    private void Visit(EntityFilter queryRule)
+    /// <param name="entityFilter">The query rule to visit.</param>
+    private void Visit(EntityFilter entityFilter)
     {
-        if (queryRule == null)
+        if (entityFilter?.IsValid() != true)
             return;
 
-        if (queryRule.IsGroup())
-            WriteGroup(queryRule);
-        else if (queryRule is EntityFilter filter)
+        if (entityFilter.IsGroup())
+            WriteGroup(entityFilter);
+        else if (entityFilter is EntityFilter filter)
             WriteExpression(filter);
     }
 
@@ -126,6 +126,9 @@ public class LinqExpressionBuilder
     /// <param name="entityFilter">The query group to write.</param>
     private void WriteGroup(EntityFilter entityFilter)
     {
+        if (!entityFilter.IsValid())
+            return;
+
         var filters = entityFilter.Filters;
 
         if (filters == null || filters.Count == 0)
@@ -138,6 +141,9 @@ public class LinqExpressionBuilder
         _expression.Append('(');
         foreach (var filter in filters)
         {
+            if (!filter.IsValid())
+                continue;
+
             if (wroteFirst)
                 _expression.Append(' ').Append(logic).Append(' ');
 
@@ -154,7 +160,7 @@ public class LinqExpressionBuilder
     private void WriteExpression(EntityFilter filter)
     {
         // Field required for expression
-        if (string.IsNullOrWhiteSpace(filter.Name))
+        if (!filter.IsValid())
             return;
 
         // default comparison equal

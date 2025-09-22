@@ -10,7 +10,7 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseStringJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":\"test\"}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":\"test\"}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
@@ -25,7 +25,7 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseBooleanJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":true}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":true}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
@@ -37,12 +37,12 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseNumberJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":123}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":123}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
         filter.Should().NotBeNull();
-        filter.Value.Should().BeOfType<double>();
+        filter.Value.Should().BeOfType<int>();
         filter.Value.Should().Be(123);
     }
 
@@ -50,7 +50,7 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseQueryJson()
     {
-        var json = "{\"page\":1,\"pageSize\":20,\"sort\":[{\"name\":\"Name\",\"direction\":\"asc\"}],\"filter\":{\"logic\":\"or\",\"filters\":[{\"name\":\"Name\",\"operator\":\"eq\",\"value\":\"test\"},{\"name\":\"Description\",\"operator\":\"eq\",\"value\":\"test\"}]}}";
+        var json = "{\"page\":1,\"pageSize\":20,\"sort\":[{\"name\":\"Name\",\"direction\":\"asc\"}],\"filter\":{\"logic\":\"Or\",\"filters\":[{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":\"test\"},{\"name\":\"Description\",\"operator\":\"Equal\",\"value\":\"test\"}]}}";
         var query = JsonSerializer.Deserialize<EntityQuery>(json);
 
         query.Should().NotBeNull();
@@ -97,7 +97,7 @@ public class EntityFilterJsonTests
 
         var json = JsonSerializer.Serialize(filter);
         json.Should().NotBeNullOrWhiteSpace();
-        json.Should().Be("{\"logic\":\"and\",\"filters\":[{\"name\":\"IsDeleted\",\"operator\":\"eq\",\"value\":true},{\"name\":\"StatusId\",\"operator\":\"eq\",\"value\":\"1234\"}]}");
+        json.Should().Be("{\"logic\":\"And\",\"filters\":[{\"name\":\"IsDeleted\",\"operator\":\"Equal\",\"value\":true},{\"name\":\"StatusId\",\"operator\":\"Equal\",\"value\":\"1234\"}]}");
 
         var filterDeserialize = JsonSerializer.Deserialize<EntityFilter>(json);
         filterDeserialize.Should().NotBeNull();

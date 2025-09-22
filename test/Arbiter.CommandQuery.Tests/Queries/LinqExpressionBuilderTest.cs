@@ -37,7 +37,7 @@ public class LinqExpressionBuilderTest
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("(Rank == @0 or Name == @1)");
+        builder.Expression.Should().Be("(Rank == @0 || Name == @1)");
 
         builder.Parameters.Count.Should().Be(2);
         builder.Parameters[0].Should().Be(7);
@@ -61,7 +61,7 @@ public class LinqExpressionBuilderTest
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("(Rank == @0 and Name == @1)");
+        builder.Expression.Should().Be("(Rank == @0 && Name == @1)");
 
         builder.Parameters.Count.Should().Be(2);
         builder.Parameters[0].Should().Be(7);
@@ -115,7 +115,7 @@ public class LinqExpressionBuilderTest
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("(Rank > @0 and (Name == @1 or Name == @2))");
+        builder.Expression.Should().Be("(Rank > @0 && (Name == @1 || Name == @2))");
 
         builder.Parameters.Count.Should().Be(3);
         builder.Parameters[0].Should().Be(5);
@@ -390,7 +390,7 @@ public class LinqExpressionBuilderTest
         builder.Build(entityFilter);
 
         builder.Expression.Should().NotBeEmpty();
-        builder.Expression.Should().Be("(it.Id in @0 and Locations.Any(it.Id in @1))");
+        builder.Expression.Should().Be("(it.Id in @0 && Locations.Any(it.Id in @1))");
 
         builder.Parameters.Count.Should().Be(2);
         builder.Parameters[0].Should().BeOfType<int[]>();
