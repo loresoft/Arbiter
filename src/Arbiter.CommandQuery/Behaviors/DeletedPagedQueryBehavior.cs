@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Queries;
 
 using Microsoft.Extensions.Logging;

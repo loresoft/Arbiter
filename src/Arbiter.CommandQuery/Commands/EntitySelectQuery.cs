@@ -2,9 +2,10 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Filters;
+using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a query for selecting entities based on an <see cref="EntitySelect"/>.

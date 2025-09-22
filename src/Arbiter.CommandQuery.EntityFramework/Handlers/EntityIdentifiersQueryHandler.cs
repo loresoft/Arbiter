@@ -1,5 +1,5 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

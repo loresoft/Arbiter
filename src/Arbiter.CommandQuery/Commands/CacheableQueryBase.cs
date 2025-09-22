@@ -1,9 +1,8 @@
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a base class for cacheable queries that use a specified <see cref="ClaimsPrincipal"/> for user context.

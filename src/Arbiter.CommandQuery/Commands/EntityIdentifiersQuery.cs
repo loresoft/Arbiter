@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Services;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a query for retrieving multiple entities identified by a list of keys.
