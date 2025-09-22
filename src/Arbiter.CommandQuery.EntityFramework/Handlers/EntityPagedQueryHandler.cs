@@ -123,7 +123,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             .Sort(entityQuery.Sort);
 
         if (entityQuery.Page > 0 && entityQuery.PageSize > 0)
-            queryable = queryable.Page(entityQuery.Page, entityQuery.PageSize);
+            queryable = queryable.Page(entityQuery.Page.Value, entityQuery.PageSize.Value);
 
         queryable = queryable.TagWithCallSite();
 

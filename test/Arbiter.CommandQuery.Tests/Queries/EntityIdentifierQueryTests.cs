@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Tests.Models;
 

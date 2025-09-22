@@ -1,16 +1,21 @@
+using System.Text.Json.Serialization;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Represents the sort directions for an entity.
 /// </summary>
-public static class EntitySortDirections
+[JsonConverter(typeof(JsonStringEnumConverter<SortDirections>))]
+public enum SortDirections
 {
     /// <summary>
     /// The ascending sort direction.
     /// </summary>
-    public const string Ascending = "asc";
+    [JsonStringEnumMemberName("asc")]
+    Ascending = 0,
     /// <summary>
     /// The descending sort direction.
     /// </summary>
-    public const string Descending = "desc";
+    [JsonStringEnumMemberName("desc")]
+    Descending = 1,
 }

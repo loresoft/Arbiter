@@ -5,16 +5,16 @@ namespace Arbiter.CommandQuery.Tests.Queries;
 public class EntitySortTest
 {
     [Test]
-    [Arguments("Name:Ascending", "Name", "Ascending")]
-    [Arguments("Name:Descending", "Name", "Descending")]
-    [Arguments("Name : Descending", "Name", "Descending")]
+    [Arguments("Name:Ascending", "Name", SortDirections.Ascending)]
+    [Arguments("Name:Descending", "Name", SortDirections.Descending)]
+    [Arguments("Name : Descending", "Name", SortDirections.Descending)]
     [Arguments("Name", "Name", null)]
     [Arguments("", null, null)]
-    public void Parse(string source, string? name, string? direction)
+    public void Parse(string source, string? name, SortDirections? direction)
     {
         var sort = EntitySort.Parse(source);
 
-        if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(direction))
+        if (string.IsNullOrEmpty(name) && direction == null)
         {
             sort.Should().BeNull();
         }

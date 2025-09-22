@@ -86,7 +86,7 @@ public static class EntityFilterBuilder
     /// <returns>
     /// An instance of <see cref="EntitySort"/> for the specified field and direction.
     /// </returns>
-    public static EntitySort CreateSort(string field, string? direction = null)
+    public static EntitySort CreateSort(string field, SortDirections? direction = null)
         => new() { Name = field, Direction = direction };
 
     /// <summary>

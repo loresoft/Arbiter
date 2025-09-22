@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.EntityFramework.Tests.Constants;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 using Arbiter.CommandQuery.Filters;
@@ -65,7 +66,7 @@ public class PriorityTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "Id", Operator = FilterOperators.In, Value = identifiers }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
@@ -87,7 +88,7 @@ public class PriorityTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "Description", Operator = FilterOperators.IsNull }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
@@ -108,7 +109,7 @@ public class PriorityTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "Description", Operator = FilterOperators.IsNotNull }
         };
         var listQuery = new EntityPagedQuery<PriorityReadModel>(MockPrincipal.Default, entityQuery);
@@ -130,7 +131,7 @@ public class PriorityTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter
             {
                 Filters = new List<EntityFilter> {

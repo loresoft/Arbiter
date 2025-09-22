@@ -55,7 +55,7 @@ public class AuditTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "Username", Value = "TEST" }
         };
         var listQuery = new EntityPagedQuery<AuditReadModel>(MockPrincipal.Default, entityQuery);

@@ -132,7 +132,7 @@ public class QueryExtensionsTests
 
         var list = fruits
             .AsQueryable()
-            .Sort(new[] { new EntitySort { Name = "Name", Direction = "Descending" } })
+            .Sort(new[] { new EntitySort { Name = "Name", Direction = SortDirections.Descending } })
             .ToList();
 
         list.Should().NotBeEmpty();

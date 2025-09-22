@@ -38,7 +38,7 @@ public static class GridExtensions
             .Select(s => new EntitySort
             {
                 Name = s.Property,
-                Direction = s.Descending ? "DESC" : "ASC"
+                Direction = s.Descending ? SortDirections.Descending : SortDirections.Ascending
             })
             .ToList();
     }
@@ -91,15 +91,7 @@ public static class GridExtensions
     public static DataResult<T> ToResult<T>(this EntityPagedResult<T> pagedResult)
     {
         return new DataResult<T>(
-            Total: (int)pagedResult.Total,
-            Items: pagedResult.Data ?? []
-        );
-    }
-
-    public static DataResult<T> ToResult<T>(this EntityContinuationResult<T> pagedResult)
-    {
-        return new DataResult<T>(
-            Total: pagedResult.Data?.Count ?? 0,
+            Total: (int)(pagedResult.Total ?? 0),
             Items: pagedResult.Data ?? []
         );
     }

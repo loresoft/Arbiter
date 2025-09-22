@@ -52,7 +52,7 @@ public class TaskTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "StatusId", Value = StatusConstants.NotStarted.Id }
         };
         var listQuery = new EntityPagedQuery<TaskReadModel>(MockPrincipal.Default, entityQuery);

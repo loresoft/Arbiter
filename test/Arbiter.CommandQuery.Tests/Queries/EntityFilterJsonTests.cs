@@ -62,7 +62,7 @@ public class EntityFilterJsonTests
         query.Sort.Should().NotBeEmpty();
         query.Sort.Should().HaveCount(1);
         query.Sort[0].Name.Should().Be("Name");
-        query.Sort[0].Direction.Should().Be("asc");
+        query.Sort[0].Direction.Should().Be(SortDirections.Ascending);
 
         query.Filter.Should().NotBeNull();
         query.Filter.Logic.Should().Be(FilterLogic.Or);

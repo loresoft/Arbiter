@@ -116,7 +116,7 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
             .Sort(entityQuery.Sort);
 
         if (entityQuery.Page > 0 && entityQuery.PageSize > 0)
-            queryable = queryable.Page(entityQuery.Page, entityQuery.PageSize);
+            queryable = queryable.Page(entityQuery.Page.Value, entityQuery.PageSize.Value);
 
         return await queryable
             .ProjectTo<TEntity, TReadModel>(Mapper)

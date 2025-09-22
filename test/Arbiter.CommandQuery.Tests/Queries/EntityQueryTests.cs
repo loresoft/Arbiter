@@ -35,7 +35,7 @@ public class EntityQueryTests
 
         var first = entityQuery.Sort.First();
         first.Name.Should().Be("updated");
-        first.Direction.Should().Be("desc");
+        first.Direction.Should().Be(SortDirections.Descending);
     }
 
     [Test]

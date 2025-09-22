@@ -40,7 +40,7 @@ public class EntitySort
     /// </value>
     [JsonPropertyName("direction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Direction { get; set; }
+    public SortDirections? Direction { get; set; }
 
     /// <summary>
     /// Parses a string representation of a sort expression into an <see cref="EntitySort"/> instance.
@@ -69,8 +69,19 @@ public class EntitySort
         var sort = new EntitySort();
         sort.Name = parts[0].Trim();
 
-        if (parts.Length >= 2)
-            sort.Direction = parts[1]?.Trim();
+        if (parts.Length < 2)
+            return sort;
+
+        var direction = parts[1]?.Trim().ToLowerInvariant();
+
+        sort.Direction = direction switch
+        {
+            "asc" => SortDirections.Ascending,
+            "ascending" => SortDirections.Ascending,
+            "desc" => SortDirections.Descending,
+            "descending" => SortDirections.Descending,
+            _ => SortDirections.Ascending,
+        };
 
         return sort;
     }
@@ -95,9 +106,12 @@ public class EntitySort
     /// </returns>
     public override string ToString()
     {
-        if (string.IsNullOrWhiteSpace(Direction))
+        if (Direction == null)
             return Name;
 
-        return $"{Name}:{Direction}";
+        if (Direction == SortDirections.Descending)
+            return $"{Name} desc";
+
+        return $"{Name} asc";
     }
 }

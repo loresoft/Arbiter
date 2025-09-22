@@ -10,7 +10,7 @@ public class QueryStringEncoderTests
     {
         var entitySelect = new EntitySelect
         {
-            Sort = [new() { Name = "Updated", Direction = "Descending" }],
+            Sort = [new() { Name = "Updated", Direction = SortDirections.Descending }],
             Filter = new() { Name = "Description", Operator = FilterOperators.IsNull }
         };
 
@@ -25,7 +25,7 @@ public class QueryStringEncoderTests
 
         resultSelect.Sort.Should().NotBeNullOrEmpty();
         resultSelect.Sort[0].Name.Should().Be("Updated");
-        resultSelect.Sort[0].Direction.Should().Be("Descending");
+        resultSelect.Sort[0].Direction.Should().Be(SortDirections.Descending);
     }
 
     [Test]
