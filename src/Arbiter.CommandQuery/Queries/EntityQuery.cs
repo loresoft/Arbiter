@@ -100,7 +100,8 @@ public class EntityQuery : EntitySelect
     /// The page number for the query. The default value is 1.
     /// </value>
     [JsonPropertyName("page")]
-    public int Page { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Page { get; set; }
 
     /// <summary>
     /// Gets or sets the size of the page for the query.
@@ -109,7 +110,15 @@ public class EntityQuery : EntitySelect
     /// The size of the page for the query. The default value is 20.
     /// </value>
     [JsonPropertyName("pageSize")]
-    public int PageSize { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? PageSize { get; set; }
+
+    /// <summary>
+    /// Gets the continuation token for retrieving the next page of results.
+    /// </summary>
+    [JsonPropertyName("continuationToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContinuationToken { get; }
 
     /// <summary>
     /// Computes the hash code for the current <see cref="EntityQuery"/> instance.

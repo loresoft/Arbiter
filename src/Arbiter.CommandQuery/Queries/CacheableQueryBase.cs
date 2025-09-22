@@ -1,5 +1,6 @@
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 
 namespace Arbiter.CommandQuery.Queries;
@@ -12,7 +13,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// This class provides support for cache key generation, cache tagging, and cache expiration policies.
 /// It is intended for use in scenarios where query results can be cached and associated with a user principal.
 /// </remarks>
-public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TResponse>, ICacheResult
+public abstract record CacheableQueryBase<TResponse> : PrincipalCommandBase<TResponse>, ICacheResult
 {
     private DateTimeOffset? _absoluteExpiration;
     private TimeSpan? _slidingExpiration;

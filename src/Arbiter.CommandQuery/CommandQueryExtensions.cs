@@ -169,7 +169,6 @@ public static class CommandQueryExtensions
         services.AddTransient<IPipelineBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>, MemoryCacheQueryBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, MemoryCacheQueryBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, MemoryCacheQueryBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>>();
-        services.AddTransient<IPipelineBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>, MemoryCacheQueryBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>>();
 
         return services;
     }
@@ -211,7 +210,6 @@ public static class CommandQueryExtensions
         services.AddTransient<IPipelineBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>, DistributedCacheQueryBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, DistributedCacheQueryBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, DistributedCacheQueryBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>>();
-        services.AddTransient<IPipelineBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>, DistributedCacheQueryBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>>();
 
         return services;
     }
@@ -253,7 +251,6 @@ public static class CommandQueryExtensions
         services.AddTransient<IPipelineBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>, HybridCacheQueryBehavior<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, HybridCacheQueryBehavior<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>>();
         services.AddTransient<IPipelineBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, HybridCacheQueryBehavior<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>>();
-        services.AddTransient<IPipelineBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>, HybridCacheQueryBehavior<EntityContinuationQuery<TReadModel>, EntityContinuationResult<TReadModel>>>();
 
         return services;
     }
