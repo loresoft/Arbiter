@@ -1,8 +1,6 @@
 using System.Linq.Dynamic.Core;
-using System.Text;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 

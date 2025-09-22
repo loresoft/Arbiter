@@ -2,7 +2,6 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Dispatcher;

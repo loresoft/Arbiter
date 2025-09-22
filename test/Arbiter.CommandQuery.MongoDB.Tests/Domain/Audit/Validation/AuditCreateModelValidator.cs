@@ -1,5 +1,6 @@
-using FluentValidation;
 using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
+
+using FluentValidation;
 
 namespace Arbiter.CommandQuery.MongoDB.Tests.Domain.Validation;
 

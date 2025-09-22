@@ -1,7 +1,6 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Queries;
 
-namespace Arbiter.CommandQuery.Filters;
+namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Provides static helper methods for building common entity filters, queries, and sort expressions.

@@ -1,5 +1,4 @@
 using System.Linq.Dynamic.Core;
-using System.Threading.Tasks;
 
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;

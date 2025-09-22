@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.Queries;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

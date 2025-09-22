@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Arbiter.CommandQuery.Filters;
+namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Defines supported query operators used in filtering and searching within data-bound components.

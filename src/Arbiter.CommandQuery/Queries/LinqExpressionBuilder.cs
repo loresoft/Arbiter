@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Arbiter.CommandQuery.Filters;
+namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Builds a <see langword="string"/>-based LINQ expression from an <see cref="EntityFilter"/> instance.

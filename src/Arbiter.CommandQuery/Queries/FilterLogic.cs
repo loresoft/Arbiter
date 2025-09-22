@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Arbiter.CommandQuery.Filters;
+namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Defines logical operators used in query groups for data-bound components.

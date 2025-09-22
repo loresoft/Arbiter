@@ -1,10 +1,8 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using Arbiter.CommandQuery.Definitions;
 using System.Linq.Expressions;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
-using Models = Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 

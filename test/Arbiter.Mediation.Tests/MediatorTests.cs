@@ -1,4 +1,3 @@
-using Arbiter.Mediation;
 using Arbiter.Tests.Domain;
 
 using Microsoft.Extensions.DependencyInjection;

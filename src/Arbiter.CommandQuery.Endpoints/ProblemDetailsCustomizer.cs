@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Arbiter.CommandQuery.Endpoints;
 
 /// <summary>

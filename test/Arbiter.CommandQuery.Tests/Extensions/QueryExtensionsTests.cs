@@ -1,11 +1,9 @@
 using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
 
-using Arbiter.CommandQuery.Tests.Models;
-
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Filters;
+using Arbiter.CommandQuery.Tests.Models;
 
 namespace Arbiter.CommandQuery.Tests.Extensions;
 

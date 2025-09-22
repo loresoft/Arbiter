@@ -3,7 +3,6 @@
 using System.Net.Mime;
 
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 
 using Microsoft.AspNetCore.Http;

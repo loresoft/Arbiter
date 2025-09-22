@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Xml.Linq;
 
 using Arbiter.CommandQuery.Definitions;
 

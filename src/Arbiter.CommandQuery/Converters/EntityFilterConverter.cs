@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Arbiter.CommandQuery.Filters;
+using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Converters;
 

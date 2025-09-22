@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
 
-namespace Arbiter.CommandQuery.Filters;
+namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
 /// Represents a filter for selecting entities based on specific criteria.

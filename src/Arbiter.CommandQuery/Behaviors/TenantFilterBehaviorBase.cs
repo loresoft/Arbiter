@@ -1,8 +1,7 @@
 using System.Security.Claims;
-using System.Security.Principal;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Filters;
+using Arbiter.CommandQuery.Queries;
 
 using Microsoft.Extensions.Logging;
 

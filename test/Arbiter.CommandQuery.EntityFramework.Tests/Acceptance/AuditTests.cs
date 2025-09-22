@@ -1,6 +1,5 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
-using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Mediation;
 

@@ -1,4 +1,3 @@
-using Arbiter.CommandQuery.Filters;
 using Arbiter.CommandQuery.Queries;
 
 namespace Arbiter.CommandQuery.Tests.Queries;

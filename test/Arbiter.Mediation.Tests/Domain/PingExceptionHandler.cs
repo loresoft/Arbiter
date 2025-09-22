@@ -1,5 +1,3 @@
-using Arbiter.Mediation;
-
 namespace Arbiter.Tests.Domain;
 
 public class PingExceptionHandler : IRequestHandler<Ping, Pong>
