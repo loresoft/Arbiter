@@ -112,7 +112,7 @@ public class TaskTests : DatabaseTestBase
 
         var updateModel = generator.Generate();
 
-        var upsertCommandNew = new EntityUpsertCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandNew = new EntityUpdateCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultNew = await mediator.Send(upsertCommandNew);
         upsertResultNew.Should().NotBeNull();
 
@@ -128,7 +128,7 @@ public class TaskTests : DatabaseTestBase
         updateModel.Description = "Update " + DateTime.Now.Ticks;
 
         // Upsert again, should be update
-        var upsertCommandUpdate = new EntityUpsertCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandUpdate = new EntityUpdateCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultUpdate = await mediator.Send(upsertCommandUpdate);
         upsertResultUpdate.Should().NotBeNull();
         upsertResultUpdate.Description.Should().NotBe(upsertResultNew.Description);

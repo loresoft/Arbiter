@@ -277,7 +277,6 @@ public static class CommandQueryExtensions
 
         services.AddTransient<IPipelineBehavior<EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>, HybridCacheExpireBehavior<EntityCreateCommand<TCreateModel, TReadModel>, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, HybridCacheExpireBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>>();
-        services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, HybridCacheExpireBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityPatchCommand<TKey, TReadModel>, TReadModel>, HybridCacheExpireBehavior<EntityPatchCommand<TKey, TReadModel>, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityDeleteCommand<TKey, TReadModel>, TReadModel>, HybridCacheExpireBehavior<EntityDeleteCommand<TKey, TReadModel>, TReadModel>>();
 
@@ -425,47 +424,6 @@ public static class CommandQueryExtensions
 
         services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, ValidateEntityModelCommandBehavior<TUpdateModel, TReadModel>>();
         services.AddTransient<IPipelineBehavior<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, EntityChangeNotificationBehavior<TKey, TUpdateModel, TReadModel>>();
-
-        return services;
-    }
-
-    /// <summary>
-    /// Adds the entity upsert behaviors to the service collection.
-    /// </summary>
-    /// <typeparam name="TKey">The key type for the entity model.</typeparam>
-    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <typeparam name="TUpdateModel">The type of the update model.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
-    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-    /// <remarks>
-    /// This method conditionally registers pipeline behaviors based on the interfaces implemented by <typeparamref name="TUpdateModel"/>:
-    /// <list type="bullet">
-    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="IHaveTenant{TKey}"/>, tenant-based behaviors are added.</description></item>
-    /// <item><description>If <typeparamref name="TUpdateModel"/> implements <see cref="ITrackUpdated"/>, update tracking behaviors are added.</description></item>
-    /// </list>
-    /// Validation and change notification behaviors are always added.
-    /// Pipeline behaviors are registered in the order they should execute.
-    /// </remarks>
-    public static IServiceCollection AddEntityUpsertBehaviors<TKey, TReadModel, TUpdateModel>(this IServiceCollection services)
-        where TUpdateModel : class
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        // pipeline registration, run in order registered
-        var updateType = typeof(TUpdateModel);
-        bool supportsTenant = updateType.Implements<IHaveTenant<TKey>>();
-        if (supportsTenant)
-        {
-            services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, TenantDefaultCommandBehavior<TKey, TUpdateModel, TReadModel>>();
-            services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, TenantAuthenticateCommandBehavior<TKey, TUpdateModel, TReadModel>>();
-        }
-
-        bool supportsTracking = updateType.Implements<ITrackUpdated>();
-        if (supportsTracking)
-            services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, TrackChangeCommandBehavior<TUpdateModel, TReadModel>>();
-
-        services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, ValidateEntityModelCommandBehavior<TUpdateModel, TReadModel>>();
-        services.AddTransient<IPipelineBehavior<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>, EntityChangeNotificationBehavior<TKey, TUpdateModel, TReadModel>>();
 
         return services;
     }

@@ -161,10 +161,10 @@ public class DispatcherDataService : IDispatcherDataService
     {
         var user = await GetUser(cancellationToken).ConfigureAwait(false);
 
-        var command = new EntityUpsertCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
+        var command = new EntityUpdateCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel, upsert: true);
 
         return await Dispatcher
-            .Send<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>(command, cancellationToken)
+            .Send<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>(command, cancellationToken)
             .ConfigureAwait(false);
     }
 

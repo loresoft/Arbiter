@@ -45,8 +45,21 @@ public class EntityUpdateCommandHandler<TRepository, TEntity, TKey, TUpdateModel
             .FindAsync(request.Id, cancellationToken)
             .ConfigureAwait(false);
 
+        if (entity == null && !request.Upsert)
+            return default!;
+
+        // create entity if not found
         if (entity == null)
-            return default;
+        {
+            entity = new TEntity { Id = request.Id };
+
+            // apply create metadata
+            if (entity is ITrackCreated createdModel)
+            {
+                createdModel.Created = request.Activated;
+                createdModel.CreatedBy = request.ActivatedBy;
+            }
+        }
 
         // copy updates from model to entity
         Mapper.Map(request.Model, entity);

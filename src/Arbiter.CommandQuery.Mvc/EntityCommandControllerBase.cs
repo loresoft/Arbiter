@@ -71,26 +71,6 @@ public abstract class EntityCommandControllerBase<TKey, TListModel, TReadModel, 
     }
 
     /// <summary>
-    /// Creates or updates an entity using the specified update model.
-    /// </summary>
-    /// <param name="id">The identifier of the entity to create or update.</param>
-    /// <param name="updateModel">The model containing the data for the entity.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The read model for the created or updated entity.</returns>
-    [HttpPost("{id}")]
-    [Consumes(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public virtual async Task<ActionResult<TReadModel?>> Upsert(
-        [FromRoute] TKey id,
-        [FromBody] TUpdateModel updateModel,
-        CancellationToken cancellationToken = default)
-    {
-        return await UpsertCommand(id, updateModel, cancellationToken);
-    }
-
-    /// <summary>
     /// Updates an existing entity using the specified update model.
     /// </summary>
     /// <param name="id">The identifier of the entity to update.</param>
@@ -180,19 +160,6 @@ public abstract class EntityCommandControllerBase<TKey, TListModel, TReadModel, 
     protected virtual async Task<TReadModel?> UpdateCommand(TKey id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
     {
         var command = new EntityUpdateCommand<TKey, TUpdateModel, TReadModel>(User, id, updateModel);
-        return await Mediator.Send(command, cancellationToken);
-    }
-
-    /// <summary>
-    /// Executes a command to create or update an entity using the specified update model.
-    /// </summary>
-    /// <param name="id">The identifier of the entity to create or update.</param>
-    /// <param name="updateModel">The model containing the data for the entity.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>The read model for the created or updated entity.</returns>
-    protected virtual async Task<TReadModel?> UpsertCommand(TKey id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
-    {
-        var command = new EntityUpsertCommand<TKey, TUpdateModel, TReadModel>(User, id, updateModel);
         return await Mediator.Send(command, cancellationToken);
     }
 

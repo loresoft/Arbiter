@@ -114,7 +114,7 @@ public class AuditTests : DatabaseTestBase
 
         var updateModel = generator.Generate();
 
-        var upsertCommandNew = new EntityUpsertCommand<string, AuditUpdateModel, AuditReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandNew = new EntityUpdateCommand<string, AuditUpdateModel, AuditReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultNew = await mediator.Send(upsertCommandNew);
         upsertResultNew.Should().NotBeNull();
         upsertResultNew.Id.Should().Be(key);
@@ -129,7 +129,7 @@ public class AuditTests : DatabaseTestBase
         updateModel.Content = "Update " + DateTime.Now.Ticks;
 
         // Upsert again, should be update
-        var upsertCommandUpdate = new EntityUpsertCommand<string, AuditUpdateModel, AuditReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandUpdate = new EntityUpdateCommand<string, AuditUpdateModel, AuditReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultUpdate = await mediator.Send(upsertCommandUpdate);
         upsertResultUpdate.Should().NotBeNull();
         upsertResultUpdate.Content.Should().NotBe(upsertResultNew.Content);
