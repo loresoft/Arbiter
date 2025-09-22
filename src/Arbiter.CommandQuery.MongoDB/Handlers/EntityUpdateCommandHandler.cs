@@ -73,7 +73,7 @@ public class EntityUpdateCommandHandler<TRepository, TEntity, TKey, TUpdateModel
 
         // save updates
         var savedEntity = await Repository
-            .UpdateAsync(entity, cancellationToken)
+            .UpsertAsync(entity, cancellationToken)
             .ConfigureAwait(false);
 
         // return read model
