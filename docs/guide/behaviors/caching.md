@@ -9,126 +9,9 @@ Pipeline behaviors that implement intelligent caching strategies to improve quer
 
 ## Overview
 
-The Arbiter framework provides three cache behavior implementations that can be used independently or in combination with queries that inherit from `CacheableQueryBase`:
+The Arbiter framework provides the `HybridCacheQueryBehavior` implementation that works with queries that inherit from `CacheableQueryBase`. This behavior combines both in-memory and distributed caching for optimal performance and scalability.
 
-- **MemoryCacheQueryBehavior** - Fast in-memory caching for single application instances
-- **DistributedCacheQueryBehavior** - Shared cache across multiple application instances
-- **HybridCacheQueryBehavior** - Combined local and distributed caching for optimal performance
-
-All cache behaviors work automatically with cacheable queries without requiring additional configuration in the query implementation.
-
-## MemoryCacheQueryBehavior
-
-The `MemoryCacheQueryBehavior<TRequest, TResponse>` behavior caches query results in local memory for ultra-fast retrieval and reduced database load.
-
-### Memory Cache Characteristics
-
-- **Fastest cache access** (in-process memory)
-- **Limited to single application instance**
-- **Automatically cleared on application restart**
-- **Best for frequently accessed data with small memory footprint**
-
-### Memory Cache Use Cases
-
-- **Single Instance Deployments**: When you don't need to share cache across instances
-- **Frequently Accessed Data**: Reference data, lookups, configurations that fit in memory
-- **Low Latency Requirements**: When sub-millisecond response times are required
-- **Development and Testing**: Simple setup without external dependencies
-
-### Memory Cache Registration
-
-```csharp
-// Register memory cache and cache behavior
-services.AddMemoryCache();
-services.AddEntityMemoryCache();
-```
-
-### Memory Cache Usage
-
-```csharp
-public record GetUserByIdQuery : CacheableQueryBase<UserReadModel>
-{
-    public GetUserByIdQuery(ClaimsPrincipal principal, int userId)
-        : base(principal)
-    {
-        UserId = userId;
-    }
-
-    public int UserId { get; }
-
-    public override string GetCacheKey() => $"User:Id:{UserId}";
-    public override string? GetCacheTag() => "Users";
-}
-
-// Usage
-var query = new GetUserByIdQuery(principal, 123);
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
-
-var user = await mediator.Send(query);
-```
-
-## DistributedCacheQueryBehavior
-
-The `DistributedCacheQueryBehavior<TRequest, TResponse>` behavior caches query results in a distributed cache (Redis, SQL Server, etc.) for sharing data across multiple application instances and providing persistence across application restarts.
-
-### Distributed Cache Characteristics
-
-- **Shared across multiple application instances**
-- **Persists across application restarts**
-- **Requires serialization/deserialization**
-- **Best for scaled-out environments**
-
-### Distributed Cache Use Cases
-
-- **Multi-Instance Deployments**: Microservices, load-balanced applications
-- **Cloud Environments**: Azure, AWS, or other cloud platforms  
-- **Horizontal Scaling**: When cache needs to be shared across instances
-- **Data Persistence**: When cache should survive application restarts
-
-### Distributed Cache Registration
-
-```csharp
-// Register distributed cache with Redis
-services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = "localhost:6379";
-    options.InstanceName = "MyApp";
-});
-services.AddEntityDistributedCache();
-
-// Or with SQL Server
-services.AddSqlServerCache(options =>
-{
-    options.ConnectionString = connectionString;
-    options.SchemaName = "dbo";
-    options.TableName = "CacheEntries";
-});
-services.AddEntityDistributedCache();
-```
-
-### Distributed Cache Usage
-
-```csharp
-public record GetProductsQuery : CacheableQueryBase<IReadOnlyCollection<ProductReadModel>>
-{
-    public GetProductsQuery(ClaimsPrincipal principal, string category)
-        : base(principal)
-    {
-        Category = category;
-    }
-
-    public string Category { get; }
-
-    public override string GetCacheKey() => $"Products:Category:{Category}";
-    public override string? GetCacheTag() => "Products";
-}
-
-// Usage
-var query = new GetProductsQuery(principal, "Electronics");
-query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // 1-hour absolute expiration
-
-var products = await mediator.Send(query);
-```
+The hybrid cache behavior works automatically with cacheable queries without requiring additional configuration in the query implementation.
 
 ## HybridCacheQueryBehavior
 
@@ -194,7 +77,7 @@ public record GetOrderHistoryQuery : CacheableQueryBase<IReadOnlyCollection<Orde
 
 // Usage
 var query = new GetOrderHistoryQuery(principal, 456);
-query.Cache(TimeSpan.FromMinutes(30)); // 30-minute sliding expiration
+query.Cache(TimeSpan.FromMinutes(30)); // 30-minute expiration
 
 var orders = await mediator.Send(query);
 ```
@@ -241,33 +124,6 @@ public string? GetCacheTag() => $"Products Category:{CategoryId}";
 
 ## Configuration Options
 
-### Memory Cache Configuration
-
-```csharp
-services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1024; // Maximum number of entries
-    options.CompactionPercentage = 0.25; // Remove 25% when limit reached
-    options.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
-});
-```
-
-### Distributed Cache Configuration
-
-```csharp
-// Redis configuration
-services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = connectionString;
-    options.ConfigurationOptions = new ConfigurationOptions
-    {
-        AbortOnConnectFail = false, // Don't crash if Redis is down
-        ConnectTimeout = 5000,      // 5 second connection timeout
-        SyncTimeout = 1000,         // 1 second operation timeout
-    };
-});
-```
-
 ### Hybrid Cache Configuration
 
 ```csharp
@@ -287,16 +143,18 @@ services.AddHybridCache(options =>
 
 ### Cache Strategy Selection
 
-1. **Memory Cache**: Use for small, frequently accessed, read-only data in single-instance deployments
-2. **Distributed Cache**: Use for larger datasets in multi-instance scenarios  
-3. **Hybrid Cache**: Use for production applications requiring both speed and scale
+The `HybridCacheQueryBehavior` provides the optimal caching strategy by combining both in-memory and distributed caching capabilities. This unified approach offers:
+
+- **Fast local access** for frequently used data
+- **Distributed sharing** across multiple application instances  
+- **Automatic tier management** between local and distributed caches
+- **Production-ready performance** for all deployment scenarios
 
 ### Query Design Guidelines
 
 1. **Inherit from CacheableQueryBase**: Ensures proper cache behavior integration
 2. **Implement meaningful cache keys**: Use `GetCacheKey()` to create unique, descriptive keys
 3. **Use cache tags effectively**: Implement `GetCacheTag()` for efficient invalidation
-4. **Configure appropriate expiration**: Use sliding for frequently accessed data, absolute for time-sensitive data
 
 ```csharp
 public record GetDashboardDataQuery : CacheableQueryBase<DashboardReadModel>
@@ -323,8 +181,8 @@ public record GetDashboardDataQuery : CacheableQueryBase<DashboardReadModel>
 
 ### Service Configuration Best Practices
 
-1. **Use hybrid cache for production environments**
-2. **Configure appropriate cache providers and connection settings**
+1. **Configure hybrid cache for all environments**
+2. **Set up appropriate cache providers and connection settings**
 3. **Register cache invalidation for data modification commands**
 4. **Monitor cache performance and hit rates**
 

@@ -16,13 +16,11 @@ This package provides pre-built handlers that implement the standard entity oper
 - **`EntityIdentifierQueryHandler`** - Retrieve a single entity by its identifier
 - **`EntityIdentifiersQueryHandler`** - Retrieve multiple entities by their identifiers  
 - **`EntityPagedQueryHandler`** - Retrieve entities with pagination, filtering, and sorting
-- **`EntitySelectQueryHandler`** - Retrieve entities with custom filtering and sorting
 
 ### Command Handlers
 
 - **`EntityCreateCommandHandler`** - Create new entities with automatic audit tracking
-- **`EntityUpdateCommandHandler`** - Update existing entities with change tracking
-- **`EntityUpsertCommandHandler`** - Create or update entities (insert or update)
+- **`EntityUpdateCommandHandler`** - Update existing entities with built-in upsert logic (Version 2.0)
 - **`EntityPatchCommandHandler`** - Apply partial updates using JSON patch documents
 - **`EntityDeleteCommandHandler`** - Delete entities with soft delete support
 
@@ -106,7 +104,6 @@ services.AddEntityCommands<IProductRepository, Product, string, ProductReadModel
 services.AddEntityCreateCommand<IProductRepository, Product, string, ProductReadModel, ProductCreateModel>();
 services.AddEntityUpdateCommand<IProductRepository, Product, string, ProductReadModel, ProductUpdateModel>();
 services.AddEntityDeleteCommand<IProductRepository, Product, string, ProductReadModel>();
-services.AddEntityUpsertCommand<IProductRepository, Product, string, ProductReadModel, ProductUpdateModel>();
 services.AddEntityPatchCommand<IProductRepository, Product, string, ProductReadModel>();
 ```
 
@@ -295,21 +292,24 @@ var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 var result = await mediator.Send(query);
 ```
 
-#### Select with Custom Filtering
+#### Paged Query with Filtering (Version 2.0)
 
 ```csharp
-var entitySelect = new EntitySelect
+var entityQuery = new EntityQuery
 {
     Filter = new EntityFilter 
     { 
         Name = "category", 
+        Operator = FilterOperators.Equal,
         Value = "electronics" 
     },
-    Sort = new[] { new EntitySort { Name = "name" } }
+    Sort = new[] { new EntitySort { Name = "name", Direction = SortDirections.Ascending } },
+    Page = 1,
+    PageSize = 20
 };
 
-var query = new EntitySelectQuery<ProductReadModel>(principal, entitySelect);
-var products = await mediator.Send(query);
+var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
+var pagedResult = await mediator.Send(query);
 ```
 
 ### Command Operations
@@ -342,7 +342,7 @@ var command = new EntityUpdateCommand<string, ProductUpdateModel, ProductReadMod
 var updatedProduct = await mediator.Send(command);
 ```
 
-#### Upsert Entity (Create or Update)
+#### Update Entity (Version 2.0 - with built-in upsert)
 
 ```csharp
 var updateModel = new ProductUpdateModel 
@@ -352,8 +352,8 @@ var updateModel = new ProductUpdateModel
     Category = "Electronics"
 };
 
-var command = new EntityUpsertCommand<string, ProductUpdateModel, ProductReadModel>(principal, productId, updateModel);
-var product = await mediator.Send(command);
+var command = new EntityUpdateCommand<string, ProductUpdateModel, ProductReadModel>(principal, productId, updateModel);
+var product = await mediator.Send(command); // Will create if not found, update if exists
 ```
 
 #### Patch Entity
@@ -413,12 +413,6 @@ services.AddTransient<IPipelineBehavior<EntityCreateCommand<ProductCreateModel, 
 ### Cache Configuration
 
 ```csharp
-// Enable memory caching for entity queries
-services.AddEntityMemoryCache();
-
-// Enable distributed caching
-services.AddEntityDistributedCache();
-
 // Enable hybrid caching
 services.AddEntityHybridCache();
 ```

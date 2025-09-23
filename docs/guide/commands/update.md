@@ -1,6 +1,6 @@
 ---
 title: Update Command
-description: Command to update an entire entity identified by a specific key using the provided update model
+description: Command to update an entire entity identified by a specific key using the provided update model, with built-in upsert functionality
 ---
 
 # Update Command
@@ -13,12 +13,13 @@ This command is a fundamental part of the CQRS (Command Query Responsibility Seg
 
 ```csharp
 public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
-    : EntityModelCommand<TUpdateModel, TReadModel>, ICacheExpire
+    : EntityModelBase<TUpdateModel, TReadModel>, ICacheExpire
 ```
 
 ## Key Features
 
 - **Complete Entity Replacement**: Updates the entire entity with new data while maintaining its identity
+- **Automatic Upsert Logic**: Creates new entities if they don't exist, updates existing ones (Version 2.0)
 - **Type Safety**: Strongly-typed key, update model, and read model parameters
 - **Security Integration**: Built-in `ClaimsPrincipal` support for user context and authorization
 - **Cache Management**: Automatic cache invalidation through `ICacheExpire` interface
@@ -36,18 +37,23 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
 
 ## Constructor Parameters
 
-| Parameter   | Type               | Description                                                        |
-| ----------- | ------------------ | ------------------------------------------------------------------ |
-| `principal` | `ClaimsPrincipal?` | The user's security context. Used for audit tracking and authorization |
-| `id`        | `TKey`             | The identifier of the entity to update (must not be null)          |
-| `model`     | `TUpdateModel`     | The update model containing the complete replacement data          |
+| Parameter   | Type               | Description                                                                           |
+| ----------- | ------------------ | ------------------------------------------------------------------------------------- |
+| `principal` | `ClaimsPrincipal?` | The user's security context. Used for audit tracking and authorization                |
+| `id`        | `TKey`             | The identifier of the entity to update (must not be null)                             |
+| `model`     | `TUpdateModel`     | The update model containing the complete replacement data                             |
+| `upsert`    | `bool`             | A value indicating whether to insert the entity if it does not exist (default: false) |
+
+## Upsert Functionality
+
+The `EntityUpdateCommand` supports upsert (update or insert) operations through the optional `upsert` parameter. When enabled, the command will automatically create a new entity if one with the specified ID doesn't exist, or update the existing entity if it does.
 
 ## Automatic Metadata Tracking
 
 When an entity implements tracking interfaces, the command automatically populates metadata:
 
-- **`ITrackCreated`**: Preserves existing `Created` timestamp and `CreatedBy` user identifier
-- **`ITrackUpdated`**: Sets `Updated` timestamp and `UpdatedBy` user identifier
+- **`ITrackCreated`**: Sets `Created` timestamp and `CreatedBy` user identifier for new entities (upsert scenario)
+- **`ITrackUpdated`**: Sets `Updated` timestamp and `UpdatedBy` user identifier for all operations
 
 ## Handler Implementations
 
@@ -114,9 +120,6 @@ The update command automatically includes several pipeline behaviors that execut
 - **Tenant Security**: `TenantDefaultCommandBehavior` and `TenantAuthenticateCommandBehavior` (if entity implements `IHaveTenant<TKey>`)
   - `TenantDefaultCommandBehavior`: Automatically sets the tenant ID from the current user's claims when not explicitly provided
   - `TenantAuthenticateCommandBehavior`: Validates that the user has access to the specified tenant and ensures tenant isolation
-  
-- **Change Tracking**: `TrackChangeCommandBehavior` (if entity implements tracking interfaces)
-  - Automatically populates audit fields like `Created`, `CreatedBy`, `Updated`, and `UpdatedBy` based on the current user and timestamp
   
 - **Validation**: `ValidateEntityModelCommandBehavior`
   - Performs model validation using data annotations or FluentValidation rules defined on the update model

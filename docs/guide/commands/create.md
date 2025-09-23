@@ -112,9 +112,6 @@ The create command automatically includes several pipeline behaviors that execut
   - `TenantDefaultCommandBehavior`: Automatically sets the tenant ID from the current user's claims when not explicitly provided
   - `TenantAuthenticateCommandBehavior`: Validates that the user has access to the specified tenant and ensures tenant isolation
   
-- **Change Tracking**: `TrackChangeCommandBehavior` (if entity implements tracking interfaces)
-  - Automatically populates audit fields like `Created`, `CreatedBy`, `Updated`, and `UpdatedBy` based on the current user and timestamp
-  
 - **Validation**: `ValidateEntityModelCommandBehavior`
   - Performs model validation using data annotations or FluentValidation rules defined on the create model
   - Throws validation exceptions if the model is invalid, which are automatically converted to HTTP 400 responses in web applications

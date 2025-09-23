@@ -51,57 +51,69 @@ public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResul
 
 ## EntityQuery Structure
 
-The `EntityQuery` class extends `EntitySelect` with pagination properties:
+The `EntityQuery` class provides filtering, sorting, and pagination properties:
 
 ```csharp
-public class EntityQuery : EntitySelect
+public class EntityQuery
 {
-    public int Page { get; set; }           // Page number (default: 1)
-    public int PageSize { get; set; }       // Page size (default: 20)
+    // Pagination properties
+    public int? Page { get; set; }
+    public int? PageSize { get; set; }
     
-    // Inherited from EntitySelect:
+    // Query properties
     public string? Query { get; set; }           // Raw LINQ query expression
     public IList<EntitySort>? Sort { get; set; } // Sort criteria
     public EntityFilter? Filter { get; set; }    // Filter criteria
+    
+    // Continuation token for stateless pagination
+    public string? ContinuationToken { get; set; }
 }
 ```
 
-### Constructor Overloads
+**Note**: When `Page`, `PageSize`, and `ContinuationToken` are all null, all matching rows are returned.
 
-The `EntityQuery` provides multiple constructor overloads:
+## Pagination Options
 
-#### Default Constructor
+The `EntityQuery` supports multiple pagination modes:
 
-```csharp
-public EntityQuery()
-```
+### Page-Based Pagination
 
-Creates a query with default pagination (Page = 1, PageSize = 20).
-
-#### Raw Query Constructor
+Traditional pagination using page numbers and page sizes:
 
 ```csharp
-public EntityQuery(string? query, int page, int pageSize, string? sort)
+var query = new EntityQuery
+{
+    Page = 1,
+    PageSize = 20
+};
 ```
 
-Creates a query with raw query expression, pagination, and sorting.
+### No Pagination (All Results)
 
-#### Filter with Pagination Constructor
+When `Page`, `PageSize`, and `ContinuationToken` are all null, **all matching rows are returned**:
 
 ```csharp
-public EntityQuery(EntityFilter? filter, int page = 1, int pageSize = 20)
+// This will return ALL matching results
+var query = new EntityQuery
+{
+    Filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" },
+    Sort = new List<EntitySort> { new EntitySort { Name = "Name", Direction = "asc" } }
+};
 ```
 
-Creates a query with filtering and pagination.
+**Important**: Use this mode carefully with large datasets as it can impact performance and memory usage.
 
-#### Filter, Sort and Pagination Constructor
+### Continuation Token Pagination
+
+Stateless pagination using continuation tokens (read-only property):
 
 ```csharp
-public EntityQuery(EntityFilter? filter, EntitySort? sort, int page = 1, int pageSize = 20)
-public EntityQuery(EntityFilter? filter, IEnumerable<EntitySort>? sort, int page = 1, int pageSize = 20)
+// The ContinuationToken is provided by the query results
+// and used for retrieving subsequent pages efficiently
+var nextPageToken = result.ContinuationToken; // From previous query result
 ```
 
-Creates a query with filtering, sorting, and pagination.
+**Note**: Continuation tokens provide better performance for large datasets and avoid consistency issues when data changes between page requests.
 
 ## EntityPagedResult Structure
 
@@ -110,8 +122,14 @@ The result contains both the paged data and total count:
 ```csharp
 public class EntityPagedResult<TReadModel>
 {
-    public long Total { get; set; }                            // Total number of results
-    public IReadOnlyCollection<TReadModel>? Data { get; set; } // Current page data
+    // Continuation token for stateless pagination if provider supports
+    public string? ContinuationToken { get; set; }
+    
+    // Total number of results
+    public long? Total { get; set; }
+    
+    // Current page data or all rows if no pagination specified
+    public IReadOnlyList<TReadModel>? Data { get; set; }
 }
 ```
 
@@ -189,7 +207,7 @@ return new EntityPagedResult<TReadModel> { Total = total, Data = data };
 ### MongoDB Mapping
 
 ```csharp
-var data = Mapper.Map<IList<TEntity>, IReadOnlyCollection<TReadModel>>(results);
+var data = Mapper.Map<IList<TEntity>, IReadOnlyList<TReadModel>>(results);
 return new EntityPagedResult<TReadModel> { Total = total, Data = data };
 ```
 
@@ -205,7 +223,7 @@ The paged query automatically includes several pipeline behaviors:
   - Automatically filters out soft-deleted entities from query results
   - Respects the `IsDeleted` flag on entities
 
-- **Caching**: `MemoryCacheQueryBehavior` or `HybridCacheQueryBehavior`
+- **Caching**: `HybridCacheQueryBehavior`
   - Automatically caches query results based on the complete query criteria hash
   - Respects cache expiration policies set on the query
   - Handles cache invalidation using cache tags
@@ -214,7 +232,7 @@ The paged query automatically includes several pipeline behaviors:
 
 Configure caching policies on your queries:
 
-### Sliding Expiration
+### Relative Expiration
 
 ```csharp
 var entityQuery = new EntityQuery
@@ -225,7 +243,7 @@ var entityQuery = new EntityQuery
 };
 
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
+query.Cache(TimeSpan.FromMinutes(15)); // 15-minute expiration
 
 var result = await mediator.Send(query);
 ```
@@ -237,12 +255,6 @@ var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // Expires at specific time
 
 var result = await mediator.Send(query);
-```
-
-### Memory Cache Registration
-
-```csharp
-services.AddEntityMemoryCache();
 ```
 
 ### Hybrid Cache Registration
@@ -267,8 +279,28 @@ var entityQuery = new EntityQuery
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 var result = await mediator.Send(query);
 
-Console.WriteLine($"Page 1 of {Math.Ceiling((double)result.Total / entityQuery.PageSize)} pages");
-Console.WriteLine($"Showing {result.Data?.Count} of {result.Total} total items");
+Console.WriteLine($"Page 1 of {Math.Ceiling((double)(result.Total ?? 0) / (entityQuery.PageSize ?? 20))} pages");
+Console.WriteLine($"Showing {result.Data?.Count} of {result.Total ?? 0} total items");
+```
+
+### All Results (No Pagination)
+
+```csharp
+var principal = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.Name, "JohnDoe")]));
+
+// When Page, PageSize, and ContinuationToken are all null, ALL matching rows are returned
+var entityQuery = new EntityQuery
+{
+    Filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" },
+    Sort = new List<EntitySort> { new EntitySort { Name = "Name", Direction = "asc" } }
+    // No pagination properties set - will return all matching results
+};
+
+var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
+var result = await mediator.Send(query);
+
+Console.WriteLine($"Retrieved all {result.Data?.Count} matching items");
+Console.WriteLine($"Total count: {result.Total ?? 0}");
 ```
 
 ### With Filtering and Sorting
@@ -325,8 +357,8 @@ var entityQuery = new EntityQuery { Page = 1, PageSize = 10 };
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 var firstPage = await mediator.Send(query);
 
-Console.WriteLine($"Total items: {firstPage.Total}");
-Console.WriteLine($"Total pages: {Math.Ceiling((double)firstPage.Total / entityQuery.PageSize)}");
+Console.WriteLine($"Total items: {firstPage.Total ?? 0}");
+Console.WriteLine($"Total pages: {Math.Ceiling((double)(firstPage.Total ?? 0) / (entityQuery.PageSize ?? 10))}");
 
 // Get next page
 entityQuery.Page = 2;
@@ -380,18 +412,35 @@ var entityQuery = new EntityQuery
 
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 
-// Configure 30-minute sliding cache
+// Configure 30-minute relative cache
 query.Cache(TimeSpan.FromMinutes(30));
 
 var result = await mediator.Send(query);
 ```
 
+### Using Continuation Tokens
+
+```csharp
+// First page
+var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
+var firstPage = await mediator.Send(query);
+
+// Check if there are more pages using continuation token
+if (!string.IsNullOrEmpty(firstPage.ContinuationToken))
+{
+    // Use continuation token for next page (implementation depends on handler)
+    // This is typically handled by the specific data provider
+    Console.WriteLine($"More pages available. Token: {firstPage.ContinuationToken}");
+}
+```
+
 ## Return Values
 
 - **Success**: Returns `EntityPagedResult<TReadModel>` containing:
-  - `Total`: Total number of matching entities
-  - `Data`: Current page of entities (may be empty if no results)
-- **Empty Results**: Returns result with `Total = 0` and empty `Data` collection
+  - `Total`: Total number of matching entities (nullable - may be null in some scenarios)
+  - `Data`: Current page of entities as `IReadOnlyList<TReadModel>` (may be null or empty if no results)
+  - `ContinuationToken`: Token for stateless pagination (may be null if not supported or no more pages)
+- **Empty Results**: Can return `EntityPagedResult<TReadModel>.Empty` or a result with `Total = 0`/`null` and empty/null `Data` collection
 - **Exception**: Throws appropriate exceptions for validation or data access errors
 
 ## Error Handling
@@ -408,13 +457,14 @@ The query handlers include built-in error handling and will throw appropriate ex
 ## Best Practices
 
 1. **Page Size Limits**: Implement reasonable page size limits (e.g., max 100 items per page)
-2. **Cache Strategically**: Cache frequently accessed pages with appropriate expiration
-3. **Security**: Always pass the current user's `ClaimsPrincipal` for proper authorization
-4. **Filter Design**: Design efficient filters that can leverage database indexes
-5. **Total Count Optimization**: Consider caching total counts for expensive queries
-6. **Performance**: Use appropriate page sizes based on data size and network conditions
-7. **Navigation**: Implement proper pagination navigation in UI components
-8. **Tenant Isolation**: Implement `IHaveTenant<TKey>` on read models for multi-tenant scenarios
+2. **Null Pagination Behavior**: Be aware that when Page, PageSize, and ContinuationToken are all null, **all matching rows are returned** - use filters appropriately to limit result sets
+3. **Cache Strategically**: Cache frequently accessed pages with appropriate expiration
+4. **Security**: Always pass the current user's `ClaimsPrincipal` for proper authorization
+5. **Filter Design**: Design efficient filters that can leverage database indexes
+6. **Total Count Optimization**: Consider caching total counts for expensive queries
+7. **Performance**: Use appropriate page sizes based on data size and network conditions
+8. **Navigation**: Implement proper pagination navigation in UI components
+9. **Tenant Isolation**: Implement `IHaveTenant<TKey>` on read models for multi-tenant scenarios
 
 ## Performance Considerations
 
@@ -442,6 +492,7 @@ The query handlers include built-in error handling and will throw appropriate ex
 
 5. **Memory Usage**:
    - Page sizes directly impact memory usage
+   - **No Pagination Warning**: When all pagination properties are null, ALL matching rows are loaded into memory - use appropriate filters to limit result sets
    - Consider streaming for very large datasets
    - Monitor total count calculation performance for large tables
 

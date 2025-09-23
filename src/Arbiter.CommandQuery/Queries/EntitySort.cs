@@ -40,6 +40,7 @@ public class EntitySort
     /// </value>
     [JsonPropertyName("direction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonConverter(typeof(JsonStringEnumConverter<SortDirections>))]
     public SortDirections? Direction { get; set; }
 
     /// <summary>

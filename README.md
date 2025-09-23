@@ -631,6 +631,9 @@ If you find this project useful, please consider:
     - `EntityIdentifierCommand` → `EntityIdentifierBase`
     - `EntityIdentifiersCommand` → `EntityIdentifiersBase`
     - `EntityModelCommand` → `EntityModelBase`
+  - Renamed filter, logic, and sort values for more consistent query building
+    - `EntityFilterOperators` → `FilterOperators`
+    - `EntityFilterLogic` → `FilterLogic`
     - `EntitySortDirections` → `SortDirections`
 
 ##### Architecture Improvements

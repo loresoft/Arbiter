@@ -141,7 +141,7 @@ public class EntityQuery
     /// </remarks>
     [JsonPropertyName("continuationToken")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ContinuationToken { get; }
+    public string? ContinuationToken { get; set; }
 
     /// <summary>
     /// Computes the hash code for the current <see cref="EntityQuery"/> instance.
@@ -175,7 +175,7 @@ public class EntityQuery
     /// Adds a sort expression to the query by parsing a string representation.
     /// </summary>
     /// <param name="sort">
-    /// A string representation of the sort expression in the format "PropertyName:Direction" (e.g., "Name:asc", "Date:desc"),
+    /// A string representation of the sort expression in the format "PropertyName Direction" (e.g., "Name asc", "Date desc"),
     /// or <see langword="null"/> to skip adding a sort expression.
     /// </param>
     /// <returns>
@@ -194,8 +194,8 @@ public class EntityQuery
     /// <example>
     /// <code>
     /// var query = new EntityQuery()
-    ///     .AddSort("Name:asc")
-    ///     .AddSort("CreatedDate:desc");
+    ///     .AddSort("Name asc")
+    ///     .AddSort("CreatedDate desc");
     /// </code>
     /// </example>
     public EntityQuery AddSort(string? sort)

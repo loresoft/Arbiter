@@ -207,7 +207,7 @@ public class DeletedEntitiesHandler<TReadModel> : IRequestHandler<DeletedEntitie
         {
             Name = nameof(ITrackDeleted.IsDeleted),
             Value = true,
-            Operator = EntityFilterOperators.Equal
+            Operator = FilterOperators.Equal
         };
         
         return await repository.QueryAsync(filter);

@@ -58,7 +58,7 @@ public class Ping : IRequest<Pong>
 ```csharp
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         CancellationToken cancellationToken = default)
     {
@@ -75,7 +75,7 @@ public class PingHandler : IRequestHandler<Ping, Pong>
 ```csharp
 public class PingBehavior : IPipelineBehavior<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         RequestHandlerDelegate<Pong> next,
         CancellationToken cancellationToken = default)
@@ -213,13 +213,18 @@ var result = await mediator.Send(query);
 ### Query By Filter
 
 ```csharp
-var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
-var sort = new EntitySort { Name = "Name", Direction = "asc" };
+var entityQuery = new EntityQuery
+{
+    Filter = new EntityFilter { Name = "Status", Operator = FilterOperators.Equal, Value = "Active" },
+    Sort = new[] { new EntitySort { Name = "Name", Direction = SortDirections.Ascending } },
+    Page = 1,
+    PageSize = 20
+};
 
-var query = new EntitySelectQuery<ProductReadModel>(principal, filter, sort);
+var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 
 // Send the query to the mediator for execution
-var result = await mediator.Send(query);
+var pagedResult = await mediator.Send(query);
 ```
 
 ### Update Command

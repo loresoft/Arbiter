@@ -19,59 +19,12 @@ All query abstracts in Arbiter follow the CQRS (Command Query Responsibility Seg
 
 > **Note**: Arbiter queries implement the `IRequest<TResponse>` interface from `Arbiter.Mediation`, which provides a MediatR-compatible API with additional features specific to the Arbiter framework.
 
-## `PrincipalQueryBase<TResponse>` Class
-
-The foundational base class for all queries that require user context and security information.
-
-```csharp
-public abstract record PrincipalQueryBase<TResponse> : PrincipalCommandBase<TResponse>
-```
-
-### Core Features
-
-`PrincipalQueryBase` provides the foundation for all queries by:
-
-- Capturing the user's security context through `ClaimsPrincipal`
-- Tracking when the query was activated and by whom
-- Implementing the `IRequest<TResponse>` interface for `Arbiter.Mediation` compatibility
-- Inheriting all features from `PrincipalCommandBase`
-
-### Type Parameters
-
-| Parameter   | Description                                    |
-| ----------- | ---------------------------------------------- |
-| `TResponse` | The type of the response returned by the query |
-
-### Properties
-
-| Property      | Type               | Description                                          |
-| ------------- | ------------------ | ---------------------------------------------------- |
-| `Principal`   | `ClaimsPrincipal?` | The user's security context (inherited)              |
-| `Activated`   | `DateTimeOffset`   | UTC timestamp when the query was created (inherited) |
-| `ActivatedBy` | `string?`          | Username extracted from the principal (inherited)    |
-
-### Usage Example
-
-```csharp
-public record GetUserDetailsQuery : PrincipalQueryBase<UserDetails>
-{
-    public GetUserDetailsQuery(ClaimsPrincipal principal) : base(principal)
-    {
-    }
-}
-
-var principal = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.Name, "JohnDoe")]));
-var query = new GetUserDetailsQuery(principal);
-
-var result = await mediator.Send(query);
-```
-
 ## `CacheableQueryBase<TResponse>` Class
 
 Base class for queries that support caching with configurable expiration policies.
 
 ```csharp
-public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TResponse>, ICacheResult
+public abstract record CacheableQueryBase<TResponse> : PrincipalCommandBase<TResponse>, ICacheResult
 ```
 
 ### When to Use
@@ -79,18 +32,18 @@ public abstract record CacheableQueryBase<TResponse> : PrincipalQueryBase<TRespo
 Use `CacheableQueryBase` when your query needs to:
 
 - Cache results to improve performance
-- Support configurable cache expiration (absolute or sliding)
+- Support configurable cache expiration
 - Provide cache key generation and tagging
 - Integrate with Arbiter's caching behaviors
 
 ### Caching Features
 
-`CacheableQueryBase` extends `PrincipalQueryBase` with:
+`CacheableQueryBase` extends `PrincipalCommandBase` with:
 
 - **Cache Key Generation**: Abstract method requiring implementation for unique cache keys
 - **Cache Tagging**: Virtual method for cache invalidation strategies
-- **Expiration Control**: Support for both absolute and sliding expiration policies
-- **Cache Behavior Integration**: Compatible with `MemoryCacheQueryBehavior` and `HybridCacheQueryBehavior`
+- **Expiration Control**: Support for both absolute and relative expiration policies
+- **Cache Behavior Integration**: Compatible with `HybridCacheQueryBehavior`
 
 ### Generic Parameters
 
@@ -115,7 +68,7 @@ Use `CacheableQueryBase` when your query needs to:
 | Method                   | Description                                         |
 | ------------------------ | --------------------------------------------------- |
 | `Cache(DateTimeOffset?)` | Sets absolute expiration for the cache entry        |
-| `Cache(TimeSpan?)`       | Sets sliding expiration for the cache entry         |
+| `Cache(TimeSpan?)`       | Sets relative expiration for the cache entry         |
 | `IsCacheable()`          | Returns true if any expiration policy is configured |
 
 ### Implementation Example
@@ -142,7 +95,7 @@ var principal = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.Name, "Jo
 var query = new GetProductByIdQuery(principal, 123);
 
 // Configure caching
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
+query.Cache(TimeSpan.FromMinutes(15)); // 15-minute relative expiration
 
 var result = await mediator.Send(query);
 Console.WriteLine($"Product Name: {result?.Name}");
@@ -185,7 +138,7 @@ var product = await mediator.Send(query);
 Query for retrieving multiple entities by their identifiers.
 
 ```csharp
-public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyCollection<TReadModel>>
+public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
 ```
 
 **Use Cases:**
@@ -204,7 +157,7 @@ var products = await mediator.Send(query);
 
 ### `EntityPagedQuery<TReadModel>`
 
-Query for retrieving paginated results with filtering and sorting.
+Query for retrieving a paginated collection of entities based on filtering and sorting criteria.
 
 ```csharp
 public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResult<TReadModel>>
@@ -212,44 +165,21 @@ public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResul
 
 **Use Cases:**
 
-- List views with pagination
-- Search results
-- Data tables
+- Paginated lists with filtering and sorting
+- Large datasets requiring efficient loading
+- API endpoints with pagination requirements
 
 **Example:**
 
 ```csharp
 var entityQuery = new EntityQuery
 {
-    Filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" },
-    Sort = new List<EntitySort> { new EntitySort { Name = "Name", Direction = "asc" } },
+    Filter = new EntityFilter { Name = "Status", Operator = FilterOperators.Equal, Value = "Active" },
     Page = 1,
     PageSize = 20
 };
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 var pagedResult = await mediator.Send(query);
-```
-
-### `EntitySelectQuery<TReadModel>`
-
-Query for retrieving a collection of entities based on filtering and sorting criteria.
-
-```csharp
-public record EntitySelectQuery<TReadModel> : CacheableQueryBase<IReadOnlyCollection<TReadModel>>
-```
-
-**Use Cases:**
-
-- Filtered lists without pagination
-- Dropdown/select options
-- Exported data
-
-**Example:**
-
-```csharp
-var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
-var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
-var products = await mediator.Send(query);
 ```
 
 ## Best Practices
@@ -262,10 +192,10 @@ var products = await mediator.Send(query);
 
 ### Caching Strategies
 
-1. **Choose appropriate expiration**: Use sliding expiration for frequently accessed data, absolute for time-sensitive data
+1. **Choose appropriate expiration**: Use absolute expiration for time-sensitive data.
 2. **Implement cache tags**: Use `GetCacheTag()` for efficient cache invalidation
 3. **Consider cache key uniqueness**: Ensure cache keys are unique across different query types and parameters
-4. **Monitor cache performance**: Use appropriate cache behaviors (`MemoryCacheQueryBehavior` vs `HybridCacheQueryBehavior`)
+4. **Monitor cache performance**: Use the `HybridCacheQueryBehavior` for optimal caching performance
 
 ### Type Safety
 
@@ -281,13 +211,7 @@ var products = await mediator.Send(query);
 
 ## Cache Integration
 
-Arbiter provides two main caching behaviors:
-
-### Memory Cache Integration
-
-```csharp
-services.AddEntityMemoryCache();
-```
+Arbiter provides hybrid caching behavior for optimal performance:
 
 ### Hybrid Cache Integration
 
@@ -295,7 +219,7 @@ services.AddEntityMemoryCache();
 services.AddEntityHybridCache();
 ```
 
-Both behaviors automatically handle:
+The hybrid cache behavior automatically handles:
 
 - Cache key generation
 - Expiration policies
@@ -307,11 +231,8 @@ Both behaviors automatically handle:
 ```text
 IRequest<TResponse>
 └── PrincipalCommandBase<TResponse>
-    └── PrincipalQueryBase<TResponse>
-        └── CacheableQueryBase<TResponse>
-            ├── EntityIdentifierQuery<TKey, TReadModel>
-            ├── EntityIdentifiersQuery<TKey, TReadModel>
-            ├── EntityPagedQuery<TReadModel>
-            ├── EntitySelectQuery<TReadModel>
-            └── EntityContinuationQuery<TReadModel>
+    └── CacheableQueryBase<TResponse>
+        ├── EntityIdentifierQuery<TKey, TReadModel>
+        ├── EntityIdentifiersQuery<TKey, TReadModel>
+        └── EntityPagedQuery<TReadModel>
 ```

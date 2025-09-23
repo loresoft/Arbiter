@@ -19,14 +19,14 @@ The caching system consists of several key components:
 
 ## CacheableQueryBase
 
-The `CacheableQueryBase<TResponse>` class provides the foundation for cacheable queries. It extends `PrincipalQueryBase` with caching capabilities including cache key generation, expiration policies, and cache tagging.
+The `CacheableQueryBase<TResponse>` class provides the foundation for cacheable queries. It extends `PrincipalCommandBase` with caching capabilities including cache key generation, expiration policies, and cache tagging.
 
 ### Key Features
 
 - **Cache Key Generation**: Abstract method requiring unique cache key implementation
 - **Cache Tagging**: Virtual method for cache invalidation strategies  
-- **Expiration Control**: Support for both absolute and sliding expiration policies
-- **Cache Behavior Integration**: Compatible with all Arbiter cache behaviors
+- **Expiration Control**: Support for both absolute and relative expiration policies
+- **Cache Behavior Integration**: Compatible with `HybridCacheQueryBehavior`
 
 ### Creating a Cacheable Query
 
@@ -56,41 +56,21 @@ public record GetProductByIdQuery : CacheableQueryBase<ProductReadModel>
 The `CacheableQueryBase` provides methods to configure cache expiration:
 
 ```csharp
-// Sliding expiration - cache expires after period of inactivity
-query.Cache(TimeSpan.FromMinutes(15));
-
 // Absolute expiration - cache expires at specific time
 query.Cache(DateTimeOffset.UtcNow.AddHours(1));
+
+// Absolute expiration using relative time
+query.Cache(TimeSpan.FromMinutes(15));
 
 // Check if query is cacheable (has expiration configured)
 bool isCacheable = query.IsCacheable();
 ```
 
+> **Note**: HybridCache uses absolute expiration. While sliding expiration methods are available on `CacheableQueryBase`, they are converted to absolute expiration internally.
+
 ## Cache Behaviors
 
-Arbiter provides three cache behavior implementations that can be used independently or in combination:
-
-### MemoryCacheQueryBehavior
-
-Caches query results in local memory for fast access within a single application instance.
-
-**Characteristics:**
-
-- Fastest cache access (in-process memory)
-- Limited to single application instance
-- Automatically cleared on application restart
-- Best for frequently accessed data with small memory footprint
-
-### DistributedCacheQueryBehavior
-
-Caches query results in a distributed cache (Redis, SQL Server, etc.) for sharing across multiple application instances.
-
-**Characteristics:**
-
-- Shared across multiple application instances
-- Persists across application restarts
-- Requires serialization/deserialization
-- Best for scaled-out environments
+Arbiter provides hybrid caching behavior that combines both in-memory and distributed caching for optimal performance:
 
 ### HybridCacheQueryBehavior
 
@@ -104,41 +84,6 @@ Combines both in-memory and distributed caching for optimal performance and scal
 - Recommended for production environments
 
 ## Cache Providers
-
-### Memory Cache
-
-Uses `IMemoryCache` for in-process caching:
-
-```csharp
-// Service registration
-services.AddMemoryCache();
-services.AddEntityMemoryCache();
-
-// Usage
-var query = new GetProductByIdQuery(principal, 123);
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
-
-var result = await mediator.Send(query);
-```
-
-### Distributed Cache
-
-Uses `IDistributedCache` for distributed caching:
-
-```csharp
-// Service registration with Redis
-services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = "localhost:6379";
-});
-services.AddEntityDistributedCache();
-
-// Usage
-var query = new GetProductByIdQuery(principal, 123);
-query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // Absolute expiration
-
-var result = await mediator.Send(query);
-```
 
 ### Hybrid Cache
 
@@ -155,43 +100,43 @@ services.AddEntityHybridCache();
 
 // Usage
 var query = new GetProductByIdQuery(principal, 123);
-query.Cache(TimeSpan.FromMinutes(30)); // 30-minute sliding expiration
+query.Cache(DateTimeOffset.UtcNow.AddMinutes(30)); // 30-minute absolute expiration
 
 var result = await mediator.Send(query);
 ```
 
 ## Cache Configuration
 
-### Sliding Expiration
-
-Cache entries expire after a period of inactivity. Each cache access resets the expiration timer.
-
-```csharp
-// Cache for 15 minutes of inactivity
-query.Cache(TimeSpan.FromMinutes(15));
-
-// Cache for 2 hours of inactivity
-query.Cache(TimeSpan.FromHours(2));
-```
-
-**Best for**: Frequently accessed data that should expire when not being used
-
 ### Absolute Expiration
 
-Cache entries expire at a specific date and time, regardless of access patterns.
+Cache entries expire at a specific date and time, regardless of access patterns. HybridCache uses absolute expiration for all cached entries.
 
 ```csharp
+// Expire in 15 minutes
+query.Cache(DateTimeOffset.UtcNow.AddMinutes(15));
+
+// Expire in 2 hours
+query.Cache(DateTimeOffset.UtcNow.AddHours(2));
+
 // Expire at end of day
 query.Cache(DateTime.Today.AddDays(1));
-
-// Expire in 1 hour
-query.Cache(DateTimeOffset.UtcNow.AddHours(1));
 
 // Expire at specific time
 query.Cache(new DateTimeOffset(2025, 12, 31, 23, 59, 59, TimeSpan.Zero));
 ```
 
-**Best for**: Time-sensitive data that must be refreshed at specific intervals
+**Best for**: All scenarios with HybridCache, as it's the only supported expiration type
+
+### Sliding Expiration (Legacy)
+
+> **⚠️ Important**: HybridCache does not support true sliding expiration. While the `Cache(TimeSpan)` method is available for backward compatibility, it is converted to absolute expiration internally.
+
+```csharp
+// This will be converted to absolute expiration
+query.Cache(TimeSpan.FromMinutes(15)); // Becomes DateTimeOffset.UtcNow.AddMinutes(15)
+```
+
+For applications requiring sliding expiration behavior, consider implementing custom cache refresh logic or using absolute expiration with shorter durations.
 
 ### Cache Key Strategies
 
@@ -237,37 +182,6 @@ public override string? GetCacheTag()
 
 ## Service Registration
 
-### Memory Cache Only
-
-Register memory cache behaviors for all entity queries:
-
-```csharp
-services.AddMemoryCache();
-services.AddEntityMemoryCache();
-```
-
-### Distributed Cache Only
-
-Register distributed cache behaviors with a cache provider:
-
-```csharp
-// With Redis
-services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = connectionString;
-});
-services.AddEntityDistributedCache();
-
-// With SQL Server
-services.AddSqlServerCache(options =>
-{
-    options.ConnectionString = connectionString;
-    options.SchemaName = "dbo";
-    options.TableName = "CacheEntries";
-});
-services.AddEntityDistributedCache();
-```
-
 ### Hybrid Cache (Recommended)
 
 Register hybrid cache with both memory and distributed backing:
@@ -287,7 +201,7 @@ services.AddEntityHybridCache();
 
 ```csharp
 var query = new EntityIdentifierQuery<int, ProductReadModel>(principal, productId);
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
+query.Cache(DateTimeOffset.UtcNow.AddMinutes(15)); // 15-minute absolute expiration
 
 var product = await mediator.Send(query);
 ```
@@ -304,25 +218,9 @@ var entityQuery = new EntityQuery
 };
 
 var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
-query.Cache(TimeSpan.FromMinutes(10)); // 10-minute sliding expiration
+query.Cache(DateTimeOffset.UtcNow.AddMinutes(10)); // 10-minute absolute expiration
 
 var result = await mediator.Send(query);
-```
-
-### Select Query with Caching
-
-```csharp
-var filter = new EntityFilter 
-{ 
-    Name = "Status", 
-    Operator = EntityFilterOperators.Equal, 
-    Value = "Active" 
-};
-
-var query = new EntitySelectQuery<ProductReadModel>(principal, filter);
-query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // 1-hour absolute expiration
-
-var products = await mediator.Send(query);
 ```
 
 ## Cache Invalidation
@@ -395,36 +293,30 @@ public override string GetCacheKey()
 
 ### Expiration Strategies
 
-1. **Use sliding expiration for frequently accessed data**
-2. **Use absolute expiration for time-sensitive data**
-3. **Set reasonable expiration times**: Balance performance vs. data freshness
-4. **Consider cache warming for critical data**
+1. **Use absolute expiration with appropriate durations**: Set realistic expiration times based on data freshness requirements
+2. **Use shorter durations for frequently changing data**: Set reasonable expiration times to balance performance vs. data freshness
+3. **Use longer durations for static reference data**: Balance performance vs. data freshness
+4. **Consider cache warming for critical data**: Pre-populate cache for important queries
 
 ```csharp
 // Frequently accessed reference data
-query.Cache(TimeSpan.FromHours(1)); // 1-hour sliding
+query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // 1-hour absolute
+
+// Dynamic data that changes regularly
+query.Cache(DateTimeOffset.UtcNow.AddMinutes(5)); // 5-minute absolute
 
 // Daily reports
 query.Cache(DateTime.Today.AddDays(1)); // Absolute daily expiration
-
-// Real-time data
-query.Cache(TimeSpan.FromMinutes(5)); // 5-minute sliding
 ```
 
 ### Memory Management
 
-1. **Monitor cache memory usage**: Set appropriate size limits
-2. **Use distributed cache for large result sets**: Avoid memory pressure
+1. **Monitor cache memory usage**: Set appropriate size limits for hybrid cache
+2. **Use appropriate expiration durations**: Avoid memory pressure with reasonable cache lifetimes
 3. **Implement cache compression**: For distributed cache serialization
 4. **Profile cache hit rates**: Optimize key strategies and expiration times
 
 ```csharp
-// Configure memory cache limits
-services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1024; // Maximum number of entries
-});
-
 // Configure hybrid cache options
 services.AddHybridCache(options =>
 {
