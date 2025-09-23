@@ -54,7 +54,7 @@ public class GetUserQuery : IRequest<User>
 // Implement the handler
 public class GetUserHandler : IRequestHandler<GetUserQuery, User>
 {
-    public async ValueTask<User> Handle(GetUserQuery request, CancellationToken cancellationToken)
+    public async ValueTask<User?> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
         // Your business logic here
         return await GetUserFromDatabase(request.UserId);
@@ -165,7 +165,7 @@ public class Pong
 ```csharp
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         CancellationToken cancellationToken = default)
     {
