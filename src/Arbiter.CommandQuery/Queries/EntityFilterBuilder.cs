@@ -6,7 +6,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Provides static helper methods for building common entity filters, queries, and sort expressions.
 /// </summary>
 /// <remarks>
-/// This builder simplifies the creation of <see cref="EntityFilter"/>, <see cref="EntityQuery"/>, <see cref="EntitySelect"/>, and <see cref="EntitySort"/> instances
+/// This builder simplifies the creation of <see cref="EntityFilter"/>, <see cref="EntityQuery"/>, and <see cref="EntitySort"/> instances
 /// for use in data-driven Blazor and WebAssembly applications.
 /// </remarks>
 public static class EntityFilterBuilder
