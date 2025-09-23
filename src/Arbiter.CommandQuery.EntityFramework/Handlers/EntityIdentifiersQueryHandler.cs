@@ -11,7 +11,7 @@ namespace Arbiter.CommandQuery.EntityFramework.Handlers;
 /// </summary>
 /// <inheritdoc/>
 public class EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>
-    : EntityDataContextHandlerBase<TContext, TEntity, TKey, TReadModel, EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>
+    : EntityDataContextHandlerBase<TContext, TEntity, TKey, TReadModel, EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyList<TReadModel>>
     where TContext : DbContext
     where TEntity : class, IHaveIdentifier<TKey>, new()
 {
@@ -27,7 +27,7 @@ public class EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>
 
 
     /// <inheritdoc/>
-    protected override async ValueTask<IReadOnlyCollection<TReadModel>?> Process(
+    protected override async ValueTask<IReadOnlyList<TReadModel>?> Process(
         EntityIdentifiersQuery<TKey, TReadModel> request,
         CancellationToken cancellationToken = default)
     {

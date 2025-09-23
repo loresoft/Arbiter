@@ -18,7 +18,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <code>
 /// public record DeleteEntitiesCommand : EntityIdentifiersCommand&lt;int, ProductReadModel&gt;
 /// {
-///     public DeleteEntitiesCommand(ClaimsPrincipal principal, IReadOnlyCollection&lt;int&gt; ids)
+///     public DeleteEntitiesCommand(ClaimsPrincipal principal, IReadOnlyList&lt;int&gt; ids)
 ///         : base(principal, ids)
 ///     {
 ///     }
@@ -41,7 +41,7 @@ public abstract record EntityIdentifiersCommand<TKey, TResponse>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="ids">The collection of identifiers for this command.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
-    protected EntityIdentifiersCommand(ClaimsPrincipal? principal, [NotNull] IReadOnlyCollection<TKey> ids)
+    protected EntityIdentifiersCommand(ClaimsPrincipal? principal, [NotNull] IReadOnlyList<TKey> ids)
         : base(principal)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -56,5 +56,5 @@ public abstract record EntityIdentifiersCommand<TKey, TResponse>
     /// The collection of identifiers for this command.
     /// </value>
     [JsonPropertyName("ids")]
-    public IReadOnlyCollection<TKey> Ids { get; }
+    public IReadOnlyList<TKey> Ids { get; }
 }

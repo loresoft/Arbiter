@@ -33,19 +33,6 @@ public class EntityFilterBuilderTests
     }
 
     [Test]
-    public void CreateSearchSelectShouldReturnEntitySelect()
-    {
-        // Arrange
-        var searchText = "test";
-
-        // Act
-        var result = EntityFilterBuilder.CreateSearchSelect<TestModel>(searchText);
-
-        // Assert
-        result.Should().NotBeNull();
-    }
-
-    [Test]
     public void CreateSearchFilterShouldReturnEntityFilter()
     {
         // Arrange

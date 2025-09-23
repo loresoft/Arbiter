@@ -30,7 +30,7 @@ public class DispatcherDataServiceTests : DatabaseTestBase
         var searchResult = await dataService.Search<PriorityReadModel>(createModel.Name);
         searchResult.Should().NotBeNull();
 
-        var selectEmptyResult = await dataService.Select<PriorityReadModel>();
+        var selectEmptyResult = await dataService.All<PriorityReadModel>();
         selectEmptyResult.Should().NotBeNull();
 
         var pageEmptyResult = await dataService.Page<PriorityReadModel>();

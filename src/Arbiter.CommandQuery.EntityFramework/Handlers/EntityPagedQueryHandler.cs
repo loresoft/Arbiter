@@ -112,7 +112,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     /// <param name="query">The IQueryable to apply the entity query to</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list entities for the specified query</returns>
-    protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryPaged(
+    protected virtual async ValueTask<IReadOnlyList<TReadModel>> QueryPaged(
         EntityPagedQuery<TReadModel> request,
         IQueryable<TEntity> query,
         CancellationToken cancellationToken)

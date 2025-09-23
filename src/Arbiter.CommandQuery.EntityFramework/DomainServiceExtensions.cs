@@ -35,9 +35,8 @@ public static class DomainServiceExtensions
 
         // standard queries
         services.TryAddTransient<IRequestHandler<EntityIdentifierQuery<TKey, TReadModel>, TReadModel>, EntityIdentifierQueryHandler<TContext, TEntity, TKey, TReadModel>>();
-        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>, EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>>();
+        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyList<TReadModel>>, EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>>();
         services.TryAddTransient<IRequestHandler<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, EntityPagedQueryHandler<TContext, TEntity, TReadModel>>();
-        services.TryAddTransient<IRequestHandler<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, EntitySelectQueryHandler<TContext, TEntity, TReadModel>>();
 
         services.AddEntityQueryBehaviors<TKey, TReadModel>();
 
@@ -74,11 +73,11 @@ public static class DomainServiceExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     public static IServiceCollection AddEntityIdentifiersQuery<TKey, TReadModel, THandler>(this IServiceCollection services)
         where TReadModel : class
-        where THandler : class, IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>
+        where THandler : class, IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyList<TReadModel>>
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>, THandler>();
+        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyList<TReadModel>>, THandler>();
 
         return services;
     }
@@ -97,24 +96,6 @@ public static class DomainServiceExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddTransient<IRequestHandler<EntityPagedQuery<TReadModel>, EntityPagedResult<TReadModel>>, THandler>();
-
-        return services;
-    }
-
-    /// <summary>
-    /// Registers a custom entity select query handler in the service collection.
-    /// </summary>
-    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
-    /// <typeparam name="THandler">The type of the custom query handler.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-    public static IServiceCollection AddEntitySelectQuery<TReadModel, THandler>(this IServiceCollection services)
-        where TReadModel : class
-        where THandler : class, IRequestHandler<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        services.TryAddTransient<IRequestHandler<EntitySelectQuery<TReadModel>, IReadOnlyCollection<TReadModel>>, THandler>();
 
         return services;
     }
@@ -219,7 +200,7 @@ public static class DomainServiceExtensions
 
         // allow query for update models
         services.TryAddTransient<IRequestHandler<EntityIdentifierQuery<TKey, TUpdateModel>, TUpdateModel>, EntityIdentifierQueryHandler<TContext, TEntity, TKey, TUpdateModel>>();
-        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TUpdateModel>, IReadOnlyCollection<TUpdateModel>>, EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TUpdateModel>>();
+        services.TryAddTransient<IRequestHandler<EntityIdentifiersQuery<TKey, TUpdateModel>, IReadOnlyList<TUpdateModel>>, EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TUpdateModel>>();
 
         services.AddEntityUpdateCommand<TKey, TReadModel, TUpdateModel, EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, TReadModel>>();
 

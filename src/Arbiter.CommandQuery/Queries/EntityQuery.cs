@@ -28,68 +28,28 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Page: {query.Page}, PageSize: {query.PageSize}");
 /// </code>
 /// </example>
-public class EntityQuery : EntitySelect
+public class EntityQuery
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityQuery"/> class with default pagination settings.
+    /// Gets or sets the raw query expression to search for entities.
     /// </summary>
-    [JsonConstructor]
-    public EntityQuery()
-    {
-        Page = 1;
-        PageSize = 20;
-    }
+    [JsonPropertyName("query")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Query { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityQuery"/> class with a raw query expression and pagination settings.
+    /// Gets or sets the list of sort expressions to apply to the query.
     /// </summary>
-    /// <param name="query">The raw query expression.</param>
-    /// <param name="page">The page number for the query.</param>
-    /// <param name="pageSize">The size of the page for the query.</param>
-    /// <param name="sort">The sort expression for the query.</param>
-    public EntityQuery(string? query, int page, int pageSize, string? sort)
-        : base(query, sort)
-    {
-        Page = page;
-        PageSize = pageSize;
-    }
+    [JsonPropertyName("sort")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IList<EntitySort>? Sort { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityQuery"/> class with a filter and pagination settings.
+    /// Gets or sets the filter to apply to the query.
     /// </summary>
-    /// <param name="filter">The filter to apply to the query.</param>
-    /// <param name="page">The page number for the query. The default page is 1.</param>
-    /// <param name="pageSize">The size of the page for the query. The default page size is 20.</param>
-    public EntityQuery(EntityFilter? filter, int page = 1, int pageSize = 20)
-        : this(filter, Array.Empty<EntitySort>(), page, pageSize)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EntityQuery"/> class with a filter, a single sort expression, and pagination settings.
-    /// </summary>
-    /// <param name="filter">The filter to apply to the query.</param>
-    /// <param name="sort">The sort expression for the query.</param>
-    /// <param name="page">The page number for the query. The default page is 1.</param>
-    /// <param name="pageSize">The size of the page for the query. The default page size is 20.</param>
-    public EntityQuery(EntityFilter? filter, EntitySort? sort, int page = 1, int pageSize = 20)
-        : this(filter, sort != null ? new[] { sort } : null, page, pageSize)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EntityQuery"/> class with a filter, multiple sort expressions, and pagination settings.
-    /// </summary>
-    /// <param name="filter">The filter to apply to the query.</param>
-    /// <param name="sort">The list of sort expressions for the query.</param>
-    /// <param name="page">The page number for the query. The default page is 1.</param>
-    /// <param name="pageSize">The size of the page for the query. The default page size is 20.</param>
-    public EntityQuery(EntityFilter? filter, IEnumerable<EntitySort>? sort, int page = 1, int pageSize = 20)
-        : base(filter, sort)
-    {
-        Page = page;
-        PageSize = pageSize;
-    }
+    [JsonPropertyName("filter")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public EntityFilter? Filter { get; set; }
 
     /// <summary>
     /// Gets or sets the page number for the query.
@@ -127,5 +87,22 @@ public class EntityQuery : EntitySelect
     public override int GetHashCode()
     {
         return HashCode.Combine(base.GetHashCode(), Page, PageSize);
+    }
+
+
+    public EntityQuery AddSort(string? sort)
+    {
+        return AddSort(EntitySort.Parse(sort));
+    }
+
+    public EntityQuery AddSort(EntitySort? sort)
+    {
+        if (sort == null)
+            return this;
+
+        Sort ??= [];
+        Sort.Add(sort);
+
+        return this;
     }
 }

@@ -9,6 +9,11 @@ namespace Arbiter.CommandQuery.Queries;
 public class EntityPagedResult<TReadModel>
 {
     /// <summary>
+    /// Gets an empty instance of the <see cref="EntityPagedResult{TReadModel}"/> class.
+    /// </summary>
+    public static EntityPagedResult<TReadModel> Empty { get; } = new();
+
+    /// <summary>
     /// Gets or sets the continuation token for retrieving the next page of results.
     /// </summary>
     /// <value>
@@ -31,5 +36,5 @@ public class EntityPagedResult<TReadModel>
     /// </summary>
     [JsonPropertyName("data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyCollection<TReadModel>? Data { get; set; }
+    public IReadOnlyList<TReadModel>? Data { get; set; }
 }

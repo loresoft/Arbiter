@@ -5,18 +5,18 @@ namespace Arbiter.CommandQuery.Services.Tests;
 public class QueryStringEncoderTests
 {
     [Test]
-    public void EncodeEntitySelect()
+    public void EncodeEntityQuery()
     {
-        var entitySelect = new EntitySelect
+        var entityQuery = new EntityQuery
         {
             Sort = [new() { Name = "Updated", Direction = SortDirections.Descending }],
             Filter = new() { Name = "Description", Operator = FilterOperators.IsNull }
         };
 
-        var queryString = QueryStringEncoder.Encode(entitySelect);
+        var queryString = QueryStringEncoder.Encode(entityQuery);
         queryString.Should().NotBeNullOrWhiteSpace();
 
-        var resultSelect = QueryStringEncoder.Decode<EntitySelect>(queryString);
+        var resultSelect = QueryStringEncoder.Decode<EntityQuery>(queryString);
         resultSelect.Should().NotBeNull();
         resultSelect.Filter.Should().NotBeNull();
         resultSelect.Filter.Name.Should().Be("Description");

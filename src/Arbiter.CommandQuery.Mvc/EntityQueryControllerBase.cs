@@ -52,7 +52,7 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     /// <param name="query">The query containing filtering, sorting, and pagination criteria.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
     /// <returns>A paged result containing the list of entities.</returns>
-    [HttpPost("page")]
+    [HttpPost("query")]
     [Consumes(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
@@ -73,59 +73,21 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     /// <param name="size">The size of the page for the query.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
     /// <returns>A paged result containing the list of entities.</returns>
-    [HttpGet("page")]
+    [HttpGet("")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public virtual async Task<ActionResult<EntityPagedResult<TListModel>?>> Page(
         [FromQuery] string? q = null,
         [FromQuery] string? sort = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int size = 20,
+        [FromQuery] int? page = null,
+        [FromQuery] int? size = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new EntityQuery(q, page, size, sort);
-        return await PagedQuery(query, cancellationToken);
-    }
+        var entityQuery = new EntityQuery { Query = q, Page = page, PageSize = size, };
+        entityQuery.AddSort(sort);
 
-    /// <summary>
-    /// Retrieves a list of entities based on the specified query.
-    /// </summary>
-    /// <param name="query">The query containing filtering and sorting criteria.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>A list of entities matching the query.</returns>
-    [HttpPost("query")]
-    [Consumes(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public virtual async Task<ActionResult<IReadOnlyCollection<TListModel>?>> Query(
-        [FromBody] EntitySelect query,
-        CancellationToken cancellationToken = default)
-    {
-        var results = await SelectQuery(query, cancellationToken);
-        return results?.ToList();
+        return await PagedQuery(entityQuery, cancellationToken);
     }
-
-    /// <summary>
-    /// Retrieves a list of entities based on query parameters.
-    /// </summary>
-    /// <param name="q">The raw query expression.</param>
-    /// <param name="sort">The sort expression.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>A list of entities matching the query.</returns>
-    [HttpGet("")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public virtual async Task<ActionResult<IReadOnlyCollection<TListModel>?>> Query(
-        [FromQuery] string? q = null,
-        [FromQuery] string? sort = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = new EntitySelect(q, sort);
-        var results = await SelectQuery(query, cancellationToken);
-        return results?.ToList();
-    }
-
 
     /// <summary>
     /// Executes a query to retrieve a single entity by its identifier.
@@ -148,18 +110,6 @@ public abstract class EntityQueryControllerBase<TKey, TListModel, TReadModel> : 
     protected virtual async Task<EntityPagedResult<TListModel>?> PagedQuery(EntityQuery entityQuery, CancellationToken cancellationToken = default)
     {
         var command = new EntityPagedQuery<TListModel>(User, entityQuery);
-        return await Mediator.Send(command, cancellationToken);
-    }
-
-    /// <summary>
-    /// Executes a query to retrieve a list of entities based on filtering and sorting criteria.
-    /// </summary>
-    /// <param name="entitySelect">The query containing filtering and sorting criteria.</param>
-    /// <param name="cancellationToken">The cancellation token for the request.</param>
-    /// <returns>A list of entities matching the query.</returns>
-    protected virtual async Task<IReadOnlyCollection<TListModel>?> SelectQuery(EntitySelect entitySelect, CancellationToken cancellationToken = default)
-    {
-        var command = new EntitySelectQuery<TListModel>(User, entitySelect);
         return await Mediator.Send(command, cancellationToken);
     }
 }

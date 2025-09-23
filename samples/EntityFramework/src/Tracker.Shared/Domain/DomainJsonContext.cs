@@ -25,7 +25,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(EntityIdentifierQuery<int, PriorityReadModel>))]
 [JsonSerializable(typeof(EntityIdentifiersQuery<int, PriorityReadModel>))]
 [JsonSerializable(typeof(EntityPagedQuery<PriorityReadModel>))]
-[JsonSerializable(typeof(EntitySelectQuery<PriorityReadModel>))]
 [JsonSerializable(typeof(PriorityReadModel))]
 [JsonSerializable(typeof(IReadOnlyCollection<PriorityReadModel>))]
 [JsonSerializable(typeof(EntityPagedResult<PriorityReadModel>))]
@@ -41,7 +40,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(EntityIdentifierQuery<int, StatusReadModel>))]
 [JsonSerializable(typeof(EntityIdentifiersQuery<int, StatusReadModel>))]
 [JsonSerializable(typeof(EntityPagedQuery<StatusReadModel>))]
-[JsonSerializable(typeof(EntitySelectQuery<StatusReadModel>))]
 [JsonSerializable(typeof(StatusReadModel))]
 [JsonSerializable(typeof(IReadOnlyCollection<StatusReadModel>))]
 [JsonSerializable(typeof(EntityPagedResult<StatusReadModel>))]
@@ -57,7 +55,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(EntityIdentifierQuery<int, TaskReadModel>))]
 [JsonSerializable(typeof(EntityIdentifiersQuery<int, TaskReadModel>))]
 [JsonSerializable(typeof(EntityPagedQuery<TaskReadModel>))]
-[JsonSerializable(typeof(EntitySelectQuery<TaskReadModel>))]
 [JsonSerializable(typeof(TaskReadModel))]
 [JsonSerializable(typeof(IReadOnlyCollection<TaskReadModel>))]
 [JsonSerializable(typeof(EntityPagedResult<TaskReadModel>))]
@@ -73,7 +70,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(EntityIdentifierQuery<int, TenantReadModel>))]
 [JsonSerializable(typeof(EntityIdentifiersQuery<int, TenantReadModel>))]
 [JsonSerializable(typeof(EntityPagedQuery<TenantReadModel>))]
-[JsonSerializable(typeof(EntitySelectQuery<TenantReadModel>))]
 [JsonSerializable(typeof(TenantReadModel))]
 [JsonSerializable(typeof(IReadOnlyCollection<TenantReadModel>))]
 [JsonSerializable(typeof(EntityPagedResult<TenantReadModel>))]
@@ -89,7 +85,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(EntityIdentifierQuery<int, UserReadModel>))]
 [JsonSerializable(typeof(EntityIdentifiersQuery<int, UserReadModel>))]
 [JsonSerializable(typeof(EntityPagedQuery<UserReadModel>))]
-[JsonSerializable(typeof(EntitySelectQuery<UserReadModel>))]
 [JsonSerializable(typeof(UserReadModel))]
 [JsonSerializable(typeof(IReadOnlyCollection<UserReadModel>))]
 [JsonSerializable(typeof(EntityPagedResult<UserReadModel>))]
@@ -103,7 +98,6 @@ namespace Tracker.Domain;
 [JsonSerializable(typeof(UserUpdateModel))]
 // Common Models, Commands and Queries
 [JsonSerializable(typeof(EntityQuery))]
-[JsonSerializable(typeof(EntitySelect))]
 #endregion
 // Manual Declarations
 public partial class DomainJsonContext : JsonSerializerContext

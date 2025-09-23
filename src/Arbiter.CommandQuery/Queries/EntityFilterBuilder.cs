@@ -28,25 +28,13 @@ public static class EntityFilterBuilder
         var filter = CreateSearchFilter<TModel>(searchText);
         var sort = CreateSort<TModel>();
 
-        return new EntityQuery(filter, sort, page, pageSize);
-    }
-
-    /// <summary>
-    /// Creates a search select query for the specified model type.
-    /// </summary>
-    /// <typeparam name="TModel">The type of the model. Must implement <see cref="ISupportSearch"/>.</typeparam>
-    /// <param name="searchText">The text to search for.</param>
-    /// <returns>
-    /// An instance of <see cref="EntitySelect"/> configured for the search text,
-    /// or <see langword="null"/> if the search text is invalid.
-    /// </returns>
-    public static EntitySelect? CreateSearchSelect<TModel>(string searchText)
-        where TModel : class, ISupportSearch
-    {
-        var filter = CreateSearchFilter<TModel>(searchText);
-        var sort = CreateSort<TModel>();
-
-        return new EntitySelect(filter, sort);
+        return new EntityQuery
+        {
+            Filter = filter,
+            Sort = sort is not null ? [sort] : null,
+            Page = page > 0 ? page : 1,
+            PageSize = pageSize > 0 ? pageSize : 20,
+        };
     }
 
     /// <summary>

@@ -19,15 +19,6 @@ public static class GridExtensions
         };
     }
 
-    public static EntitySelect ToSelect(this DataRequest request)
-    {
-        return new EntitySelect
-        {
-            Sort = request.Sorts.ToSort(),
-            Filter = request.Query.ToFilter()
-        };
-    }
-
     public static List<EntitySort>? ToSort(this IEnumerable<DataSort>? sorts)
     {
         if (sorts == null)

@@ -39,7 +39,7 @@ public interface IDispatcherDataService
     /// <param name="cacheTime">Optional time to cache the results</param>
     /// <param name="cancellationToken">The request cancellation token</param>
     /// <returns>Awaitable task returning a list <typeparamref name="TModel"/> for the specified identifier keys</returns>
-    ValueTask<IReadOnlyCollection<TModel>> Get<TKey, TModel>(
+    ValueTask<IReadOnlyList<TModel>> Get<TKey, TModel>(
         IEnumerable<TKey> ids,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
@@ -53,22 +53,8 @@ public interface IDispatcherDataService
     /// <param name="cacheTime">Optional time to cache the results</param>
     /// <param name="cancellationToken">The request cancellation token</param>
     /// <returns>Awaitable task returning a list <typeparamref name="TModel"/></returns>
-    ValueTask<IReadOnlyCollection<TModel>> All<TModel>(
+    ValueTask<IReadOnlyList<TModel>> All<TModel>(
         string? sortField = null,
-        TimeSpan? cacheTime = null,
-        CancellationToken cancellationToken = default)
-        where TModel : class;
-
-    /// <summary>
-    /// Gets models based on the specified <see cref="EntitySelect"/> query from the data store.
-    /// </summary>
-    /// <typeparam name="TModel">The type of the model</typeparam>
-    /// <param name="entitySelect"></param>
-    /// <param name="cacheTime">Optional time to cache the results</param>
-    /// <param name="cancellationToken">The request cancellation token</param>
-    /// <returns>Awaitable task returning a list <typeparamref name="TModel"/></returns>
-    ValueTask<IReadOnlyCollection<TModel>> Select<TModel>(
-        EntitySelect? entitySelect = null,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
         where TModel : class;
@@ -77,11 +63,13 @@ public interface IDispatcherDataService
     /// Gets page of models based on the specified <see cref="EntityQuery"/> query.
     /// </summary>
     /// <typeparam name="TModel">The type of the model</typeparam>
-    /// <param name="entityQuery"></param>
+    /// <param name="entityQuery">The query to apply for paging</param>
+    /// <param name="cacheTime">Optional time to cache the results</param>
     /// <param name="cancellationToken">The request cancellation token</param>
     /// <returns>Awaitable task returning a paged result for <typeparamref name="TModel"/></returns>
     ValueTask<EntityPagedResult<TModel>> Page<TModel>(
         EntityQuery? entityQuery = null,
+        TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
         where TModel : class;
 
@@ -90,12 +78,12 @@ public interface IDispatcherDataService
     /// </summary>
     /// <typeparam name="TModel">The type of the model</typeparam>
     /// <param name="searchText">The search text to search for</param>
-    /// <param name="entityFilter">Optional additional filter for search</param>
+    /// <param name="entityQuery">The query to apply for paging</param>
     /// <param name="cancellationToken">The request cancellation token</param>
     /// <returns>Awaitable task returning a list <typeparamref name="TModel"/></returns>
-    ValueTask<IEnumerable<TModel>> Search<TModel>(
+    ValueTask<EntityPagedResult<TModel>> Search<TModel>(
         string searchText,
-        EntityFilter? entityFilter = null,
+        EntityQuery? entityQuery = null,
         CancellationToken cancellationToken = default)
         where TModel : class, ISupportSearch;
 
