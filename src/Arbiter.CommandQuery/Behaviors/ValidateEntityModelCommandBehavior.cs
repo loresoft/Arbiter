@@ -11,7 +11,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// <typeparam name="TEntityModel">The type of the entity model to validate.</typeparam>
 /// <typeparam name="TResponse">The type of the response.</typeparam>
 public class ValidateEntityModelCommandBehavior<TEntityModel, TResponse>
-    : PipelineBehaviorBase<EntityModelCommand<TEntityModel, TResponse>, TResponse>
+    : PipelineBehaviorBase<EntityModelBase<TEntityModel, TResponse>, TResponse>
     where TEntityModel : class
 {
     private readonly IValidator<TEntityModel>? _validator;
@@ -29,7 +29,7 @@ public class ValidateEntityModelCommandBehavior<TEntityModel, TResponse>
 
     /// <inheritdoc />
     protected override async ValueTask<TResponse?> Process(
-        EntityModelCommand<TEntityModel, TResponse> request,
+        EntityModelBase<TEntityModel, TResponse> request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {

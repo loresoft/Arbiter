@@ -1,7 +1,7 @@
+@using System.Linq.Expressions
 @using Arbiter.CommandQuery.Definitions
 @using Arbiter.CommandQuery.Dispatcher
 @using Arbiter.CommandQuery.Queries
-@using System.Linq.Expressions
 
 @typeparam TModel where TModel : class, IHaveIdentifier<int>, ISupportSearch
 @typeparam TValue
@@ -55,7 +55,7 @@
     [Parameter]
     public TimeSpan? CacheTime { get; set; }
 
-    protected IReadOnlyCollection<TModel> Items { get; set; } = [];
+    protected IReadOnlyList<TModel> Items { get; set; } = [];
 
 
     private async Task OnValueChanged(TValue? value)
@@ -70,16 +70,16 @@
         Items = await LoadData();
     }
 
-    protected async Task<IReadOnlyCollection<TModel>> LoadData()
+    protected async Task<IReadOnlyList<TModel>> LoadData()
     {
         try
         {
-            var sort = EntitySort.Parse(Sort ?? TModel.SortField());
-            var select = new EntitySelect(Filter, sort);
+            var query = new EntityQuery { Filter = Filter };
+            query.AddSort(Sort ?? TModel.SortField());
 
-            var result = await DataService.Select<TModel>(select, CacheTime);
+            var result = await DataService.Page<TModel>(query, CacheTime);
 
-            return result ?? [];
+            return result?.Data ?? [];
         }
         catch (Exception ex)
         {

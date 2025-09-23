@@ -49,7 +49,7 @@ public class Ping : IRequest<Pong>
 ```csharp
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         CancellationToken cancellationToken = default)
     {
@@ -66,7 +66,7 @@ public class PingHandler : IRequestHandler<Ping, Pong>
 ```csharp
 public class PingBehavior : IPipelineBehavior<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         RequestHandlerDelegate<Pong> next,
         CancellationToken cancellationToken = default)

@@ -9,13 +9,13 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseStringJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":\"test\"}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":\"test\"}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
         filter.Should().NotBeNull();
         filter.Name.Should().Be("Name");
-        filter.Operator.Should().Be("eq");
+        filter.Operator.Should().Be(FilterOperators.Equal);
 
         filter.Value.Should().BeOfType<string>();
         filter.Value.Should().Be("test");
@@ -24,7 +24,7 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseBooleanJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":true}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":true}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
@@ -36,12 +36,12 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseNumberJson()
     {
-        var json = "{\"name\":\"Name\",\"operator\":\"eq\",\"value\":123}";
+        var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":123}";
 
         var filter = JsonSerializer.Deserialize<EntityFilter>(json);
 
         filter.Should().NotBeNull();
-        filter.Value.Should().BeOfType<double>();
+        filter.Value.Should().BeOfType<int>();
         filter.Value.Should().Be(123);
     }
 
@@ -49,7 +49,7 @@ public class EntityFilterJsonTests
     [Test]
     public void ParseQueryJson()
     {
-        var json = "{\"page\":1,\"pageSize\":20,\"sort\":[{\"name\":\"Name\",\"direction\":\"asc\"}],\"filter\":{\"logic\":\"or\",\"filters\":[{\"name\":\"Name\",\"operator\":\"eq\",\"value\":\"test\"},{\"name\":\"Description\",\"operator\":\"eq\",\"value\":\"test\"}]}}";
+        var json = "{\"page\":1,\"pageSize\":20,\"sort\":[{\"name\":\"Name\",\"direction\":\"asc\"}],\"filter\":{\"logic\":\"Or\",\"filters\":[{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":\"test\"},{\"name\":\"Description\",\"operator\":\"Equal\",\"value\":\"test\"}]}}";
         var query = JsonSerializer.Deserialize<EntityQuery>(json);
 
         query.Should().NotBeNull();
@@ -61,20 +61,20 @@ public class EntityFilterJsonTests
         query.Sort.Should().NotBeEmpty();
         query.Sort.Should().HaveCount(1);
         query.Sort[0].Name.Should().Be("Name");
-        query.Sort[0].Direction.Should().Be("asc");
+        query.Sort[0].Direction.Should().Be(SortDirections.Ascending);
 
         query.Filter.Should().NotBeNull();
-        query.Filter.Logic.Should().Be("or");
+        query.Filter.Logic.Should().Be(FilterLogic.Or);
         query.Filter.Filters.Should().HaveCount(2);
 
         query.Filter.Filters[0].Name.Should().Be("Name");
-        query.Filter.Filters[0].Operator.Should().Be("eq");
+        query.Filter.Filters[0].Operator.Should().Be(FilterOperators.Equal);
 
         query.Filter.Filters[0].Value.Should().BeOfType<string>();
         query.Filter.Filters[0].Value.Should().Be("test");
 
         query.Filter.Filters[1].Name.Should().Be("Description");
-        query.Filter.Filters[1].Operator.Should().Be("eq");
+        query.Filter.Filters[1].Operator.Should().Be(FilterOperators.Equal);
 
         query.Filter.Filters[1].Value.Should().BeOfType<string>();
         query.Filter.Filters[1].Value.Should().Be("test");
@@ -86,32 +86,32 @@ public class EntityFilterJsonTests
     {
         var filter = new EntityFilter
         {
-            Logic = EntityFilterLogic.And,
+            Logic = FilterLogic.And,
             Filters = new List<EntityFilter>
             {
-                new EntityFilter { Name = "IsDeleted", Value = true, Operator = EntityFilterOperators.Equal },
-                new EntityFilter { Name = "StatusId", Value = "1234", Operator = EntityFilterOperators.Equal }
+                new EntityFilter { Name = "IsDeleted", Value = true, Operator = FilterOperators.Equal },
+                new EntityFilter { Name = "StatusId", Value = "1234", Operator = FilterOperators.Equal }
             }
         };
 
         var json = JsonSerializer.Serialize(filter);
         json.Should().NotBeNullOrWhiteSpace();
-        json.Should().Be("{\"logic\":\"and\",\"filters\":[{\"name\":\"IsDeleted\",\"operator\":\"eq\",\"value\":true},{\"name\":\"StatusId\",\"operator\":\"eq\",\"value\":\"1234\"}]}");
+        json.Should().Be("{\"logic\":\"And\",\"filters\":[{\"name\":\"IsDeleted\",\"operator\":\"Equal\",\"value\":true},{\"name\":\"StatusId\",\"operator\":\"Equal\",\"value\":\"1234\"}]}");
 
         var filterDeserialize = JsonSerializer.Deserialize<EntityFilter>(json);
         filterDeserialize.Should().NotBeNull();
 
-        filterDeserialize.Logic.Should().Be("and");
+        filterDeserialize.Logic.Should().Be(FilterLogic.And);
         filterDeserialize.Filters.Should().HaveCount(2);
 
         filterDeserialize.Filters[0].Name.Should().Be("IsDeleted");
-        filterDeserialize.Filters[0].Operator.Should().Be("eq");
+        filterDeserialize.Filters[0].Operator.Should().Be(FilterOperators.Equal);
 
         filterDeserialize.Filters[0].Value.Should().BeOfType<bool>();
         filterDeserialize.Filters[0].Value.Should().Be(true);
 
         filterDeserialize.Filters[1].Name.Should().Be("StatusId");
-        filterDeserialize.Filters[1].Operator.Should().Be("eq");
+        filterDeserialize.Filters[1].Operator.Should().Be(FilterOperators.Equal);
 
         filterDeserialize.Filters[1].Value.Should().BeOfType<string>();
         filterDeserialize.Filters[1].Value.Should().Be("1234");

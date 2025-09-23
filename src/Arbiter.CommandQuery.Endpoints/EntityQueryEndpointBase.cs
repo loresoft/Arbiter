@@ -1,5 +1,6 @@
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Queries;
 
 using Microsoft.AspNetCore.Builder;
@@ -87,33 +88,18 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
             .WithDescription("Get an entity by id");
 
         group
-            .MapGet("page", GetPagedQuery)
+            .MapGet("", GetPagedQuery)
             .WithEntityMetadata(EntityName)
             .WithName($"Get{EntityName}Page")
             .WithSummary("Get a page of entities")
             .WithDescription("Get a page of entities");
 
         group
-            .MapPost("page", PostPagedQuery)
+            .MapPost("query", PostPagedQuery)
             .WithEntityMetadata(EntityName)
             .WithName($"Query{EntityName}Page")
             .WithSummary("Get a page of entities")
             .WithDescription("Get a page of entities");
-
-        group
-            .MapGet("", GetSelectQuery)
-            .WithEntityMetadata(EntityName)
-            .WithName($"Get{EntityName}List")
-            .WithSummary("Get entities by query")
-            .WithDescription("Get entities by query");
-
-        group
-            .MapPost("query", PostSelectQuery)
-            .WithEntityMetadata(EntityName)
-            .WithName($"Query{EntityName}List")
-            .WithSummary("Get entities by query")
-            .WithDescription("Get entities by query");
-
     }
 
     /// <summary>
@@ -166,14 +152,16 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         [FromServices] IMediator mediator,
         [FromQuery] string? q = null,
         [FromQuery] string? sort = null,
-        [FromQuery] int? page = 1,
-        [FromQuery] int? size = 20,
+        [FromQuery] int? page = null,
+        [FromQuery] int? size = null,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var entityQuery = new EntityQuery(q, page ?? 1, size ?? 20, sort);
+            var entityQuery = new EntityQuery { Query = q, Page = page, PageSize = size, };
+            entityQuery.AddSort(sort);
+
             var command = new EntityPagedQuery<TListModel>(user, entityQuery);
 
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
@@ -187,7 +175,6 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
-
     }
 
     /// <summary>
@@ -221,78 +208,5 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
-
-    }
-
-    /// <summary>
-    /// Retrieves a list of entities using query string parameters.
-    /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
-    /// <param name="q">The raw query expression.</param>
-    /// <param name="sort">The sort expression.</param>
-    /// <param name="user">The current security claims principal.</param>
-    /// <param name="cancellationToken">The request cancellation token.</param>
-    /// <returns>
-    /// An awaitable task returning either <see cref="IReadOnlyCollection{TListModel}"/> with the result list or <see cref="ProblemHttpResult"/> on error.
-    /// </returns>
-    protected virtual async Task<Results<Ok<IReadOnlyCollection<TListModel>>, ProblemHttpResult>> GetSelectQuery(
-        [FromServices] IMediator mediator,
-        [FromQuery] string? q = null,
-        [FromQuery] string? sort = null,
-        ClaimsPrincipal? user = default,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var entitySelect = new EntitySelect(q, sort);
-
-            var command = new EntitySelectQuery<TListModel>(user, entitySelect);
-
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
-
-            return TypedResults.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error GetSelectQuery: {ErrorMessage}", ex.Message);
-
-            var details = ex.ToProblemDetails();
-            return TypedResults.Problem(details);
-        }
-
-    }
-
-    /// <summary>
-    /// Retrieves a list of entities using a posted <see cref="EntitySelect"/> object.
-    /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
-    /// <param name="entitySelect">The entity select specifying filter and sort criteria.</param>
-    /// <param name="user">The current security claims principal.</param>
-    /// <param name="cancellationToken">The request cancellation token.</param>
-    /// <returns>
-    /// An awaitable task returning either <see cref="IReadOnlyCollection{TListModel}"/> with the result list or <see cref="ProblemHttpResult"/> on error.
-    /// </returns>
-    protected virtual async Task<Results<Ok<IReadOnlyCollection<TListModel>>, ProblemHttpResult>> PostSelectQuery(
-        [FromServices] IMediator mediator,
-        [FromBody] EntitySelect entitySelect,
-        ClaimsPrincipal? user = default,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var command = new EntitySelectQuery<TListModel>(user, entitySelect);
-
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
-
-            return TypedResults.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error PostSelectQuery: {ErrorMessage}", ex.Message);
-
-            var details = ex.ToProblemDetails();
-            return TypedResults.Problem(details);
-        }
-
     }
 }

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Services;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a query for retrieving multiple entities identified by a list of keys.
@@ -28,7 +28,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// Console.WriteLine($"Retrieved {result?.Count} products.");
 /// </code>
 /// </example>
-public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyCollection<TReadModel>>
+public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifiersQuery{TKey, TReadModel}"/> class.
@@ -36,7 +36,7 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the query.</param>
     /// <param name="ids">The list of identifiers for the entities to retrieve.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
-    public EntityIdentifiersQuery(ClaimsPrincipal? principal, [NotNull] IReadOnlyCollection<TKey> ids)
+    public EntityIdentifiersQuery(ClaimsPrincipal? principal, [NotNull] IReadOnlyList<TKey> ids)
         : base(principal)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -52,7 +52,7 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
     /// </value>
     [NotNull]
     [JsonPropertyName("ids")]
-    public IReadOnlyCollection<TKey> Ids { get; }
+    public IReadOnlyList<TKey> Ids { get; }
 
     /// <summary>
     /// Generates a cache key for the query based on the list of identifiers.

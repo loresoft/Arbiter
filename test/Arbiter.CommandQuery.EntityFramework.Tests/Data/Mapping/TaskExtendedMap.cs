@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Mapping;

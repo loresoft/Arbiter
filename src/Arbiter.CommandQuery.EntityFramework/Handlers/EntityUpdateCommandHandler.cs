@@ -35,15 +35,31 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
         var dbSet = DataContext
             .Set<TEntity>();
 
-        var keyValue = new object[] { request.Id };
+        // don't query if default value
+        var entity = !EqualityComparer<TKey>.Default.Equals(request.Id, default)
+            ? await dbSet.FindAsync([request.Id], cancellationToken).ConfigureAwait(false)
+            : default;
 
-        // find entity to update by message id, not model id
-        var entity = await dbSet
-            .FindAsync(keyValue, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (entity == null)
+        if (entity == null && !request.Upsert)
             return default!;
+
+        // create entity if not found
+        if (entity == null)
+        {
+            entity = new TEntity();
+            entity.Id = request.Id;
+
+            // apply create metadata
+            if (entity is ITrackCreated createdModel)
+            {
+                createdModel.Created = request.Activated;
+                createdModel.CreatedBy = request.ActivatedBy;
+            }
+
+            await dbSet
+                .AddAsync(entity, cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         // copy updates from model to entity
         Mapper.Map(request.Model, entity);

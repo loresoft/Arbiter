@@ -18,7 +18,6 @@ namespace Arbiter.CommandQuery;
 [JsonSerializable(typeof(DispatchRequest))]
 [JsonSerializable(typeof(EntityFilter))]
 [JsonSerializable(typeof(EntityQuery))]
-[JsonSerializable(typeof(EntitySelect))]
 [JsonSerializable(typeof(EntitySort))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationResult))]

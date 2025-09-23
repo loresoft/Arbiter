@@ -1,5 +1,4 @@
 using System.Linq.Dynamic.Core;
-using System.Text;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
@@ -74,10 +73,10 @@ public static class QueryExtensions
             builder.Append(sort.Name);
             builder.Append(' ');
 
-            var isDescending = !string.IsNullOrWhiteSpace(sort.Direction)
-                && sort.Direction.StartsWith(EntitySortDirections.Descending, StringComparison.OrdinalIgnoreCase);
-
-            builder.Append(isDescending ? EntitySortDirections.Descending : EntitySortDirections.Ascending);
+            if (sort.Direction == SortDirections.Descending)
+                builder.Append("desc");
+            else
+                builder.Append("asc");
         }
 
         return query.OrderBy(builder.ToString());

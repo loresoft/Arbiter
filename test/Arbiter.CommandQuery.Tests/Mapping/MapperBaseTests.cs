@@ -1,7 +1,9 @@
 using System.Linq.Expressions;
+
 using Arbiter.CommandQuery.Mapping;
-using PersonEntity = Arbiter.CommandQuery.Tests.Models.Person;
 using Arbiter.CommandQuery.Tests.Models;
+
+using PersonEntity = Arbiter.CommandQuery.Tests.Models.Person;
 
 namespace Arbiter.CommandQuery.Tests.Mapping;
 

@@ -11,13 +11,124 @@ The `EntityFilter` and `EntitySort` classes provide powerful mechanisms for filt
 
 The filtering and sorting system consists of several key components:
 
+- [`EntityQuery`](#entityquery) - Main query container with filtering, sorting, and pagination capabilities
 - [`EntityFilter`](#entityfilter) - Represents filtering criteria with support for nested filters and logical operators
 - [`EntitySort`](#entitysort) - Represents sorting criteria with field name and direction
-- [`EntityFilterOperators`](#filter-operators) - Provides constants for filter operators
-- [`EntityFilterLogic`](#filter-logic) - Provides constants for logical operators
-- [`EntitySortDirections`](#sort-directions) - Provides constants for sort directions
+- [`FilterOperators`](#filter-operators) - Enum providing type-safe filter operators
+- [`FilterLogic`](#filter-logic) - Enum providing type-safe logical operators
+- [`SortDirections`](#sort-directions) - Enum providing type-safe sort directions
 - [`EntityFilterBuilder`](#entityfilterbuilder) - Helper methods for building common filters
 - [`LinqExpressionBuilder`](#linq-expression-builder) - Converts filters to dynamic LINQ expressions
+
+## EntityQuery
+
+The `EntityQuery` class represents a query for selecting entities with filtering, sorting, and pagination capabilities. This class is typically used to define the criteria for querying entities, including filters, sorting, and pagination options.
+
+### EntityQuery Structure
+
+```csharp
+public class EntityQuery
+{
+    // Pagination properties
+    public int? Page { get; set; }
+    public int? PageSize { get; set; }
+    
+    // Query properties
+    public string? Query { get; set; }           // Raw LINQ query expression
+    public IList<EntitySort>? Sort { get; set; } // Sort criteria
+    public EntityFilter? Filter { get; set; }    // Filter criteria
+    
+    // Continuation token for stateless pagination
+    public string? ContinuationToken { get; set; }
+}
+```
+
+### EntityQuery Properties
+
+#### Page
+
+The page number for pagination. When null, pagination may be disabled or use default values.
+
+#### PageSize
+
+The number of items per page. When null, pagination may be disabled or use default values.
+
+#### Query
+
+A raw LINQ query expression string for advanced filtering scenarios.
+
+#### Sort
+
+A list of sort criteria specifying how to order the results.
+
+#### Filter
+
+The filter criteria for selecting entities based on specific conditions.
+
+#### ContinuationToken
+
+A read-only token for stateless pagination, typically provided by previous query results.
+
+### EntityQuery Usage Examples
+
+#### Basic Query with Pagination
+
+```csharp
+var query = new EntityQuery
+{
+    Page = 1,
+    PageSize = 20
+};
+```
+
+#### Query with Filter and Sort
+
+```csharp
+var filter = new EntityFilter
+{
+    Name = "Status",
+    Operator = FilterOperators.Equal,
+    Value = "Active"
+};
+
+var sort = new EntitySort
+{
+    Name = "Name",
+    Direction = SortDirections.Ascending
+};
+
+var query = new EntityQuery
+{
+    Filter = filter,
+    Sort = new List<EntitySort> { sort },
+    Page = 1,
+    PageSize = 20
+};
+```
+
+#### Complex Query Example
+
+```csharp
+var query = new EntityQuery
+{
+    Filter = new EntityFilter
+    {
+        Logic = FilterLogic.And,
+        Filters = new List<EntityFilter>
+        {
+            new EntityFilter { Name = "IsActive", Operator = FilterOperators.Equal, Value = true },
+            new EntityFilter { Name = "Price", Operator = FilterOperators.GreaterThan, Value = 10.0 }
+        }
+    },
+    Sort = new List<EntitySort>
+    {
+        new EntitySort { Name = "Priority", Direction = SortDirections.Descending },
+        new EntitySort { Name = "Name", Direction = SortDirections.Ascending }
+    },
+    Page = 1,
+    PageSize = 50
+};
+```
 
 ## EntityFilter
 
@@ -32,20 +143,19 @@ public class EntityFilter
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
-    [JsonPropertyName("operator")]
-    public string? Operator { get; set; }
-
     [JsonPropertyName("value")]
     public object? Value { get; set; }
 
+    [JsonPropertyName("operator")]
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterOperators>))]
+    public FilterOperators? Operator { get; set; }
+
     [JsonPropertyName("logic")]
-    public string? Logic { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterLogic>))]
+    public FilterLogic? Logic { get; set; }
 
     [JsonPropertyName("filters")]
     public IList<EntityFilter>? Filters { get; set; }
-
-    public bool IsValid() => Filters?.Any(f => f.IsValid()) == true || Name is not null;
-    public override int GetHashCode() => HashCode.Combine(Name, Operator, Value, Logic, Filters);
 }
 ```
 
@@ -57,21 +167,37 @@ The name of the field or property to filter on. This should match the property n
 
 #### Operator
 
-The operator to use for the filter. Supported operators include:
+The operator to use for the filter. Use the `FilterOperators` enum for type safety:
 
-- `eq` (equals) / `==`
-- `ne` (not equals) / `!=`
-- `gt` (greater than) / `>`
-- `lt` (less than) / `<`
-- `ge` (greater than or equal) / `>=`
-- `le` (less than or equal) / `<=`
-- `contains` - String contains operation
-- `startswith` - String starts with operation
-- `endswith` - String ends with operation
-- `in` - Value in collection operation
-- `isnull` - Null check operation
-- `isnotnull` - Not null check operation
-- `expression` - Custom LINQ expression
+```csharp
+// Version 2.0 - Using FilterOperators enum
+var filter = new EntityFilter
+{
+    Name = "Status",
+    Operator = FilterOperators.Equal,  // Type-safe enum value
+    Value = "Active"
+};
+```
+
+The enum provides the following operators:
+
+- `FilterOperators.Equal` - Equals comparison
+- `FilterOperators.NotEqual` - Not equals comparison  
+- `FilterOperators.GreaterThan` - Greater than comparison
+- `FilterOperators.LessThan` - Less than comparison
+- `FilterOperators.GreaterThanOrEqual` - Greater than or equal comparison
+- `FilterOperators.LessThanOrEqual` - Less than or equal comparison
+- `FilterOperators.Contains` - String contains operation
+- `FilterOperators.NotContains` - String does not contain operation
+- `FilterOperators.StartsWith` - String starts with operation
+- `FilterOperators.NotStartsWith` - String does not start with operation
+- `FilterOperators.EndsWith` - String ends with operation
+- `FilterOperators.NotEndsWith` - String does not end with operation
+- `FilterOperators.In` - Value in collection operation
+- `FilterOperators.NotIn` - Value not in collection operation
+- `FilterOperators.IsNull` - Null check operation
+- `FilterOperators.IsNotNull` - Not null check operation
+- `FilterOperators.Expression` - Custom expression operation
 
 #### Value
 
@@ -79,10 +205,10 @@ The value to filter for. Can be any object type including primitives, strings, a
 
 #### Logic
 
-The logical operator to combine nested filters. Uses constants from `EntityFilterLogic`:
+The logical operator to combine nested filters. Use the `FilterLogic` enum for type safety:
 
-- `and` - All nested filters must match
-- `or` - Any nested filter must match
+- `FilterLogic.And` - All nested filters must match
+- `FilterLogic.Or` - Any nested filter must match
 
 #### Filters
 
@@ -96,7 +222,7 @@ A list of nested filters for complex filter groups. When this property is set, t
 var filter = new EntityFilter
 {
     Name = "Status",
-    Operator = EntityFilterOperators.Equal,
+    Operator = FilterOperators.Equal,
     Value = "Active"
 };
 ```
@@ -108,7 +234,7 @@ var filter = new EntityFilter
 var containsFilter = new EntityFilter
 {
     Name = "Name",
-    Operator = EntityFilterOperators.Contains,
+    Operator = FilterOperators.Contains,
     Value = "berry"
 };
 
@@ -116,7 +242,7 @@ var containsFilter = new EntityFilter
 var startsWithFilter = new EntityFilter
 {
     Name = "Name",
-    Operator = EntityFilterOperators.StartsWith,
+    Operator = FilterOperators.StartsWith,
     Value = "P"
 };
 
@@ -124,7 +250,7 @@ var startsWithFilter = new EntityFilter
 var endsWithFilter = new EntityFilter
 {
     Name = "Name",
-    Operator = EntityFilterOperators.EndsWith,
+    Operator = FilterOperators.EndsWith,
     Value = "berry"
 };
 ```
@@ -136,7 +262,7 @@ var endsWithFilter = new EntityFilter
 var greaterThanFilter = new EntityFilter
 {
     Name = "Rank",
-    Operator = EntityFilterOperators.GreaterThan,
+    Operator = FilterOperators.GreaterThan,
     Value = 5
 };
 
@@ -144,7 +270,7 @@ var greaterThanFilter = new EntityFilter
 var dateFilter = new EntityFilter
 {
     Name = "CreatedDate",
-    Operator = EntityFilterOperators.GreaterThanOrEqual,
+    Operator = FilterOperators.GreaterThanOrEqual,
     Value = DateTime.Today
 };
 ```
@@ -156,7 +282,7 @@ var dateFilter = new EntityFilter
 var inFilter = new EntityFilter
 {
     Name = "Category",
-    Operator = EntityFilterOperators.In,
+    Operator = FilterOperators.In,
     Value = new[] { "Fruit", "Vegetable", "Grain" }
 };
 ```
@@ -168,14 +294,14 @@ var inFilter = new EntityFilter
 var nullFilter = new EntityFilter
 {
     Name = "Description",
-    Operator = EntityFilterOperators.IsNull
+    Operator = FilterOperators.IsNull
 };
 
 // Not null check
 var notNullFilter = new EntityFilter
 {
     Name = "Description",
-    Operator = EntityFilterOperators.IsNotNull
+    Operator = FilterOperators.IsNotNull
 };
 ```
 
@@ -186,7 +312,7 @@ var notNullFilter = new EntityFilter
 ```csharp
 var orFilter = new EntityFilter
 {
-    Logic = EntityFilterLogic.Or,
+    Logic = FilterLogic.Or,
     Filters = new List<EntityFilter>
     {
         new EntityFilter { Name = "Rank", Value = 7 },
@@ -200,7 +326,7 @@ var orFilter = new EntityFilter
 ```csharp
 var andFilter = new EntityFilter
 {
-    Filters = new List<EntityFilter> // Default logic is EntityFilterLogic.And
+    Filters = new List<EntityFilter> // Default logic is FilterLogic.And
     {
         new EntityFilter { Name = "Rank", Value = 7 },
         new EntityFilter { Name = "Name", Value = "Blueberry" }
@@ -215,10 +341,10 @@ var complexFilter = new EntityFilter
 {
     Filters = new List<EntityFilter>
     {
-        new EntityFilter { Name = "Rank", Operator = EntityFilterOperators.GreaterThan, Value = 5 },
+        new EntityFilter { Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
         new EntityFilter
         {
-            Logic = EntityFilterLogic.Or,
+            Logic = FilterLogic.Or,
             Filters = new List<EntityFilter>
             {
                 new EntityFilter { Name = "Name", Value = "Strawberry" },
@@ -235,7 +361,7 @@ var complexFilter = new EntityFilter
 var expressionFilter = new EntityFilter
 {
     Name = "Locations.Any(it.Id in @0)",
-    Operator = EntityFilterOperators.Expression,
+    Operator = FilterOperators.Expression,
     Value = new[] { 100, 200 }
 };
 ```
@@ -251,17 +377,17 @@ var fruits = Fruit.Data().AsQueryable();
 var filtered = fruits.Filter(new EntityFilter 
 { 
     Name = "Name", 
-    Operator = EntityFilterOperators.Contains, 
+    Operator = FilterOperators.Contains, 
     Value = "berry" 
 });
 
 // Apply a complex filter
 var complexFiltered = fruits.Filter(new EntityFilter
 {
-    Logic = EntityFilterLogic.And,
+    Logic = FilterLogic.And,
     Filters = new List<EntityFilter>
     {
-        new EntityFilter { Name = "Rank", Operator = EntityFilterOperators.GreaterThan, Value = 5 },
+        new EntityFilter { Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
         new EntityFilter { Name = "IsActive", Value = true }
     }
 });
@@ -274,16 +400,16 @@ The `EntitySort` class represents a sort expression for an entity, specifying th
 ### EntitySort Class Definition
 
 ```csharp
-[JsonConverter(typeof(EntitySortConverter))]
 public class EntitySort
 {
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     [JsonPropertyName("direction")]
-    public string? Direction { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SortDirections? Direction { get; set; }
 
-    public static EntitySort? Parse(string? sort);
+    public static EntitySort? Parse(string? sortString);
     public override string ToString();
     public override int GetHashCode() => HashCode.Combine(Name, Direction);
 }
@@ -297,10 +423,10 @@ The name of the field or property to sort by. This should match the property nam
 
 #### Direction
 
-The sort direction. Uses constants from `EntitySortDirections`:
+The sort direction. Use the `SortDirections` enum for type safety:
 
-- `asc` - Ascending order (default)
-- `desc` - Descending order
+- `SortDirections.Ascending` - Ascending order (default)
+- `SortDirections.Descending` - Descending order
 
 ### Sort Examples
 
@@ -310,7 +436,7 @@ The sort direction. Uses constants from `EntitySortDirections`:
 var sort = new EntitySort
 {
     Name = "Name",
-    Direction = EntitySortDirections.Ascending
+    Direction = SortDirections.Ascending
 };
 ```
 
@@ -328,8 +454,8 @@ var sort3 = EntitySort.Parse("Priority"); // Default to ascending
 ```csharp
 var sorts = new List<EntitySort>
 {
-    new EntitySort { Name = "Priority", Direction = EntitySortDirections.Descending },
-    new EntitySort { Name = "Name", Direction = EntitySortDirections.Ascending }
+    new EntitySort { Name = "Priority", Direction = SortDirections.Descending },
+    new EntitySort { Name = "Name", Direction = SortDirections.Ascending }
 };
 ```
 
@@ -344,78 +470,82 @@ var fruits = Fruit.Data().AsQueryable();
 var sorted = fruits.Sort(new EntitySort 
 { 
     Name = "Name", 
-    Direction = EntitySortDirections.Ascending 
+    Direction = SortDirections.Ascending 
 });
 
 // Apply multiple sorts
 var multipleSorted = fruits.Sort(new List<EntitySort>
 {
-    new EntitySort { Name = "Priority", Direction = EntitySortDirections.Descending },
-    new EntitySort { Name = "Name", Direction = EntitySortDirections.Ascending }
+    new EntitySort { Name = "Priority", Direction = SortDirections.Descending },
+    new EntitySort { Name = "Name", Direction = SortDirections.Ascending }
 });
 ```
 
 ## Filter Operators
 
-The `EntityFilterOperators` class provides constants for all supported filter operators:
+The `FilterOperators` enum provides type-safe filter operators for Version 2.0:
 
 ```csharp
-public static class EntityFilterOperators
+public enum FilterOperators
 {
-    public const string Equal = "eq";
-    public const string NotEqual = "ne";
-    public const string LessThan = "lt";
-    public const string LessThanOrEqual = "le";
-    public const string GreaterThan = "gt";
-    public const string GreaterThanOrEqual = "ge";
-    public const string StartsWith = "startswith";
-    public const string EndsWith = "endswith";
-    public const string Contains = "contains";
-    public const string IsNull = "isnull";
-    public const string IsNotNull = "isnotnull";
-    public const string In = "in";
-    public const string Expression = "expression";
+    Equal,
+    NotEqual,
+    Contains,
+    NotContains,
+    StartsWith,
+    NotStartsWith,
+    EndsWith,
+    NotEndsWith,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    IsNull,
+    IsNotNull,
+    In,
+    NotIn,
+    Expression
 }
 ```
 
 ### Operator Examples
 
 ```csharp
-// Using operator constants
+// Using FilterOperators enum (Version 2.0)
 var filter = new EntityFilter
 {
     Name = "Status",
-    Operator = EntityFilterOperators.Equal,
+    Operator = FilterOperators.Equal,
     Value = "Active"
 };
 
 var containsFilter = new EntityFilter
 {
     Name = "Description",
-    Operator = EntityFilterOperators.Contains,
+    Operator = FilterOperators.Contains,
     Value = "important"
 };
 ```
 
 ## Filter Logic
 
-The `EntityFilterLogic` class provides constants for logical operators used in filter groups:
+The `FilterLogic` enum provides type-safe logical operators for Version 2.0:
 
 ```csharp
-public static class EntityFilterLogic
+public enum FilterLogic
 {
-    public const string And = "and";
-    public const string Or = "or";
+    And,
+    Or
 }
 ```
 
 ### Logic Examples
 
 ```csharp
-// Using logic constants
+// Using FilterLogic enum (Version 2.0)
 var orGroup = new EntityFilter
 {
-    Logic = EntityFilterLogic.Or,
+    Logic = FilterLogic.Or,
     Filters = new List<EntityFilter>
     {
         new EntityFilter { Name = "Status", Value = "Active" },
@@ -426,24 +556,24 @@ var orGroup = new EntityFilter
 
 ## Sort Directions
 
-The `EntitySortDirections` class provides constants for sort directions:
+The `SortDirections` enum provides type-safe sort directions for Version 2.0:
 
 ```csharp
-public static class EntitySortDirections
+public enum SortDirections
 {
-    public const string Ascending = "asc";
-    public const string Descending = "desc";
+    Ascending,
+    Descending
 }
 ```
 
 ### Direction Examples
 
 ```csharp
-// Using direction constants
+// Using SortDirections enum (Version 2.0)
 var sort = new EntitySort
 {
     Name = "CreatedDate",
-    Direction = EntitySortDirections.Descending
+    Direction = SortDirections.Descending
 };
 ```
 
@@ -456,23 +586,21 @@ The `EntityFilterBuilder` class provides static helper methods for building comm
 ```csharp
 public static class EntityFilterBuilder
 {
-    // Create a simple filter
-    public static EntityFilter CreateFilter(string field, object? value, string? @operator = null);
-    
-    // Create filter groups
-    public static EntityFilter? CreateGroup(string logic, params IEnumerable<EntityFilter?> filters);
-    public static EntityFilter? CreateAndGroup(params EntityFilter?[] filters);
-    public static EntityFilter? CreateOrGroup(params EntityFilter?[] filters);
-    
-    // Create search filters
+    // Create search queries and filters
+    public static EntityQuery? CreateSearchQuery<TModel>(string searchText, int page = 1, int pageSize = 20) where TModel : class, ISupportSearch;
     public static EntityFilter? CreateSearchFilter<TModel>(string searchText) where TModel : class, ISupportSearch;
     public static EntityFilter? CreateSearchFilter(IEnumerable<string> fields, string searchText);
     
-    // Create search queries
-    public static EntityQuery? CreateSearchQuery<TModel>(string searchText, int page = 1, int pageSize = 20) where TModel : class, ISupportSearch;
-    
     // Create sort expressions
     public static EntitySort? CreateSort<TModel>() where TModel : class, ISupportSearch;
+    public static EntitySort CreateSort(string field, SortDirections? direction = null);
+    
+    // Create filters
+    public static EntityFilter CreateFilter(string field, object? value, FilterOperators? @operator = null);
+    
+    // Create filter groups
+    public static EntityFilter? CreateGroup(params IEnumerable<EntityFilter?> filters);
+    public static EntityFilter? CreateGroup(FilterLogic logic, params IEnumerable<EntityFilter?> filters);
 }
 ```
 
@@ -480,19 +608,21 @@ public static class EntityFilterBuilder
 
 ```csharp
 // Create a simple filter
-var statusFilter = EntityFilterBuilder.CreateFilter("Status", "Active", EntityFilterOperators.Equal);
+var statusFilter = EntityFilterBuilder.CreateFilter("Status", "Active", FilterOperators.Equal);
 
-// Create an AND group
-var andGroup = EntityFilterBuilder.CreateAndGroup(
+// Create filter groups using CreateGroup
+var andGroup = EntityFilterBuilder.CreateGroup(FilterLogic.And, new[]
+{
     EntityFilterBuilder.CreateFilter("Status", "Active"),
-    EntityFilterBuilder.CreateFilter("Priority", 1, EntityFilterOperators.GreaterThan)
-);
+    EntityFilterBuilder.CreateFilter("Priority", 1, FilterOperators.GreaterThan)
+});
 
 // Create an OR group
-var orGroup = EntityFilterBuilder.CreateOrGroup(
+var orGroup = EntityFilterBuilder.CreateGroup(FilterLogic.Or, new[]
+{
     EntityFilterBuilder.CreateFilter("Category", "Fruit"),
     EntityFilterBuilder.CreateFilter("Category", "Vegetable")
-);
+});
 
 // Create search filter for specific fields
 var searchFilter = EntityFilterBuilder.CreateSearchFilter(
@@ -502,6 +632,10 @@ var searchFilter = EntityFilterBuilder.CreateSearchFilter(
 
 // Create search query with pagination
 var searchQuery = EntityFilterBuilder.CreateSearchQuery<Product>("laptop", 1, 20);
+
+// Create sort expressions
+var defaultSort = EntityFilterBuilder.CreateSort<Product>();
+var customSort = EntityFilterBuilder.CreateSort("Name", SortDirections.Descending);
 ```
 
 ## LINQ Expression Builder
@@ -542,7 +676,7 @@ builder.Build(simpleFilter);
 // Result: "Name == @0", Parameters: ["Apple"]
 
 // String contains: Name.Contains(@0)
-var containsFilter = new EntityFilter { Name = "Name", Operator = EntityFilterOperators.Contains, Value = "berry" };
+var containsFilter = new EntityFilter { Name = "Name", Operator = FilterOperators.Contains, Value = "berry" };
 builder.Build(containsFilter);
 // Result: "Name.Contains(@0)", Parameters: ["berry"]
 
@@ -551,10 +685,10 @@ var complexFilter = new EntityFilter
 {
     Filters = new List<EntityFilter>
     {
-        new EntityFilter { Name = "Rank", Operator = EntityFilterOperators.GreaterThan, Value = 5 },
+        new EntityFilter { Name = "Rank", Operator = FilterOperators.GreaterThan, Value = 5 },
         new EntityFilter
         {
-            Logic = EntityFilterLogic.Or,
+            Logic = FilterLogic.Or,
             Filters = new List<EntityFilter>
             {
                 new EntityFilter { Name = "Name", Value = "Strawberry" },
@@ -571,30 +705,6 @@ builder.Build(complexFilter);
 
 The filtering and sorting components integrate seamlessly with the entity query system:
 
-### With EntitySelectQuery
-
-```csharp
-public class ProductSelectQuery : EntitySelectQuery<ProductReadModel>
-{
-    public ProductSelectQuery()
-    {
-        // Configure base select parameters
-        Select = new EntitySelect
-        {
-            Filter = EntityFilterBuilder.CreateAndGroup(
-                EntityFilterBuilder.CreateFilter("IsActive", true),
-                EntityFilterBuilder.CreateFilter("CategoryId", 1, EntityFilterOperators.NotEqual)
-            ),
-            Sort = new List<EntitySort>
-            {
-                new EntitySort { Name = "Priority", Direction = EntitySortDirections.Descending },
-                new EntitySort { Name = "Name", Direction = EntitySortDirections.Ascending }
-            }
-        };
-    }
-}
-```
-
 ### With EntityPagedQuery
 
 ```csharp
@@ -607,7 +717,7 @@ public class ProductPagedQuery : EntityPagedQuery<ProductReadModel>
             Filter = EntityFilterBuilder.CreateFilter("IsPublished", true),
             Sort = new List<EntitySort>
             {
-                new EntitySort { Name = "PublishedDate", Direction = EntitySortDirections.Descending }
+                new EntitySort { Name = "PublishedDate", Direction = SortDirections.Descending }
             },
             Page = page,
             PageSize = pageSize
@@ -619,7 +729,7 @@ public class ProductPagedQuery : EntityPagedQuery<ProductReadModel>
 ### Dynamic Filtering
 
 ```csharp
-public class DynamicProductQuery : EntitySelectQuery<ProductReadModel>
+public class DynamicProductQuery : EntityPagedQuery<ProductReadModel>
 {
     public DynamicProductQuery(string? category = null, string? searchText = null)
     {
@@ -645,11 +755,11 @@ public class DynamicProductQuery : EntitySelectQuery<ProductReadModel>
         // Combine filters with AND logic
         if (filters.Count > 0)
         {
-            Select = new EntitySelect
+            Query = new EntityQuery
             {
                 Filter = filters.Count == 1 
                     ? filters[0] 
-                    : EntityFilterBuilder.CreateAndGroup(filters.ToArray())
+                    : EntityFilterBuilder.CreateGroup(FilterLogic.And, filters)
             };
         }
     }
@@ -707,12 +817,12 @@ public class ProductFilterService
         // Validate and add price range filters
         if (request.MinPrice.HasValue)
         {
-            filters.Add(EntityFilterBuilder.CreateFilter("Price", request.MinPrice.Value, EntityFilterOperators.GreaterThanOrEqual));
+            filters.Add(EntityFilterBuilder.CreateFilter("Price", request.MinPrice.Value, FilterOperators.GreaterThanOrEqual));
         }
         
         if (request.MaxPrice.HasValue)
         {
-            filters.Add(EntityFilterBuilder.CreateFilter("Price", request.MaxPrice.Value, EntityFilterOperators.LessThanOrEqual));
+            filters.Add(EntityFilterBuilder.CreateFilter("Price", request.MaxPrice.Value, FilterOperators.LessThanOrEqual));
         }
 
         // Add search filter with validation
@@ -730,7 +840,7 @@ public class ProductFilterService
         filters.Add(EntityFilterBuilder.CreateFilter("IsActive", true));
 
         return filters.Count > 0 
-            ? EntityFilterBuilder.CreateAndGroup(filters.ToArray())
+            ? EntityFilterBuilder.CreateGroup(FilterLogic.And, filters)
             : null;
     }
 
@@ -765,71 +875,8 @@ The following example demonstrates how to use the `EntitySort` class:
 var sort = new EntitySort
 {
     Name = "Name",
-    Direction = EntitySortDirections.Ascending
+    Direction = SortDirections.Ascending
 };
 
-Console.WriteLine(sort.ToString()); // Output: "Name:asc"
-```
-
-## `EntitySelect` Class
-
-Represents a query for selecting entities with optional filtering and sorting criteria.
-
-This class is typically used to define the selection criteria for querying entities, including filters, sorting, and raw query expressions.
-
-```c#
-public class EntitySelect
-```
-
-### `EntitySelect` Examples
-
-The following example demonstrates how to use the `EntitySelect` class:
-
-```c#
-var filter = new EntityFilter
-{
-    Name = "Status",
-    Operator = EntityFilterOperators.Equal,
-    Value = "Active"
-};
-
-var sort = new EntitySort
-{
-    Name = "Name",
-    Direction = EntitySortDirections.Ascending
-};
-
-var entitySelect = new EntitySelect(filter, sort);
-```
-
-## `EntityQuery` Class
-
-Represents a query for selecting entities with filtering, sorting, and pagination capabilities.
-
-This class is typically used to define the criteria for querying entities, including filters, sorting, and pagination options.
-
-```c#
-public class EntityQuery
-```
-
-### `EntityQuery` Examples
-
-The following example demonstrates how to use the `EntityQuery` class:
-
-```c#
-var filter = new EntityFilter
-{
-    Name = "Status",
-    Operator = EntityFilterOperators.Equal,
-    Value = "Active"
-};
-
-var sort = new EntitySort
-{
-    Name = "Name",
-    Direction = EntitySortDirections.Ascending
-};
-
-var query = new EntityQuery(filter, sort, page: 1, pageSize: 20);
-Console.WriteLine($"Page: {query.Page}, PageSize: {query.PageSize}");
+Console.WriteLine(sort.ToString()); // Output: "Name asc"
 ```

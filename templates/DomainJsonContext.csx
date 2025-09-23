@@ -68,7 +68,6 @@ private void GenerateClass()
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifierQuery<int, {readModel}>))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifiersQuery<int, {readModel}>))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityPagedQuery<{readModel}>))]");
-        CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntitySelectQuery<{readModel}>))]");
 
         CodeBuilder.AppendLine($"[JsonSerializable(typeof({readModel}))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(IReadOnlyCollection<{readModel}>))]");
@@ -98,7 +97,6 @@ private void GenerateClass()
     // query types
     CodeBuilder.AppendLine("// Common Models, Commands and Queries");
     CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityQuery))]");
-    CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntitySelect))]");
 
     CodeBuilder.AppendLine("#endregion");
     CodeBuilder.AppendLine("// Manual Declarations");

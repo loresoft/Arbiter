@@ -1,5 +1,6 @@
 using System.Linq.Dynamic.Core;
 
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
@@ -111,7 +112,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     /// <param name="query">The IQueryable to apply the entity query to</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list entities for the specified query</returns>
-    protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryPaged(
+    protected virtual async ValueTask<IReadOnlyList<TReadModel>> QueryPaged(
         EntityPagedQuery<TReadModel> request,
         IQueryable<TEntity> query,
         CancellationToken cancellationToken)
@@ -122,7 +123,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             .Sort(entityQuery.Sort);
 
         if (entityQuery.Page > 0 && entityQuery.PageSize > 0)
-            queryable = queryable.Page(entityQuery.Page, entityQuery.PageSize);
+            queryable = queryable.Page(entityQuery.Page.Value, entityQuery.PageSize.Value);
 
         queryable = queryable.TagWithCallSite();
 

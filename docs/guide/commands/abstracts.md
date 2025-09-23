@@ -36,17 +36,17 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
 
 ### Type Parameters
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter   | Description                                      |
+| ----------- | ------------------------------------------------ |
 | `TResponse` | The type of the response returned by the command |
 
 ### Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Principal` | `ClaimsPrincipal?` | The user's security context |
-| `Activated` | `DateTimeOffset` | UTC timestamp when the command was created |
-| `ActivatedBy` | `string?` | Username extracted from the principal (defaults to "system") |
+| Property      | Type               | Description                                                  |
+| ------------- | ------------------ | ------------------------------------------------------------ |
+| `Principal`   | `ClaimsPrincipal?` | The user's security context                                  |
+| `Activated`   | `DateTimeOffset`   | UTC timestamp when the command was created                   |
+| `ActivatedBy` | `string?`          | Username extracted from the principal (defaults to "system") |
 
 ### Usage Example
 
@@ -64,18 +64,18 @@ var command = new GetUserDetailsCommand(principal);
 var result = await mediator.Send(command);
 ```
 
-## `EntityIdentifierCommand<TKey, TResponse>` Class
+## `EntityIdentifierBase<TKey, TResponse>` Class
 
 Base class for commands that operate on a single entity identified by a key.
 
 ```csharp
-public abstract record EntityIdentifierCommand<TKey, TResponse> 
+public abstract record EntityIdentifierBase<TKey, TResponse> 
     : PrincipalCommandBase<TResponse>
 ```
 
 ### When to Use
 
-Use `EntityIdentifierCommand` when your command needs to:
+Use `EntityIdentifierBase` when your command needs to:
 
 - Target a specific entity by its identifier
 - Ensure the identifier is not null at compile-time
@@ -83,21 +83,21 @@ Use `EntityIdentifierCommand` when your command needs to:
 
 ### Generic Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `TKey` | The type of the key used to identify the entity (e.g., `int`, `Guid`, `string`) |
-| `TResponse` | The type of the response returned by the command |
+| Parameter   | Description                                                                     |
+| ----------- | ------------------------------------------------------------------------------- |
+| `TKey`      | The type of the key used to identify the entity (e.g., `int`, `Guid`, `string`) |
+| `TResponse` | The type of the response returned by the command                                |
 
 ### Available Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Id` | `TKey` | The identifier of the target entity (guaranteed non-null) |
+| Property | Type   | Description                                               |
+| -------- | ------ | --------------------------------------------------------- |
+| `Id`     | `TKey` | The identifier of the target entity (guaranteed non-null) |
 
 ### Implementation Example
 
 ```csharp
-public record GetProductByIdCommand : EntityIdentifierCommand<int, ProductReadModel>
+public record GetProductByIdCommand : EntityIdentifierBase<int, ProductReadModel>
 {
     public GetProductByIdCommand(ClaimsPrincipal principal, int id)
         : base(principal, id)
@@ -121,18 +121,18 @@ Console.WriteLine($"Product Name: {result?.Name}");
 - Deleting an entity by ID
 - Performing operations on a specific entity
 
-## `EntityIdentifiersCommand<TKey, TResponse>` Class
+## `EntityIdentifiersBase<TKey, TResponse>` Class
 
 Base class for commands that operate on multiple entities identified by a collection of keys.
 
 ```csharp
-public abstract record EntityIdentifiersCommand<TKey, TResponse> 
+public abstract record EntityIdentifiersBase<TKey, TResponse> 
     : PrincipalCommandBase<TResponse>
 ```
 
 ### Identifiers When to Use
 
-Use `EntityIdentifiersCommand` when your command needs to:
+Use `EntityIdentifiersBase` when your command needs to:
 
 - Target multiple entities by their identifiers
 - Perform bulk operations efficiently
@@ -140,21 +140,21 @@ Use `EntityIdentifiersCommand` when your command needs to:
 
 ### Identifiers Generic Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `TKey` | The type of the key used to identify entities |
+| Parameter   | Description                                      |
+| ----------- | ------------------------------------------------ |
+| `TKey`      | The type of the key used to identify entities    |
 | `TResponse` | The type of the response returned by the command |
 
 ### Identifiers Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Ids` | `IReadOnlyCollection<TKey>` | The collection of entity identifiers (guaranteed non-null) |
+| Property | Type                        | Description                                                |
+| -------- | --------------------------- | ---------------------------------------------------------- |
+| `Ids`    | `IReadOnlyCollection<TKey>` | The collection of entity identifiers (guaranteed non-null) |
 
 ### Identifiers Implementation Example
 
 ```csharp
-public record DeleteProductsCommand : EntityIdentifiersCommand<int, int>
+public record DeleteProductsCommand : EntityIdentifiersBase<int, int>
 {
     public DeleteProductsCommand(ClaimsPrincipal principal, IReadOnlyCollection<int> ids)
         : base(principal, ids)
@@ -179,18 +179,18 @@ Console.WriteLine($"Deleted {deletedCount} products");
 - Multi-select operations
 - Archiving multiple records
 
-## `EntityModelCommand<TEntityModel, TReadModel>` Class
+## `EntityModelBase<TEntityModel, TReadModel>` Class
 
 Base class for commands that use a data model to perform operations and return a read model.
 
 ```csharp
-public abstract record EntityModelCommand<TEntityModel, TReadModel> 
+public abstract record EntityModelBase<TEntityModel, TReadModel> 
     : PrincipalCommandBase<TReadModel>
 ```
 
 ### Design Goals
 
-Use `EntityModelCommand` when your command needs to:
+Use `EntityModelBase` when your command needs to:
 
 - Accept complex data through a model object
 - Transform input models into domain operations
@@ -199,21 +199,21 @@ Use `EntityModelCommand` when your command needs to:
 
 ### Model Parameters
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter      | Description                                         |
+| -------------- | --------------------------------------------------- |
 | `TEntityModel` | The type of the input model containing command data |
-| `TReadModel` | The type of the read model returned as the result |
+| `TReadModel`   | The type of the read model returned as the result   |
 
 ### Class Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Model` | `TEntityModel` | The input model containing the command data (guaranteed non-null) |
+| Property | Type           | Description                                                       |
+| -------- | -------------- | ----------------------------------------------------------------- |
+| `Model`  | `TEntityModel` | The input model containing the command data (guaranteed non-null) |
 
 ### Model Command Example
 
 ```csharp
-public record CreateProductCommand : EntityModelCommand<ProductCreateModel, ProductReadModel>
+public record CreateProductCommand : EntityModelBase<ProductCreateModel, ProductReadModel>
 {
     public CreateProductCommand(ClaimsPrincipal principal, ProductCreateModel model)
         : base(principal, model)
@@ -261,7 +261,7 @@ Console.WriteLine($"Created product: {result?.Name} with ID: {result?.Id}");
 
 ### Performance
 
-1. **Use `EntityIdentifiersCommand` for bulk operations**: More efficient than multiple single-entity commands
+1. **Use `EntityIdentifiersBase` for bulk operations**: More efficient than multiple single-entity commands
 2. **Consider pagination**: For large identifier collections, implement paging in your handlers
 3. **Cache read models**: Use the `ICacheExpire` interface for cacheable results
 
@@ -270,7 +270,7 @@ Console.WriteLine($"Created product: {result?.Name} with ID: {result?.Id}");
 ```text
 IRequest<TResponse>
 └── PrincipalCommandBase<TResponse>
-    ├── EntityIdentifierCommand<TKey, TResponse>
-    ├── EntityIdentifiersCommand<TKey, TResponse>
-    └── EntityModelCommand<TEntityModel, TReadModel>
+    ├── EntityIdentifierBase<TKey, TResponse>
+    ├── EntityIdentifiersBase<TKey, TResponse>
+    └── EntityModelBase<TEntityModel, TReadModel>
 ```

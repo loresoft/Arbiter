@@ -1,6 +1,6 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
-using Arbiter.CommandQuery.Queries;
 
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +18,7 @@ namespace Arbiter.CommandQuery.MongoDB.Handlers;
 /// <typeparam name="TKey">The type of the entity's identifier.</typeparam>
 /// <typeparam name="TReadModel">The type of the read model to map the entity to.</typeparam>
 public class EntityIdentifiersQueryHandler<TRepository, TEntity, TKey, TReadModel>
-    : RepositoryHandlerBase<TRepository, TEntity, TKey, EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyCollection<TReadModel>>
+    : RepositoryHandlerBase<TRepository, TEntity, TKey, EntityIdentifiersQuery<TKey, TReadModel>, IReadOnlyList<TReadModel>>
     where TRepository : IMongoRepository<TEntity, TKey>
     where TEntity : class, IHaveIdentifier<TKey>, new()
 {
@@ -39,7 +39,7 @@ public class EntityIdentifiersQueryHandler<TRepository, TEntity, TKey, TReadMode
     /// <param name="request">The query containing the identifiers of the entities to retrieve.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A collection of read models corresponding to the retrieved entities.</returns>
-    protected override async ValueTask<IReadOnlyCollection<TReadModel>?> Process(EntityIdentifiersQuery<TKey, TReadModel> request, CancellationToken cancellationToken = default)
+    protected override async ValueTask<IReadOnlyList<TReadModel>?> Process(EntityIdentifiersQuery<TKey, TReadModel> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 

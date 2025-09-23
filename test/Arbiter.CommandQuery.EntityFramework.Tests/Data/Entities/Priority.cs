@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 public partial class Priority

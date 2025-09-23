@@ -1,6 +1,6 @@
-using System;
-using FluentValidation;
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
+
+using FluentValidation;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Validation;
 

@@ -48,17 +48,23 @@ public abstract class EntityExportCommandControllerBase<TKey, TListModel, TReadM
     [Produces(MediaTypeNames.Text.Csv)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public virtual async Task<ActionResult> Export(
-        [FromBody] EntitySelect query,
+        [FromBody] EntityQuery query,
         [FromQuery] string? fileName = null,
         CancellationToken cancellationToken = default)
     {
-        var results = await SelectQuery(query, cancellationToken);
-        results ??= [];
+        // Get all records
+        query.Page = null;
+        query.PageSize = null;
+
+        var results = await PagedQuery(query, cancellationToken);
+        results ??= EntityPagedResult<TListModel>.Empty;
+
+        var items = results.Data ?? [];
 
         await using var memoryStream = new MemoryStream();
         await using var streamWriter = new StreamWriter(memoryStream);
 
-        await CsvWriter.WriteAsync(streamWriter, results, cancellationToken);
+        await CsvWriter.WriteAsync(streamWriter, items, cancellationToken);
 
         await streamWriter.FlushAsync(cancellationToken);
 
@@ -85,17 +91,21 @@ public abstract class EntityExportCommandControllerBase<TKey, TListModel, TReadM
         var jsonSerializerOptions = HttpContext.RequestServices.GetService<JsonSerializerOptions>()
             ?? new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
-        var query = QueryStringEncoder.Decode<EntitySelect>(encodedQuery, jsonSerializerOptions) ?? new EntitySelect();
+        var query = QueryStringEncoder.Decode<EntityQuery>(encodedQuery, jsonSerializerOptions) ?? new EntityQuery();
 
-        var results = await SelectQuery(query, cancellationToken);
-        results ??= [];
+        // Get all records
+        query.Page = null;
+        query.PageSize = null;
+
+        var results = await PagedQuery(query, cancellationToken);
+        results ??= EntityPagedResult<TListModel>.Empty;
+
+        var items = results.Data ?? [];
 
         await using var memoryStream = new MemoryStream();
         await using var streamWriter = new StreamWriter(memoryStream);
 
-        var csvContent = await CsvWriter.WriteAsync(results, cancellationToken);
-
-        await CsvWriter.WriteAsync(streamWriter, results, cancellationToken);
+        await CsvWriter.WriteAsync(streamWriter, items, cancellationToken);
 
         await streamWriter.FlushAsync(cancellationToken);
 

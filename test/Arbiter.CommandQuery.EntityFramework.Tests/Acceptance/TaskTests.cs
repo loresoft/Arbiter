@@ -54,7 +54,7 @@ public class TaskTests : DatabaseTestBase
         // Query Entity
         var entityQuery = new EntityQuery
         {
-            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = "Descending" } },
+            Sort = new List<EntitySort> { new EntitySort { Name = "Updated", Direction = SortDirections.Descending } },
             Filter = new EntityFilter { Name = "StatusId", Value = StatusConstants.NotStarted }
         };
         var listQuery = new EntityPagedQuery<TaskReadModel>(MockPrincipal.Default, entityQuery);
@@ -112,7 +112,7 @@ public class TaskTests : DatabaseTestBase
 
         var updateModel = generator.Generate();
 
-        var upsertCommandNew = new EntityUpsertCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandNew = new EntityUpdateCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultNew = await mediator.Send(upsertCommandNew);
         upsertResultNew.Should().NotBeNull();
 
@@ -128,7 +128,7 @@ public class TaskTests : DatabaseTestBase
         updateModel.Description = "Update " + DateTime.Now.Ticks;
 
         // Upsert again, should be update
-        var upsertCommandUpdate = new EntityUpsertCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel);
+        var upsertCommandUpdate = new EntityUpdateCommand<int, TaskUpdateModel, TaskReadModel>(MockPrincipal.Default, key, updateModel, true);
         var upsertResultUpdate = await mediator.Send(upsertCommandUpdate);
         upsertResultUpdate.Should().NotBeNull();
         upsertResultUpdate.Description.Should().NotBe(upsertResultNew.Description);
@@ -199,63 +199,4 @@ public class TaskTests : DatabaseTestBase
         selectResult.Should().NotBeNull();
     }
 
-    [Test]
-    public async Task EntitySelectQuery()
-    {
-        var mediator = ServiceProvider.GetService<IMediator>();
-        mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
-
-        var filter = new EntityFilter { Name = "StatusId", Value = StatusConstants.NotStarted };
-        var select = new EntitySelect(filter);
-        var selectQuery = new EntitySelectQuery<TaskReadModel>(MockPrincipal.Default, select);
-
-        var selectResult = await mediator.Send(selectQuery);
-        selectResult.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task EntitySelectQueryDelete()
-    {
-        var mediator = ServiceProvider.GetService<IMediator>();
-        mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
-
-        var filter = new EntityFilter { Name = "IsDeleted", Value = true };
-        var select = new EntitySelect(filter);
-        var selectQuery = new EntitySelectQuery<TaskReadModel>(MockPrincipal.Default, select);
-
-        var selectResult = await mediator.Send(selectQuery);
-        selectResult.Should().NotBeNull();
-    }
-
-    [Test]
-    public async Task EntitySelectQueryDeleteNested()
-    {
-        var mediator = ServiceProvider.GetService<IMediator>();
-        mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
-
-        var filter = new EntityFilter
-        {
-            Filters = new List<EntityFilter>
-            {
-                new EntityFilter {Name = "IsDeleted", Value = true},
-                new EntityFilter { Name = "StatusId", Value = StatusConstants.NotStarted }
-            }
-        };
-
-
-        var select = new EntitySelect(filter);
-        var selectQuery = new EntitySelectQuery<TaskReadModel>(MockPrincipal.Default, select);
-
-        var selectResult = await mediator.Send(selectQuery);
-        selectResult.Should().NotBeNull();
-    }
 }

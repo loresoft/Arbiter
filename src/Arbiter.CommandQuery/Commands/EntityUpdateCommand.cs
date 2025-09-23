@@ -37,7 +37,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
-    : EntityModelCommand<TUpdateModel, TReadModel>, ICacheExpire
+    : EntityModelBase<TUpdateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/> class.
@@ -45,12 +45,14 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="id">The identifier of the entity to update.</param>
     /// <param name="model">The update model containing the data for the update.</param>
+    /// <param name="upsert">A value indicating whether to insert the entity if it does not exist.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> or <paramref name="model"/> is <see langword="null"/>.</exception>
-    public EntityUpdateCommand(ClaimsPrincipal? principal, [NotNull] TKey id, TUpdateModel model) : base(principal, model)
+    public EntityUpdateCommand(ClaimsPrincipal? principal, [NotNull] TKey id, TUpdateModel model, bool upsert = false) : base(principal, model)
     {
         ArgumentNullException.ThrowIfNull(id);
 
         Id = id;
+        Upsert = upsert;
     }
 
     /// <summary>
@@ -62,6 +64,15 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether to insert the entity if it does not exist.
+    /// </summary>
+    /// <value>
+    /// <see langword="true"/> if the entity should be inserted if it does not exist; otherwise, <see langword="false"/>.
+    /// </value>
+    [JsonPropertyName("upsert")]
+    public bool Upsert { get; }
 
     /// <summary>
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.

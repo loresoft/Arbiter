@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.Queries;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -72,13 +71,6 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
             .WithName($"Create{EntityName}")
             .WithSummary("Create new entity")
             .WithDescription("Create new entity");
-
-        group
-            .MapPost("{id}", UpsertCommand)
-            .WithEntityMetadata(EntityName)
-            .WithName($"Upsert{EntityName}")
-            .WithSummary("Create new or update entity")
-            .WithDescription("Create new or update entity");
 
         group
             .MapPut("{id}", UpdateCommand)
@@ -194,40 +186,6 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error UpdateCommand: {ErrorMessage}", ex.Message);
-
-            var details = ex.ToProblemDetails();
-            return TypedResults.Problem(details);
-        }
-    }
-
-    /// <summary>
-    /// Creates or updates an entity using the provided update model and the mediator service.
-    /// </summary>
-    /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
-    /// <param name="id">The identifier of the entity to upsert.</param>
-    /// <param name="updateModel">The model containing data for the entity.</param>
-    /// <param name="user">The current security claims principal.</param>
-    /// <param name="cancellationToken">The request cancellation token.</param>
-    /// <returns>
-    /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the upserted entity or <see cref="ProblemHttpResult"/> on error.
-    /// </returns>
-    protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> UpsertCommand(
-        [FromServices] IMediator mediator,
-        [FromRoute] TKey id,
-        [FromBody] TUpdateModel updateModel,
-        ClaimsPrincipal? user = default,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var command = new EntityUpsertCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
-            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
-
-            return TypedResults.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error UpsertCommand: {ErrorMessage}", ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);

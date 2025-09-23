@@ -1,7 +1,5 @@
 using Arbiter.CommandQuery.Tests.Models;
 
-using Bogus;
-
 namespace Arbiter.CommandQuery.Tests.Fakes;
 
 public class LocationCreateModelFaker : Faker<LocationCreateModel>

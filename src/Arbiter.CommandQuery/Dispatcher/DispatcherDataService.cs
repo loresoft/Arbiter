@@ -48,7 +48,7 @@ public class DispatcherDataService : IDispatcherDataService
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IReadOnlyCollection<TModel>> Get<TKey, TModel>(
+    public async ValueTask<IReadOnlyList<TModel>> Get<TKey, TModel>(
         IEnumerable<TKey> ids,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
@@ -60,61 +60,71 @@ public class DispatcherDataService : IDispatcherDataService
         command.Cache(cacheTime);
 
         var result = await Dispatcher
-            .Send<EntityIdentifiersQuery<TKey, TModel>, IReadOnlyCollection<TModel>>(command, cancellationToken)
+            .Send<EntityIdentifiersQuery<TKey, TModel>, IReadOnlyList<TModel>>(command, cancellationToken)
             .ConfigureAwait(false);
 
         return result ?? [];
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IReadOnlyCollection<TModel>> All<TModel>(
+    public async ValueTask<IReadOnlyList<TModel>> All<TModel>(
         string? sortField = null,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
         where TModel : class
     {
-        var filter = new EntityFilter();
+        var query = new EntityQuery();
         var sort = EntitySort.Parse(sortField);
-
-        var select = new EntitySelect(filter, sort);
+        if (sort is not null)
+            query.Sort = [sort];
 
         var user = await GetUser(cancellationToken).ConfigureAwait(false);
 
-        var command = new EntitySelectQuery<TModel>(user, select);
+        var command = new EntityPagedQuery<TModel>(user, query);
         command.Cache(cacheTime);
 
         var result = await Dispatcher
-            .Send<EntitySelectQuery<TModel>, IReadOnlyCollection<TModel>>(command, cancellationToken)
+            .Send<EntityPagedQuery<TModel>, EntityPagedResult<TModel>>(command, cancellationToken)
             .ConfigureAwait(false);
 
-        return result ?? [];
+        return result?.Data ?? [];
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IReadOnlyCollection<TModel>> Select<TModel>(
-        EntitySelect? entitySelect = null,
+    public async ValueTask<EntityPagedResult<TModel>> Page<TModel>(
+        EntityQuery? entityQuery = null,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
         where TModel : class
     {
         var user = await GetUser(cancellationToken).ConfigureAwait(false);
 
-        var command = new EntitySelectQuery<TModel>(user, entitySelect);
+        var command = new EntityPagedQuery<TModel>(user, entityQuery);
         command.Cache(cacheTime);
 
         var result = await Dispatcher
-            .Send<EntitySelectQuery<TModel>, IReadOnlyCollection<TModel>>(command, cancellationToken)
+            .Send<EntityPagedQuery<TModel>, EntityPagedResult<TModel>>(command, cancellationToken)
             .ConfigureAwait(false);
 
-        return result ?? [];
+        return result ?? EntityPagedResult<TModel>.Empty;
     }
 
     /// <inheritdoc/>
-    public async ValueTask<EntityPagedResult<TModel>> Page<TModel>(
+    public async ValueTask<EntityPagedResult<TModel>> Search<TModel>(
+        string searchText,
         EntityQuery? entityQuery = null,
         CancellationToken cancellationToken = default)
-        where TModel : class
+        where TModel : class, ISupportSearch
     {
+        entityQuery ??= new EntityQuery();
+
+        var searchFilter = EntityFilterBuilder.CreateSearchFilter(TModel.SearchFields(), searchText);
+        entityQuery.Filter = EntityFilterBuilder.CreateGroup(entityQuery.Filter, searchFilter);
+
+        var sort = new EntitySort { Name = TModel.SortField() };
+        entityQuery.Sort ??= [];
+        entityQuery.Sort.Insert(0, sort);
+
         var user = await GetUser(cancellationToken).ConfigureAwait(false);
 
         var command = new EntityPagedQuery<TModel>(user, entityQuery);
@@ -123,32 +133,7 @@ public class DispatcherDataService : IDispatcherDataService
             .Send<EntityPagedQuery<TModel>, EntityPagedResult<TModel>>(command, cancellationToken)
             .ConfigureAwait(false);
 
-        return result ?? new EntityPagedResult<TModel>();
-    }
-
-    /// <inheritdoc/>
-    public async ValueTask<IEnumerable<TModel>> Search<TModel>(
-        string searchText,
-        EntityFilter? entityFilter = null,
-        CancellationToken cancellationToken = default)
-        where TModel : class, ISupportSearch
-    {
-        var searchFilter = EntityFilterBuilder.CreateSearchFilter(TModel.SearchFields(), searchText);
-        var sort = new EntitySort { Name = TModel.SortField() };
-
-        var groupFilter = EntityFilterBuilder.CreateGroup(entityFilter, searchFilter);
-
-        var select = new EntitySelect(groupFilter, sort);
-
-        var user = await GetUser(cancellationToken).ConfigureAwait(false);
-
-        var command = new EntitySelectQuery<TModel>(user, select);
-
-        var result = await Dispatcher
-            .Send<EntitySelectQuery<TModel>, IReadOnlyCollection<TModel>>(command, cancellationToken)
-            .ConfigureAwait(false);
-
-        return result ?? [];
+        return result ?? EntityPagedResult<TModel>.Empty;
     }
 
     /// <inheritdoc/>
@@ -161,10 +146,10 @@ public class DispatcherDataService : IDispatcherDataService
     {
         var user = await GetUser(cancellationToken).ConfigureAwait(false);
 
-        var command = new EntityUpsertCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
+        var command = new EntityUpdateCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel, upsert: true);
 
         return await Dispatcher
-            .Send<EntityUpsertCommand<TKey, TUpdateModel, TReadModel>, TReadModel>(command, cancellationToken)
+            .Send<EntityUpdateCommand<TKey, TUpdateModel, TReadModel>, TReadModel>(command, cancellationToken)
             .ConfigureAwait(false);
     }
 

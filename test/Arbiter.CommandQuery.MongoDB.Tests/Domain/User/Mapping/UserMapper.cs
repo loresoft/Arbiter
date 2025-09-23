@@ -1,10 +1,10 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using Arbiter.CommandQuery.Definitions;
 using System.Linq.Expressions;
 
+using Arbiter.CommandQuery.Definitions;
+
 using Entities = Arbiter.CommandQuery.MongoDB.Tests.Data.Entities;
-using Models = Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 
 namespace Arbiter.CommandQuery.MongoDB.Tests.Domain.Mapping;
 

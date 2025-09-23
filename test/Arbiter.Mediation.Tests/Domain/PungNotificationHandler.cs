@@ -1,5 +1,3 @@
-using Arbiter.Mediation;
-
 namespace Arbiter.Tests.Domain;
 
 public class PungNotificationHandler(Logger logger) : INotificationHandler<Pinged>

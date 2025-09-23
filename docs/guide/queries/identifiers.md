@@ -136,7 +136,7 @@ The identifiers query automatically includes several pipeline behaviors:
   - Automatically filters out soft-deleted entities from query results
   - Respects the `IsDeleted` flag on entities
 
-- **Caching**: `MemoryCacheQueryBehavior` or `HybridCacheQueryBehavior`
+- **Caching**: `HybridCacheQueryBehavior`
   - Automatically caches query results based on the hash-based cache key
   - Respects cache expiration policies set on the query
   - Handles cache invalidation using cache tags
@@ -145,12 +145,12 @@ The identifiers query automatically includes several pipeline behaviors:
 
 Configure caching policies on your queries:
 
-### Sliding Expiration
+### Relative Expiration
 
 ```csharp
 var ids = new List<int> { 1, 2, 3, 4, 5 };
 var query = new EntityIdentifiersQuery<int, ProductReadModel>(principal, ids);
-query.Cache(TimeSpan.FromMinutes(15)); // 15-minute sliding expiration
+query.Cache(TimeSpan.FromMinutes(15)); // 15-minute expiration
 
 var result = await mediator.Send(query);
 ```
@@ -163,12 +163,6 @@ var query = new EntityIdentifiersQuery<int, ProductReadModel>(principal, ids);
 query.Cache(DateTimeOffset.UtcNow.AddHours(1)); // Expires at specific time
 
 var result = await mediator.Send(query);
-```
-
-### Memory Cache Registration
-
-```csharp
-services.AddEntityMemoryCache();
 ```
 
 ### Hybrid Cache Registration
@@ -221,7 +215,7 @@ app.MapPost("/products/bulk", async (
 var ids = new List<int> { 1, 2, 3, 4, 5 };
 var query = new EntityIdentifiersQuery<int, ProductReadModel>(principal, ids);
 
-// Configure 30-minute sliding cache
+// Configure 30-minute relative cache
 query.Cache(TimeSpan.FromMinutes(30));
 
 var result = await mediator.Send(query);

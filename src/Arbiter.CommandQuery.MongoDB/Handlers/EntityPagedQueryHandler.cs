@@ -1,5 +1,6 @@
 using System.Linq.Dynamic.Core;
 
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
@@ -107,7 +108,7 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
     /// <param name="query">The query.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A read-only collection of the read model.</returns>
-    protected virtual async ValueTask<IReadOnlyCollection<TReadModel>> QueryPaged(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query, CancellationToken cancellationToken)
+    protected virtual async ValueTask<IReadOnlyList<TReadModel>> QueryPaged(EntityPagedQuery<TReadModel> request, IQueryable<TEntity> query, CancellationToken cancellationToken)
     {
         var entityQuery = request.Query;
 
@@ -115,7 +116,7 @@ public class EntityPagedQueryHandler<TRepository, TEntity, TKey, TReadModel>
             .Sort(entityQuery.Sort);
 
         if (entityQuery.Page > 0 && entityQuery.PageSize > 0)
-            queryable = queryable.Page(entityQuery.Page, entityQuery.PageSize);
+            queryable = queryable.Page(entityQuery.Page.Value, entityQuery.PageSize.Value);
 
         return await queryable
             .ProjectTo<TEntity, TReadModel>(Mapper)

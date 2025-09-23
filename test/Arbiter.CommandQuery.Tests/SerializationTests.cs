@@ -2,7 +2,6 @@ using System.Text.Json;
 
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Converters;
-using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Tests.Fakes;
 using Arbiter.CommandQuery.Tests.Models;
 using Arbiter.Mediation;

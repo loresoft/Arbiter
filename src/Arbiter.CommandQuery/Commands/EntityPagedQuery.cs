@@ -1,9 +1,10 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
+using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 
-namespace Arbiter.CommandQuery.Queries;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a query for retrieving paged entities based on an <see cref="EntityQuery"/>.

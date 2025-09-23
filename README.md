@@ -54,7 +54,7 @@ public class GetUserQuery : IRequest<User>
 // Implement the handler
 public class GetUserHandler : IRequestHandler<GetUserQuery, User>
 {
-    public async ValueTask<User> Handle(GetUserQuery request, CancellationToken cancellationToken)
+    public async ValueTask<User?> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
         // Your business logic here
         return await GetUserFromDatabase(request.UserId);
@@ -165,7 +165,7 @@ public class Pong
 ```csharp
 public class PingHandler : IRequestHandler<Ping, Pong>
 {
-    public async ValueTask<Pong> Handle(
+    public async ValueTask<Pong?> Handle(
         Ping request,
         CancellationToken cancellationToken = default)
     {
@@ -287,10 +287,12 @@ A comprehensive Command Query Responsibility Segregation (CQRS) framework built 
 - **CQRS Implementation**: Clear separation between commands and queries
 - **Pre-built Operations**: Common CRUD operations out of the box
 - **Generic Handlers**: Reusable handlers for typical data operations
-- **Smart Behaviors**: Caching, auditing, validation, and soft delete support
+- **Smart Behaviors**: Hybrid caching, auditing, validation, and soft delete support
 - **Auto Mapping**: Built-in view model to data model mapping
-- **Advanced Querying**: Filter, sort, and pagination support
+- **Enhanced Querying**: Powerful filter, sort, and pagination support with type-safe operators
 - **Multi-tenancy Ready**: Built-in tenant isolation support
+- **Unified Query System**: Single `EntityQuery` class handles both paged and non-paged scenarios
+- **Flexible Filtering**: Support for complex filter expressions with multiple operators and logic combinations
 
 #### Package Installation
 
@@ -311,14 +313,14 @@ The library provides several pre-built commands and queries for common operation
 **Entity Queries:**
 
 - `EntityIdentifierQuery<TKey, TReadModel>` - Get entity by ID
-- `EntitySelectQuery<TReadModel>` - Query entities with filtering and sorting
-- `EntityPagedQuery<TReadModel>` - Paginated entity queries
+- `EntityIdentifiersQuery<TKey, TReadModel>` - Get multiple entities by IDs
+- `EntityPagedQuery<TReadModel>` - Queries both paged and non-paged scenarios with filtering and sorting
 
 **Entity Commands:**
 
 - `EntityCreateCommand<TKey, TCreateModel, TReadModel>` - Create new entities
-- `EntityUpdateCommand<TKey, TUpdateModel, TReadModel>` - Update existing entities
-- `EntityUpsertCommand<TKey, TUpsertModel, TReadModel>` - Create or update entities
+- `EntityUpdateCommand<TKey, TUpdateModel, TReadModel>` - Update existing entities (includes upsert)
+- `EntityPatchCommand<TKey, TReadModel>` - Partial updates to entities
 - `EntityDeleteCommand<TKey, TReadModel>` - Delete entities
 
 #### Example Usage
@@ -326,21 +328,59 @@ The library provides several pre-built commands and queries for common operation
 **Query by ID:**
 
 ```csharp
-var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { 
-    new Claim(ClaimTypes.Name, "JohnDoe") 
-}));
-
 var query = new EntityIdentifierQuery<int, ProductReadModel>(principal, 123);
 var result = await mediator.Send(query);
 ```
 
-**Query with Filtering:**
+**Query with Filtering and Sorting:**
 
 ```csharp
-var filter = new EntityFilter { Name = "Status", Operator = "eq", Value = "Active" };
-var sort = new EntitySort { Name = "Name", Direction = "asc" };
+var filters = new List<EntityFilter>
+{
+    new EntityFilter { Name = "Status", Operator = FilterOperators.Equal, Value = "Active" },
+    new EntityFilter { Name = "Price", Operator = FilterOperators.GreaterThan, Value = 10.00m }
+};
 
-var query = new EntitySelectQuery<ProductReadModel>(principal, filter, sort);
+var sorts = new List<EntitySort>
+{
+    new EntitySort { Name = "Name", Direction = SortDirections.Ascending }
+};
+
+var query = new EntityQuery
+{
+    Filter = new EntityFilter { Filters = filters },
+    Sort = sorts
+};
+
+// no page or page size will return all matches
+var command = new EntityPagedQuery<ProductReadModel>(principal, query);
+var result = await mediator.Send(command);
+```
+
+**Paginated Query:**
+
+```csharp
+var entityQuery = new EntityQuery
+{
+    Filter = new EntityFilter 
+    { 
+        Name = "Category", 
+        Operator = FilterOperators.Equal, 
+        Value = "Electronics" 
+    },
+    Sort = new List<EntitySort>
+    {
+        new EntitySort 
+        { 
+            Name = "CreatedDate", 
+            Direction = SortDirections.Descending 
+        }
+    },
+    Page = 1,
+    PageSize = 20
+};
+
+var query = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
 var result = await mediator.Send(query);
 ```
 
@@ -356,6 +396,49 @@ var updateModel = new ProductUpdateModel
 
 var command = new EntityUpdateCommand<int, ProductUpdateModel, ProductReadModel>(principal, 123, updateModel);
 var result = await mediator.Send(command);
+```
+
+#### Advanced Filtering and Querying
+
+**Complex Filter Logic:**
+
+```csharp
+var complexEntityQuery = new EntityQuery
+{
+    Filter = new EntityFilter
+    {
+        Filters = new List<EntityFilter>
+        {
+            new EntityFilter 
+            { 
+                Name = "Category", 
+                Operator = FilterOperators.In, 
+                Value = new[] { "Electronics", "Computers" } 
+            },
+            new EntityFilter 
+            { 
+                Name = "Price", 
+                Operator = FilterOperators.GreaterThanOrEqual, 
+                Value = 100.00m 
+            },
+            new EntityFilter 
+            { 
+                Name = "Name", 
+                Operator = FilterOperators.Contains, 
+                Value = "Gaming" 
+            }
+        },
+        Logic = FilterLogic.And
+    },
+    Sort = new List<EntitySort>
+    {
+        new EntitySort { Name = "Price", Direction = SortDirections.Descending },
+        new EntitySort { Name = "Name", Direction = SortDirections.Ascending }
+    }
+};
+
+var query = new EntityPagedQuery<ProductReadModel>(principal, complexEntityQuery);
+var result = await mediator.Send(query);
 ```
 
 ## Data Providers
@@ -530,3 +613,121 @@ If you find this project useful, please consider:
 - **Reporting** issues
 - **Contributing** improvements
 - **Spreading** the word
+
+## Change Log
+
+### Version 2.0
+
+#### Major Breaking Changes and Improvements
+
+##### Breaking Changes
+
+- **Removed `EntitySelectQuery`**: Replaced with enhanced `EntityQuery` that now supports both paged and non-paged results
+- **Removed `EntityUpsertCommand`**: Upsert functionality has been unified into `EntityUpdateCommand` with built-in upsert logic
+- **Removed `EntityContinuationQuery` and `EntityContinuationResult`**: Functionality now integrated into `EntityQuery`
+- **Command/Query Reorganization**:
+  - Moved query classes (`EntityIdentifierQuery`, `EntityIdentifiersQuery`, `EntityPagedQuery`) to `Commands` namespace for better organization
+  - Renamed base classes for consistency:
+    - `EntityIdentifierCommand` → `EntityIdentifierBase`
+    - `EntityIdentifiersCommand` → `EntityIdentifiersBase`
+    - `EntityModelCommand` → `EntityModelBase`
+  - Renamed filter, logic, and sort values for more consistent query building
+    - `EntityFilterOperators` → `FilterOperators`
+    - `EntityFilterLogic` → `FilterLogic`
+    - `EntitySortDirections` → `SortDirections`
+
+##### Architecture Improvements
+
+- **Simplified Query System**:
+  - Consolidated multiple query types into a single, more powerful `EntityQuery` class
+  - Removed redundant query handlers and behaviors
+  - Enhanced filter and sort capabilities with better type safety
+
+- **Enhanced Filtering**:
+  - Moved filter logic to dedicated `Queries.FilterLogic` and `Queries.FilterOperators` enums
+  - Improved `EntityFilterConverter` with better validation and error handling
+  - Enhanced `LinqExpressionBuilder` with more robust query building capabilities
+
+- **Caching Simplification**:
+  - Removed `DistributedCacheQueryBehavior` and `MemoryCacheQueryBehavior`
+  - Consolidated caching logic into `HybridCacheQueryBehavior` for better performance
+  - Removed `IDistributedCacheSerializer` interface in favor of built-in serialization
+
+##### Behavior Consolidation
+
+- **Tenant Behaviors**:
+  - Removed `TenantFilterBehaviorBase` and `TenantSelectQueryBehavior`
+  - Enhanced `TenantPagedQueryBehavior` to handle all tenant-related query filtering
+  
+- **Soft Delete Behaviors**:
+  - Removed `DeletedFilterBehaviorBase` and `DeletedSelectQueryBehavior`
+  - Enhanced `DeletedPagedQueryBehavior` to handle all soft delete scenarios
+
+- **Removed Legacy Behaviors**:
+  - `TrackChangeCommandBehavior` - functionality moved to handlers
+  - Various base behavior classes that were no longer needed
+
+#### Migration from Version 1.x
+
+**Updating Query Usage:**
+
+```csharp
+// Version 1.x - EntitySelectQuery (REMOVED)
+var oldQuery = new EntitySelectQuery<ProductReadModel>(principal, filter, sort);
+
+// Version 2.0 - Use EntityPagedQuery with EntityQuery instead
+var entityQuery = new EntityQuery
+{
+    Filter = filter,
+    Sort = sorts
+};
+var newQuery = new EntityPagedQuery<ProductReadModel>(principal, entityQuery);
+```
+
+**Updating Filter Operators:**
+
+```csharp
+// Version 1.x - String operators (DEPRECATED)
+var oldFilter = new EntityFilter 
+{ 
+    Name = "Status", 
+    Operator = "eq", 
+    Value = "Active" 
+};
+
+// Version 2.0 - Enum operators
+var newFilter = new EntityFilter 
+{ 
+    Name = "Status", 
+    Operator = FilterOperators.Equal, 
+    Value = "Active" 
+};
+```
+
+**Updating Sort Directions:**
+
+```csharp
+// Version 1.x - String directions (DEPRECATED)
+var oldSort = new EntitySort 
+{ 
+    Name = "Name", 
+    Direction = "asc" 
+};
+
+// Version 2.0 - Enum directions
+var newSort = new EntitySort 
+{ 
+    Name = "Name", 
+    Direction = SortDirections.Ascending 
+};
+```
+
+**Upsert Operations:**
+
+```csharp
+// Version 1.x - Separate EntityUpsertCommand (REMOVED)
+var oldUpsert = new EntityUpsertCommand<int, ProductUpsertModel, ProductReadModel>(principal, model);
+
+// Version 2.0 - Use EntityUpdateCommand with upsert behavior
+var newUpdate = new EntityUpdateCommand<int, ProductUpdateModel, ProductReadModel>(principal, id, model, true);
+```

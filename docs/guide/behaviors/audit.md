@@ -1,51 +1,47 @@
 ---
 title: Audit Behavior
-description: Pipeline behaviors that automatically track and audit entity changes with metadata
+description: Automatic audit tracking for entity changes with metadata
 ---
 
 # Audit Behavior
 
-Pipeline behaviors that automatically track and audit entity changes with metadata such as creation and modification timestamps and user information. These behaviors integrate seamlessly with entity commands to provide consistent audit trails across your application.
+The Arbiter framework provides automatic audit tracking through command handlers that work with entity commands. The handlers inspect entities for tracking interfaces and automatically populate audit metadata without requiring manual intervention.
 
 ## Overview
 
-The Arbiter framework provides automatic audit tracking through pipeline behaviors that work with entity commands. These behaviors inspect entities for tracking interfaces and automatically populate audit metadata without requiring manual intervention in command handlers.
+Audit tracking is built directly into the entity command handlers and works automatically with entity commands (`EntityCreateCommand`, `EntityUpdateCommand`, `EntityDeleteCommand`) when entities implement the appropriate tracking interfaces.
 
-**Key Behaviors:**
+**Key Features:**
 
-- **TrackChangeCommandBehavior** - Automatically populates audit fields based on tracking interfaces
+- **Automatic Metadata Population** - Handlers automatically populate audit fields based on tracking interfaces
 - **EntityChangeNotificationBehavior** - Publishes notifications when entity changes occur
 
-All audit behaviors work automatically with entity commands (`EntityCreateCommand`, `EntityUpdateCommand`, , `EntityUpsertCommand`, `EntityDeleteCommand`) when entities implement the appropriate tracking interfaces.
+All audit functionality works automatically with entity commands when entities implement the appropriate tracking interfaces.
 
-## TrackChangeCommandBehavior
+## Automatic Metadata Tracking
 
-The `TrackChangeCommandBehavior<TEntityModel, TResponse>` behavior automatically intercepts entity commands to populate audit fields with metadata about who performed the operation and when it occurred. This behavior integrates seamlessly with create, update, upsert and delete commands.
+When an entity implements tracking interfaces, the command handlers automatically populate metadata:
 
-### Automatic Metadata Tracking
-
-When an entity implements tracking interfaces, the behavior automatically populates metadata:
-
-#### For Create Commands (`EntityCreateCommand`)
+### For Create Commands (`EntityCreateCommand`)
 
 - **`ITrackCreated`**: Sets `Created` timestamp and `CreatedBy` user identifier for new entities
 - **`ITrackUpdated`**: Sets `Updated` timestamp and `UpdatedBy` user identifier for new entities
 
-#### For Update Commands (`EntityUpdateCommand`, `EntityUpsertCommand`)
+### For Update Commands (`EntityUpdateCommand`)
 
-- **`ITrackCreated`**: Preserves existing `Created` timestamp and `CreatedBy` user identifier
+- **`ITrackCreated`**: Sets for new entities, preserves for existing entities during upsert
 - **`ITrackUpdated`**: Sets `Updated` timestamp and `UpdatedBy` user identifier
 
-#### For Delete Commands (`EntityDeleteCommand`)
+### For Delete Commands (`EntityDeleteCommand`)
 
 - **`ITrackUpdated`**: Sets `Updated` timestamp and `UpdatedBy` user identifier before deletion (for soft deletes)
 - **`ITrackDeleted`**: Sets `IsDeleted = true` to mark the entity as deleted
 
-### Tracking Interfaces
+## Tracking Interfaces
 
 Your entities should implement one or more of the following interfaces to enable audit tracking:
 
-#### ITrackCreated Interface
+### ITrackCreated Interface
 
 ```csharp
 public interface ITrackCreated
@@ -57,9 +53,9 @@ public interface ITrackCreated
 
 **Purpose**: Records creation metadata for new entities
 
-**Usage**: Automatically populated during `EntityCreateCommand` and `EntityUpsertCommand` for new entities
+**Usage**: Automatically populated during `EntityCreateCommand` and `EntityUpdateCommand` (for new entities during upsert)
 
-#### ITrackUpdated Interface
+### ITrackUpdated Interface
 
 ```csharp
 public interface ITrackUpdated
@@ -71,9 +67,9 @@ public interface ITrackUpdated
 
 **Purpose**: Records modification metadata for entity updates
 
-**Usage**: Automatically populated during `EntityCreateCommand`, `EntityUpdateCommand`, `EntityUpsertCommand`, and `EntityDeleteCommand`
+**Usage**: Automatically populated during `EntityCreateCommand`, `EntityUpdateCommand`, and `EntityDeleteCommand`
 
-#### ITrackDeleted Interface
+### ITrackDeleted Interface
 
 ```csharp
 public interface ITrackDeleted
@@ -86,7 +82,7 @@ public interface ITrackDeleted
 
 **Usage**: Automatically populated during `EntityDeleteCommand` to mark entities as deleted instead of physical removal
 
-### Example Entity Implementation
+## Example Entity Implementation
 
 ```csharp
 public class Product : ITrackCreated, ITrackUpdated, ITrackDeleted
@@ -118,7 +114,7 @@ The `EntityChangeNotificationBehavior<TKey, TEntityModel, TResponse>` behavior a
 The behavior publishes `EntityChangeNotification<TResponse>` events after successful command operations:
 
 - **Create Operations**: `EntityChangeOperation.Created` for `EntityCreateCommand`
-- **Update Operations**: `EntityChangeOperation.Updated` for `EntityUpdateCommand` and `EntityUpsertCommand`
+- **Update Operations**: `EntityChangeOperation.Updated` for `EntityUpdateCommand` (includes upsert scenarios)
 - **Delete Operations**: `EntityChangeOperation.Deleted` for `EntityDeleteCommand`
 
 ### Integration with Commands
@@ -126,8 +122,7 @@ The behavior publishes `EntityChangeNotification<TResponse>` events after succes
 The behavior automatically integrates with all entity commands:
 
 - **EntityCreateCommand**: Publishes notification after successful entity creation
-- **EntityUpdateCommand**: Publishes notification after successful entity update  
-- **EntityUpsertCommand**: Publishes notification after successful upsert operation
+- **EntityUpdateCommand**: Publishes notification after successful entity update (includes upsert scenarios)
 - **EntityDeleteCommand**: Publishes notification after successful deletion (soft or hard)
 
 ### Notification Structure
@@ -240,14 +235,13 @@ services.AddEntityDeleteCommand<IProductRepository, Product, int, ProductReadMod
 
 ### Pipeline Behavior Order
 
-The audit behaviors are automatically registered in the correct order within the pipeline:
+The pipeline behaviors are automatically registered in the correct order:
 
 1. **Authorization behaviors** - Verify user permissions
 2. **Tenant behaviors** - Handle multi-tenant scenarios
-3. **TrackChangeCommandBehavior** - Populate audit fields
-4. **Validation behaviors** - Validate models and business rules
-5. **Core command handler** - Execute the actual operation
-6. **EntityChangeNotificationBehavior** - Publish change notifications
+3. **Validation behaviors** - Validate models and business rules
+4. **Core command handler** - Execute the actual operation (including audit field population)
+5. **EntityChangeNotificationBehavior** - Publish change notifications
 
 ## Usage with Entity Commands
 
