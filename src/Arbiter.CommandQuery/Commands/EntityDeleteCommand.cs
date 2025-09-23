@@ -27,7 +27,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public record EntityDeleteCommand<TKey, TReadModel>
-    : EntityIdentifierCommand<TKey, TReadModel>, ICacheExpire
+    : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityDeleteCommand{TKey, TReadModel}"/> class.

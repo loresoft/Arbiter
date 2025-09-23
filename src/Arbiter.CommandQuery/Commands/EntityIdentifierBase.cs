@@ -14,7 +14,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// that operate on a specific entity identified by a key.
 /// </remarks>
 /// <example>
-/// The following example demonstrates how to use the <see cref="EntityIdentifierCommand{TKey, TResponse}"/>:
+/// The following example demonstrates how to use the <see cref="EntityIdentifierBase{TKey, TResponse}"/>:
 /// <code>
 /// public record GetEntityByIdCommand : EntityIdentifierCommand&lt;int, ProductReadModel&gt;
 /// {
@@ -32,16 +32,16 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"Entity Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record EntityIdentifierCommand<TKey, TResponse>
+public abstract record EntityIdentifierBase<TKey, TResponse>
     : PrincipalCommandBase<TResponse>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityIdentifierCommand{TKey, TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="EntityIdentifierBase{TKey, TResponse}"/> class.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="id">The identifier of the entity for this command.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
-    protected EntityIdentifierCommand(ClaimsPrincipal? principal, [NotNull] TKey id)
+    protected EntityIdentifierBase(ClaimsPrincipal? principal, [NotNull] TKey id)
         : base(principal)
     {
         ArgumentNullException.ThrowIfNull(id);

@@ -14,7 +14,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// that operate on an entity using a model and return a read model as the result.
 /// </remarks>
 /// <example>
-/// The following example demonstrates how to use the <see cref="EntityModelCommand{TEntityModel, TReadModel}"/>:
+/// The following example demonstrates how to use the <see cref="EntityModelBase{TEntityModel, TReadModel}"/>:
 /// <code>
 /// public record CreateProductCommand : EntityModelCommand&lt;ProductCreateModel, ProductReadModel&gt;
 /// {
@@ -39,16 +39,16 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"Created product: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record EntityModelCommand<TEntityModel, TReadModel>
+public abstract record EntityModelBase<TEntityModel, TReadModel>
     : PrincipalCommandBase<TReadModel>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityModelCommand{TEntityModel, TReadModel}"/> class.
+    /// Initializes a new instance of the <see cref="EntityModelBase{TEntityModel, TReadModel}"/> class.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="model">The model containing the data for the operation.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
-    protected EntityModelCommand(ClaimsPrincipal? principal, [NotNull] TEntityModel model)
+    protected EntityModelBase(ClaimsPrincipal? principal, [NotNull] TEntityModel model)
         : base(principal)
     {
         ArgumentNullException.ThrowIfNull(model);

@@ -14,7 +14,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// that operate on multiple entities identified by a collection of keys.
 /// </remarks>
 /// <example>
-/// The following example demonstrates how to use the <see cref="EntityIdentifiersCommand{TKey, TResponse}"/>:
+/// The following example demonstrates how to use the <see cref="EntityIdentifiersBase{TKey, TResponse}"/>:
 /// <code>
 /// public record DeleteEntitiesCommand : EntityIdentifiersCommand&lt;int, ProductReadModel&gt;
 /// {
@@ -32,16 +32,16 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"Entities deleted: {result}");
 /// </code>
 /// </example>
-public abstract record EntityIdentifiersCommand<TKey, TResponse>
+public abstract record EntityIdentifiersBase<TKey, TResponse>
     : PrincipalCommandBase<TResponse>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EntityIdentifiersCommand{TKey, TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="EntityIdentifiersBase{TKey, TResponse}"/> class.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="ids">The collection of identifiers for this command.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
-    protected EntityIdentifiersCommand(ClaimsPrincipal? principal, [NotNull] IReadOnlyList<TKey> ids)
+    protected EntityIdentifiersBase(ClaimsPrincipal? principal, [NotNull] IReadOnlyList<TKey> ids)
         : base(principal)
     {
         ArgumentNullException.ThrowIfNull(ids);

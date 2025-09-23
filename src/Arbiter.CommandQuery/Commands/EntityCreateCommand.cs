@@ -36,7 +36,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public record EntityCreateCommand<TCreateModel, TReadModel>
-    : EntityModelCommand<TCreateModel, TReadModel>, ICacheExpire
+    : EntityModelBase<TCreateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityCreateCommand{TCreateModel, TReadModel}"/> class.

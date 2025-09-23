@@ -34,7 +34,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// </code>
 /// </example>
 public record EntityPatchCommand<TKey, TReadModel>
-    : EntityIdentifierCommand<TKey, TReadModel>, ICacheExpire
+    : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityPatchCommand{TKey, TReadModel}"/> class.

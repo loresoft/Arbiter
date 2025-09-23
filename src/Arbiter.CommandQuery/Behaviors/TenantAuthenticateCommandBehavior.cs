@@ -14,7 +14,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// <typeparam name="TEntityModel">The type of the model</typeparam>
 /// <typeparam name="TResponse">The type of the response</typeparam>
 public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
-    : PipelineBehaviorBase<EntityModelCommand<TEntityModel, TResponse>, TResponse>
+    : PipelineBehaviorBase<EntityModelBase<TEntityModel, TResponse>, TResponse>
     where TEntityModel : class
 {
 
@@ -34,7 +34,7 @@ public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
 
     /// <inheritdoc />
     protected override async ValueTask<TResponse?> Process(
-        EntityModelCommand<TEntityModel, TResponse> request,
+        EntityModelBase<TEntityModel, TResponse> request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
         return await next(cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask Authorize(EntityModelCommand<TEntityModel, TResponse> request)
+    private async ValueTask Authorize(EntityModelBase<TEntityModel, TResponse> request)
     {
         var principal = request.Principal;
         if (principal == null)
