@@ -6,7 +6,11 @@ public class EntitySortTest
 {
     [Test]
     [Arguments("Name:Ascending", "Name", SortDirections.Ascending)]
+    [Arguments("Name Ascending", "Name", SortDirections.Ascending)]
+    [Arguments("Name asc", "Name", SortDirections.Ascending)]
     [Arguments("Name:Descending", "Name", SortDirections.Descending)]
+    [Arguments("Name Descending", "Name", SortDirections.Descending)]
+    [Arguments("Name desc", "Name", SortDirections.Descending)]
     [Arguments("Name : Descending", "Name", SortDirections.Descending)]
     [Arguments("Name", "Name", null)]
     [Arguments("", null, null)]
