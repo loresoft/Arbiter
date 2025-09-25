@@ -49,8 +49,8 @@ public static class CacheTagger
     /// <returns>A distinct collection of all registered tags.</returns>
     public static IReadOnlySet<string> GetTags()
     {
-        var set = new HashSet<string>();
-
+        // _typeTags.Values may contain duplicates or null/empty values
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var tag in _typeTags.Values)
         {
             if (!string.IsNullOrEmpty(tag))
