@@ -3,7 +3,6 @@
   <PropertyGroup Label="Package">
     <Copyright>Copyright © $([System.DateTime]::Now.ToString(yyyy)) LoreSoft</Copyright>
     <Authors>LoreSoft</Authors>
-    <NeutralLanguage>en-US</NeutralLanguage>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>Mediator; CQRS</PackageTags>
     <PackageProjectUrl>https://github.com/loresoft/Arbiter</PackageProjectUrl>
@@ -26,6 +25,8 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Options">
+    <Language>en-US</Language>
+    <NeutralLanguage>en-US</NeutralLanguage>
     <DefaultLanguage>en-US</DefaultLanguage>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -44,6 +44,24 @@ public static class CacheTagger
     }
 
     /// <summary>
+    /// Gets all tags currently registered.
+    /// </summary>
+    /// <returns>A distinct collection of all registered tags.</returns>
+    public static IReadOnlySet<string> GetTags()
+    {
+        var set = new HashSet<string>();
+
+        foreach (var tag in _typeTags.Values)
+        {
+            if (!string.IsNullOrEmpty(tag))
+                set.Add(tag);
+        }
+
+        return set;
+    }
+
+
+    /// <summary>
     /// Generates a cache key for a model type and a value.
     /// </summary>
     /// <typeparam name="TModel">The type of the model</typeparam>
