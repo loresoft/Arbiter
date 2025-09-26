@@ -44,7 +44,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.2" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.14.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.4" />
