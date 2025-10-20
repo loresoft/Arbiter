@@ -54,6 +54,7 @@ public class TemplateService : ITemplateService
             return source ?? string.Empty;
 
         var options = new TemplateOptions();
+        options.CultureInfo = System.Globalization.CultureInfo.CurrentUICulture;
         options.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
 
         var context = new TemplateContext(model, options, allowModelMembers: true);

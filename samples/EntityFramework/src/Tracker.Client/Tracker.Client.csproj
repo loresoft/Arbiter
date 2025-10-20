@@ -9,8 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazored.FluentValidation" />
-    <PackageReference Include="Blazored.Modal" />
+    <PackageReference Include="Blazilla" />
     <PackageReference Include="LoreSoft.Blazor.Controls" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />

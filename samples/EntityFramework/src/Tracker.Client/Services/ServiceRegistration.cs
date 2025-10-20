@@ -1,9 +1,6 @@
 using System.Text.Json;
 
 using Arbiter.CommandQuery;
-using Arbiter.CommandQuery.Dispatcher;
-
-using Blazored.Modal;
 
 using LoreSoft.Blazor.Controls;
 
@@ -20,9 +17,6 @@ public static class ServiceRegistration
     public static void Register(IServiceCollection services, ISet<string> tags)
     {
         // component libraries
-        services
-            .AddBlazoredModal();
-
         services
             .AddBlazorControls();
 

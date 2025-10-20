@@ -1,9 +1,9 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
 
-using Microsoft.AspNetCore.Components.Forms;
+using LoreSoft.Blazor.Controls;
 
-using Tracker.Client.Extensions;
+using Microsoft.AspNetCore.Components.Forms;
 
 
 namespace Tracker.Client.Components.Abstracts;
@@ -82,7 +82,7 @@ public abstract class EditPageBase<TReadModel, TUpdateModel> : StorePageBase<TRe
             if (IsCreate || Store.Model == null)
                 return;
 
-            if (!await Modal.ConfirmDelete($"Are you sure you want to delete {ModelTypeName} '{ModelInstanceName}'?"))
+            if (!await Modal.ConfirmDelete($"{ModelTypeName} '{ModelInstanceName}'"))
                 return;
 
             await Store.Delete();

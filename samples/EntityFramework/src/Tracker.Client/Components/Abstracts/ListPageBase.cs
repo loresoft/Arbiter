@@ -1,8 +1,6 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
 
-using Blazored.Modal.Services;
-
 using LoreSoft.Blazor.Controls;
 
 using Microsoft.AspNetCore.Components;
@@ -26,8 +24,8 @@ public abstract class ListPageBase<TListModel, TReadModel> : PrincipalBase
         SearchText = new DebounceValue<string>(HandleSearch);
     }
 
-    [CascadingParameter]
-    public required IModalService Modal { get; set; }
+    [Inject]
+    public required ModalService Modal { get; set; }
 
     [Inject]
     public required DataService DataService { get; set; }
