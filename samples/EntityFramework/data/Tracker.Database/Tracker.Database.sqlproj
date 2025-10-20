@@ -24,13 +24,6 @@
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
-  <ItemGroup>
-    <Build Include="Tables\Priority.sql" />
-    <Build Include="Tables\Status.sql" />
-    <Build Include="Tables\Task.sql" />
-    <Build Include="Tables\Tenant.sql" />
-    <Build Include="Tables\User.sql" />
-  </ItemGroup>
   <!-- Fix for `Your project does not reference ".NETFramework,Version=v4.7.2" framework.` -->
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(MSBuildRuntimeType)' != 'Core'">
     <Delete Files="$(MSBuildThisFileDirectory)\obj\project.assets.json" />
