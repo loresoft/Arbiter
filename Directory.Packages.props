@@ -68,8 +68,8 @@
     <PackageVersion Include="System.Text.Json" Version="9.0.10" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestHost.Abstracts" Version="1.2.0" />
-    <PackageVersion Include="Testcontainers.MongoDb" Version="4.8.0" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.MongoDb" Version="4.8.1" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.1" />
     <PackageVersion Include="TUnit" Version="0.73.19" />
     <PackageVersion Include="Twilio" Version="7.13.4" />
     <PackageVersion Include="Verify.TUnit" Version="31.0.2" />
