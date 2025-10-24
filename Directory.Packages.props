@@ -17,7 +17,7 @@
     <PackageVersion Include="Bogus" Version="35.6.4" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="6.0.0" />
-    <PackageVersion Include="Equatable.Generator" Version="2.0.0" />
+    <PackageVersion Include="Equatable.Generator" Version="2.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="Fluid.Core" Version="2.25.0" />
     <PackageVersion Include="Injectio" Version="5.1.0" />
