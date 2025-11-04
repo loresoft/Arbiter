@@ -8,7 +8,7 @@
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.2" />
     <PackageVersion Include="AspNetCore.SecurityKey" Version="3.0.0" />
     <PackageVersion Include="AssemblyMetadata.Generators" Version="2.1.0" />
-    <PackageVersion Include="AutoMapper" Version="[14.0.0]" />
+    <PackageVersion Include="AutoMapper" Version="[15.1.0]" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
     <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
     <PackageVersion Include="Azure.Communication.Sms" Version="1.0.2" />
