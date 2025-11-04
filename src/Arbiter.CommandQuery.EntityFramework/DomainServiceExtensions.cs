@@ -16,6 +16,21 @@ namespace Arbiter.CommandQuery.EntityFramework;
 public static class DomainServiceExtensions
 {
     /// <summary>
+    /// Adds the query pipeline services to the specified service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <seealso cref="Pipeline.IQueryPipeline"/>
+    public static IServiceCollection AddQueryPipeline(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddScoped<Pipeline.IQueryPipeline, Pipeline.QueryPipeline>();
+
+        return services;
+    }
+
+    /// <summary>
     /// Registers entity queries with pipeline behaviors in the service collection.
     /// </summary>
     /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>

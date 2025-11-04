@@ -52,6 +52,7 @@ public class TestApplication : TestHostApplication, IAsyncInitializer
 
         services.AddHostedService<DatabaseInitializer>();
         services.AddCommandQuery();
+        services.AddQueryPipeline();
 
         services.AddServerDispatcher();
         services.AddArbiterCommandQueryEntityFrameworkTests();

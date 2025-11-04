@@ -2,6 +2,7 @@ using System.Linq.Dynamic.Core;
 
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
 
@@ -19,14 +20,16 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     where TContext : DbContext
     where TEntity : class
 {
+    private readonly IQueryPipeline? _queryPipeline;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityPagedQueryHandler{TContext, TEntity, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
+    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? queryPipeline = null)
         : base(loggerFactory, dataContext, mapper)
     {
+        _queryPipeline = queryPipeline;
     }
 
 
@@ -41,6 +44,10 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
             .Set<TEntity>()
             .AsNoTracking()
             .TagWith($"EntityPagedQueryHandler; Context:{typeof(TContext).Name}, Entity:{typeof(TEntity).Name}, Model:{typeof(TReadModel).Name}");
+
+        // apply query pipeline modifiers
+        if (_queryPipeline != null)
+            query = _queryPipeline.ApplyModifiers(query, DataContext, request.Principal);
 
         // build query from filter
         query = await BuildQuery(request, query)
@@ -82,7 +89,6 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
         // add raw query
         if (!string.IsNullOrEmpty(entityQuery?.Query))
             query = query.Where(entityQuery.Query);
-
 
         return ValueTask.FromResult(query);
     }
