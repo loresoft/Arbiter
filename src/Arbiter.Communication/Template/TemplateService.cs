@@ -1,4 +1,7 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+
+using Arbiter.Communication.Extensions;
 
 using Fluid;
 
@@ -12,24 +15,28 @@ namespace Arbiter.Communication.Template;
 /// </remarks>
 public class TemplateService : ITemplateService
 {
+    private readonly ConcurrentDictionary<string, IFluidTemplate> _templateCache = [];
     private readonly FluidParser _fluidParser;
     private readonly IReadOnlyList<ITemplateResolver> _templateResolvers;
+    private readonly TemplateOptions _templateOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TemplateService"/> class.
     /// </summary>
     /// <param name="fluidParser">The Fluid parser used for template parsing and rendering.</param>
     /// <param name="templateResolvers">A collection of template resolvers for locating and loading templates by name.</param>
+    /// <param name="templateOptions">The options to use when rendering templates.</param>
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="fluidParser"/> or <paramref name="templateResolvers"/> is <see langword="null"/>.
     /// </exception>
-    public TemplateService(FluidParser fluidParser, IEnumerable<ITemplateResolver> templateResolvers)
+    public TemplateService(FluidParser fluidParser, IEnumerable<ITemplateResolver> templateResolvers, TemplateOptions templateOptions)
     {
         ArgumentNullException.ThrowIfNull(fluidParser);
         ArgumentNullException.ThrowIfNull(templateResolvers);
 
         _fluidParser = fluidParser;
         _templateResolvers = [.. templateResolvers.OrderBy(p => p.Priority)];
+        _templateOptions = templateOptions;
     }
 
     /// <summary>
@@ -53,13 +60,11 @@ public class TemplateService : ITemplateService
         if (model is null)
             return source ?? string.Empty;
 
-        var options = new TemplateOptions();
-        options.CultureInfo = System.Globalization.CultureInfo.CurrentUICulture;
-        options.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
+        // cache parsed templates by hash of source
+        var hash = source.ToXXHash3();
+        var template = _templateCache.GetOrAdd(hash, _ => _fluidParser.Parse(source));
 
-        var context = new TemplateContext(model, options, allowModelMembers: true);
-
-        var template = _fluidParser.Parse(source);
+        var context = new TemplateContext(model, _templateOptions, allowModelMembers: true);
         return template.Render(context);
     }
 

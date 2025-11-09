@@ -27,6 +27,14 @@ public static class DependencyInjectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<FluidParser>();
+
+        // template options should be reused across templates
+        services.TryAddSingleton(_ => new TemplateOptions
+        {
+            CultureInfo = System.Globalization.CultureInfo.CurrentUICulture,
+            MemberAccessStrategy = new UnsafeMemberAccessStrategy(),
+        });
+
         services.TryAddSingleton<ITemplateService, TemplateService>();
 
         return services;

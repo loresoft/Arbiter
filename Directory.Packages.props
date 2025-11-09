@@ -64,6 +64,7 @@
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
+    <PackageVersion Include="System.IO.Hashing" Version="9.0.10" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.10" />
     <PackageVersion Include="System.Text.Json" Version="9.0.10" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
