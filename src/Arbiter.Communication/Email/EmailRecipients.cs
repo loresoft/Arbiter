@@ -19,7 +19,7 @@ public readonly record struct EmailRecipients(
     /// The returned string contains a comma-separated list of unique email addresses from the "To",
     /// "Cc", and "Bcc" fields. If no recipients are specified, the method returns "No recipients".
     /// </remarks>
-    /// <returns>A comma-separated string of unique email addresses, or "No recipients" if no addresses are present.</returns>
+    /// <returns>A semicolon-separated string of unique email addresses, or "No recipients" if no addresses are present.</returns>
     public override string ToString()
     {
         var addresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -41,6 +41,6 @@ public readonly record struct EmailRecipients(
         if (addresses.Count == 0)
             return "No recipients";
 
-        return string.Join(',', addresses);
+        return string.Join(';', addresses);
     }
 };

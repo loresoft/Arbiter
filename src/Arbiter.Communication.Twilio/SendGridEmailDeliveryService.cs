@@ -41,7 +41,7 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
         CancellationToken cancellationToken = default)
     {
         var recipients = emailMessage.Recipients.ToString();
-        var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
+        var truncatedSubject = emailMessage.Content.Subject.Truncate(100);
 
         LogSendingEmailSendGrid(_logger, recipients, truncatedSubject);
 
@@ -59,7 +59,8 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
                 return EmailResult.Success("Email sent successfully.");
             }
 
-            LogEmailSendErrorSendGrid(_logger, recipients, truncatedSubject, response.StatusCode);
+            var body = await response.Body.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            LogEmailSendErrorSendGrid(_logger, recipients, truncatedSubject, response.StatusCode, body);
             return EmailResult.Fail($"Email send failed with status {response.StatusCode}");
         }
         catch (Exception ex)
@@ -86,26 +87,11 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
             message.SetReplyTo(emailAddress);
         }
 
-        foreach (var recipient in emailMessage.Recipients.To)
-            message.AddTo(recipient.Address, recipient.DisplayName);
+        // recipients are handled via personalizations
+        var personalization = CreatePersonalization(emailMessage, message);
 
-        if (emailMessage.Recipients.Cc?.Count > 0)
-        {
-            foreach (var cc in emailMessage.Recipients.Cc)
-                message.AddCc(cc.Address, cc.DisplayName);
-        }
-
-        if (emailMessage.Recipients.Bcc?.Count > 0)
-        {
-            foreach (var bcc in emailMessage.Recipients.Bcc)
-                message.AddBcc(bcc.Address, bcc.DisplayName);
-        }
-
-        if (emailMessage.Headers?.Count > 0)
-        {
-            foreach (var header in emailMessage.Headers)
-                message.AddHeader(header.Key, header.Value);
-        }
+        message.Personalizations ??= [];
+        message.Personalizations.Add(personalization);
 
         if (emailMessage.Attachments?.Count > 0)
         {
@@ -124,6 +110,67 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
         return message;
     }
 
+    private static Personalization CreatePersonalization(EmailMessage emailMessage, SendGridMessage message)
+    {
+        var personalization = new Personalization();
+
+        foreach (var recipient in emailMessage.Recipients.To)
+        {
+            var emailAddress = ConvertEmail(recipient);
+            personalization.Tos ??= [];
+            personalization.Tos.Add(emailAddress);
+        }
+
+        if (emailMessage.Recipients.Cc?.Count > 0)
+        {
+            foreach (var cc in emailMessage.Recipients.Cc)
+            {
+                var emailAddress = ConvertEmail(cc);
+
+                // SendGrid requires at least one "To" recipient
+                if (personalization.Tos == null || personalization.Tos.Count == 0)
+                {
+                    personalization.Tos ??= [];
+                    personalization.Tos.Add(emailAddress);
+                }
+                else
+                {
+                    personalization.Ccs ??= [];
+                    personalization.Ccs.Add(emailAddress);
+                }
+            }
+        }
+
+        if (emailMessage.Recipients.Bcc?.Count > 0)
+        {
+            foreach (var bcc in emailMessage.Recipients.Bcc)
+            {
+                var emailAddress = ConvertEmail(bcc);
+
+                // SendGrid requires at least one "To" recipient
+                if (personalization.Tos == null || personalization.Tos.Count == 0)
+                {
+                    personalization.Tos ??= [];
+                    personalization.Tos.Add(emailAddress);
+                }
+                else
+                {
+                    personalization.Bccs ??= [];
+                    personalization.Bccs.Add(emailAddress);
+                }
+            }
+        }
+
+        if (emailMessage.Headers?.Count > 0)
+        {
+            personalization.Headers ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var header in emailMessage.Headers)
+                personalization.Headers[header.Key] = header.Value;
+        }
+
+        return personalization;
+    }
+
     private static SendGrid.Helpers.Mail.EmailAddress ConvertEmail(Email.EmailAddress emailAddress)
         => new(emailAddress.Address, emailAddress.DisplayName);
 
@@ -134,8 +181,8 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
     [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}'")]
     static partial void LogEmailSentSendGrid(ILogger logger, string recipients, string subject);
 
-    [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}")]
-    static partial void LogEmailSendErrorSendGrid(ILogger logger, string recipients, string subject, System.Net.HttpStatusCode status);
+    [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status};\n{Body}")]
+    static partial void LogEmailSendErrorSendGrid(ILogger logger, string recipients, string subject, System.Net.HttpStatusCode status, string? body);
 
     [LoggerMessage(4, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}")]
     static partial void LogEmailSendExceptionSendGrid(ILogger logger, string recipients, string subject, string errorMessage, Exception exception);

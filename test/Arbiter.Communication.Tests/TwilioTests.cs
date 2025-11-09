@@ -52,6 +52,39 @@ public class TwilioTests
     }
 
     [Test, Skip("Local Only")]
+    public async Task SendPasswordResetBccTest()
+    {
+        var templateService = Services.GetRequiredService<IEmailTemplateService>();
+        templateService.Should().NotBeNull();
+
+        var deliveryService = Services.GetRequiredService<IEmailDeliveryService>();
+        deliveryService.Should().NotBeNull();
+
+        var sendGridDeliveryService = deliveryService as SendGridEmailDeliveryService;
+        sendGridDeliveryService.Should().NotBeNull();
+
+        var emailModel = new ResetPasswordEmail
+        {
+            ProductName = "Arbiter",
+            CompanyName = "Arbiter Inc.",
+            Link = "https://example.com/reset-password?token=12345"
+        };
+
+        var recipients = EmailBuilder.Create()
+            .Bcc("SendPasswordResetTest@mailinator.com", "Send Grid")
+            .BuildRecipients();
+
+        recipients.Should().NotBeNull();
+        recipients.Bcc.Should().NotBeEmpty();
+        recipients.Bcc[0].Address.Should().Be("SendPasswordResetTest@mailinator.com");
+
+        var result = await templateService.Send(TemplateNames.ResetPasswordEmail, emailModel, recipients);
+
+        result.Should().NotBeNull();
+        result.Successful.Should().BeTrue();
+    }
+
+    [Test, Skip("Local Only")]
     public async Task SendVerificationCodeTest()
     {
         var templateService = Services.GetRequiredService<ISmsTemplateService>();
