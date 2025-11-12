@@ -13,10 +13,6 @@
   <Folder Name="/Samples/" Id="7881efe6-0fba-4ce6-a4ee-f6cc56395fc7" />
   <Folder Name="/Samples/EntityFramework/" Id="f36d2018-e642-4d30-a508-10bc237d649e">
     <File Path="samples/EntityFramework/src/Directory.Build.props" />
-    <Project Path="samples/EntityFramework/data/Tracker.Database/Tracker.Database.sqlproj" Id="0210d856-b45c-49d0-a208-1eb435cbb3f1">
-      <Build />
-      <Deploy />
-    </Project>
     <Project Path="samples/EntityFramework/src/Tracker.Client/Tracker.Client.csproj" />
     <Project Path="samples/EntityFramework/src/Tracker.Core/Tracker.Core.csproj" Id="448cd95f-bc9c-4130-8b83-0ba107e7eb9f" />
     <Project Path="samples/EntityFramework/src/Tracker.Host/Tracker.Host.csproj" />
