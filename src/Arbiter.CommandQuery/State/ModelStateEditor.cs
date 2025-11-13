@@ -324,6 +324,63 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     }
 
     /// <summary>
+    /// Asynchronously loads a model with the specified globally unique alternate key from the data service.
+    /// </summary>
+    /// <param name="key">The globally unique alternate key of the model to load</param>
+    /// <param name="force">
+    /// <c>true</c> to force a reload even if the model is already loaded with the same alternate key;
+    /// <c>false</c> to skip loading if the same model is already present
+    /// </param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous load operation</returns>
+    /// <remarks>
+    /// <para>
+    /// This method loads models using their alternate key (<see cref="IHaveKey.Key"/>) rather than their primary identifier.
+    /// If <paramref name="force"/> is <c>false</c> and a model with the same alternate key is already loaded,
+    /// the method returns immediately without making a data service call.
+    /// </para>
+    /// <para>
+    /// During the load operation:
+    /// <list type="number">
+    /// <item><see cref="IsBusy"/> is set to <c>true</c> and <see cref="ModelStateManager{TModel}.NotifyStateChanged"/> is called</item>
+    /// <item>The model is retrieved from the data service using the alternate key</item>
+    /// <item>The model is converted to an update model and change tracking is initialized</item>
+    /// <item><see cref="IsBusy"/> is reset to <c>false</c> and <see cref="ModelStateManager{TModel}.NotifyStateChanged"/> is called again</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// After a successful load, <see cref="IsDirty"/> will return <c>false</c> since the model represents
+    /// the current state from the data store.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is an empty <see cref="Guid"/></exception>
+    /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the mapping between read and update models fails</exception>
+    public async Task LoadKey(Guid key, bool force = false)
+    {
+        // don't load if already loaded
+        if (!force && Original != null && Original is IHaveKey keyed && keyed.Key == key)
+            return;
+
+        try
+        {
+            IsBusy = true;
+            NotifyStateChanged();
+
+            // load read modal
+            var readModel = await DataService
+                .GetKey<TReadModel>(key)
+                .ConfigureAwait(false);
+
+            SetModel(readModel);
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyStateChanged();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously saves the current model to the data store. If the model has an identifier, it will be updated; otherwise, it will be created.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous save operation</returns>

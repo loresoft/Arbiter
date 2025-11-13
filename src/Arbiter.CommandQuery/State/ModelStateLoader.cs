@@ -129,4 +129,54 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
             NotifyStateChanged();
         }
     }
+
+    /// <summary>
+    /// Asynchronously loads a model with the specified globally unique alternate key from the data service.
+    /// </summary>
+    /// <param name="key">The globally unique alternate key of the model to load</param>
+    /// <param name="force">
+    /// <c>true</c> to force a reload even if the model is already loaded with the same alternate key;
+    /// <c>false</c> to skip loading if the same model is already present
+    /// </param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous load operation</returns>
+    /// <remarks>
+    /// <para>
+    /// This method loads models using their alternate key (<see cref="IHaveKey.Key"/>) rather than their primary identifier.
+    /// If <paramref name="force"/> is <c>false</c> and a model with the same alternate key is already loaded,
+    /// the method returns immediately without making a data service call.
+    /// </para>
+    /// <para>
+    /// During the load operation, <see cref="IsBusy"/> is set to <c>true</c> and <see cref="ModelStateManager{TModel}.NotifyStateChanged"/>
+    /// is called to notify subscribers. Upon completion, <see cref="IsBusy"/> is reset to <c>false</c> and
+    /// <see cref="ModelStateManager{TModel}.NotifyStateChanged"/> is called again.
+    /// </para>
+    /// <para>
+    /// If the load operation succeeds, the loaded model is automatically set using the inherited <see cref="ModelStateManager{TModel}.Model"/> property.
+    /// If the operation fails, the model remains unchanged and the exception is propagated to the caller.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is an empty <see cref="Guid"/></exception>
+    /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
+    public async Task LoadKey(Guid key, bool force = false)
+    {
+        // don't load if already loaded
+        if (!force && Model != null && Model is IHaveKey keyed && keyed.Key == key)
+            return;
+
+        try
+        {
+            IsBusy = true;
+            NotifyStateChanged();
+
+            // load modal
+            Model = await DataService
+                .GetKey<TModel>(key)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyStateChanged();
+        }
+    }
 }
