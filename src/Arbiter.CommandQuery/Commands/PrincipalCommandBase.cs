@@ -5,7 +5,6 @@ using Arbiter.CommandQuery.Definitions;
 
 namespace Arbiter.CommandQuery.Commands;
 
-
 /// <summary>
 /// Represents a base command type that uses a specified <see cref="ClaimsPrincipal"/> to execute operations.
 /// </summary>

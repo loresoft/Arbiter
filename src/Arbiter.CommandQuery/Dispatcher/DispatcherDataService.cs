@@ -48,6 +48,22 @@ public class DispatcherDataService : IDispatcherDataService
     }
 
     /// <inheritdoc/>
+    public async ValueTask<TModel?> GetKey<TModel>(
+        Guid key,
+        TimeSpan? cacheTime = null,
+        CancellationToken cancellationToken = default) where TModel : class
+    {
+        var user = await GetUser(cancellationToken).ConfigureAwait(false);
+
+        var command = new EntityKeyQuery<TModel>(user, key);
+        command.Cache(cacheTime);
+
+        return await Dispatcher
+            .Send<EntityKeyQuery<TModel>, TModel>(command, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
     public async ValueTask<IReadOnlyList<TModel>> Get<TKey, TModel>(
         IEnumerable<TKey> ids,
         TimeSpan? cacheTime = null,
@@ -205,4 +221,5 @@ public class DispatcherDataService : IDispatcherDataService
     {
         return ValueTask.FromResult<ClaimsPrincipal?>(default);
     }
+
 }

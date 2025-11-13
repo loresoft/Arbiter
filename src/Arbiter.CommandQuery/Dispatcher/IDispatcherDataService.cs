@@ -31,6 +31,21 @@ public interface IDispatcherDataService
         where TModel : class;
 
     /// <summary>
+    /// Gets the model for the specified identifier key from the data store.
+    /// </summary>
+    /// <typeparam name="TModel">The type of the model</typeparam>
+    /// <param name="key">The alternate identifier key to get</param>
+    /// <param name="cacheTime">Optional time to cache the results</param>
+    /// <param name="cancellationToken">The request cancellation token</param>
+    /// <returns>Awaitable task returning the <typeparamref name="TModel"/> for the specified identifier key</returns>
+    ValueTask<TModel?> GetKey<TModel>(
+        Guid key,
+        TimeSpan? cacheTime = null,
+        CancellationToken cancellationToken = default)
+        where TModel : class;
+
+
+    /// <summary>
     /// Gets a list of models for the specified identifier keys from the data store.
     /// </summary>
     /// <typeparam name="TKey">The type of the key</typeparam>
