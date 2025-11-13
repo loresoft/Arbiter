@@ -17,6 +17,7 @@ public static class QueryPipelineExtensions
     /// </summary>
     /// <typeparam name="TEntity">The type of entity being queried.</typeparam>
     /// <param name="query">The queryable to apply the pipeline to.</param>
+    /// <param name="pipeline">The query pipeline containing the modifiers to apply.</param>
     /// <param name="context">The database context containing the pipeline configuration.</param>
     /// <param name="pipelineName">Optional name of a specific pipeline to apply. If not provided, the default pipeline will be used.</param>
     /// <param name="principal">Optional claims principal for security-based query modifications.</param>
@@ -28,13 +29,13 @@ public static class QueryPipelineExtensions
     /// </remarks>
     public static async ValueTask<IQueryable<TEntity>> ApplyPipeline<TEntity>(
         this IQueryable<TEntity> query,
+        IQueryPipeline? pipeline,
         DbContext context,
         string? pipelineName = null,
         ClaimsPrincipal? principal = null,
         CancellationToken cancellationToken = default)
         where TEntity : class
     {
-        var pipeline = context.GetService<IQueryPipeline>();
         if (pipeline is null)
             return query;
 

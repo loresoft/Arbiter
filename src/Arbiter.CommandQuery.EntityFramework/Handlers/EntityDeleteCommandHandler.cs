@@ -20,8 +20,8 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// Initializes a new instance of the <see cref="EntityDeleteCommandHandler{TContext, TEntity, TKey, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityDeleteCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    public EntityDeleteCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 
@@ -41,7 +41,7 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
 
         // apply query pipeline modifiers
         query = await query
-            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ApplyPipeline(Pipeline, DataContext, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
 
         var entity = await query

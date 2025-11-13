@@ -41,8 +41,9 @@ public class EntityKeyQueryHandler<TContext, TEntity, TReadModel>
     /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <see cref="DbContext"/> used to access the database.</param>
     /// <param name="mapper">The <see cref="IMapper"/> used to project entities to read models.</param>
-    public EntityKeyQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    /// <param name="pipeline">The optional <see cref="IQueryPipeline"/> to apply to the query.</param>
+    public EntityKeyQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 
@@ -69,7 +70,7 @@ public class EntityKeyQueryHandler<TContext, TEntity, TReadModel>
 
         // apply query pipeline modifiers
         query = await query
-            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ApplyPipeline(Pipeline, DataContext, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
 
         var projected = Mapper.ProjectTo<TEntity, TReadModel>(query);

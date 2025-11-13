@@ -39,8 +39,8 @@ public abstract class EntityDataContextHandlerBase<TContext, TEntity, TKey, TRea
     /// Initializes a new instance of the <see cref="EntityDataContextHandlerBase{TContext, TEntity, TKey, TReadModel, TRequest, TResponse}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    protected EntityDataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    protected EntityDataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 
@@ -71,7 +71,7 @@ public abstract class EntityDataContextHandlerBase<TContext, TEntity, TKey, TRea
 
         // apply query pipeline modifiers
         query = await query
-            .ApplyPipeline(DataContext, pipelineName, principal, cancellationToken)
+            .ApplyPipeline(Pipeline, DataContext, pipelineName, principal, cancellationToken)
             .ConfigureAwait(false);
 
         var projected = Mapper.ProjectTo<TEntity, TReadModel>(query);

@@ -34,8 +34,8 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     /// Initializes a new instance of the <see cref="EntityPagedQueryHandler{TContext, TEntity, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 
@@ -54,7 +54,7 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
 
         // apply query pipeline modifiers
         query = await query
-            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ApplyPipeline(Pipeline, DataContext, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
 
         // build query from filter

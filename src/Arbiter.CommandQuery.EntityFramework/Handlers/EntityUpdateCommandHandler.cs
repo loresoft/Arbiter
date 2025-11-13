@@ -20,8 +20,8 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
     /// Initializes a new instance of the <see cref="EntityUpdateCommandHandler{TContext, TEntity, TKey, TUpdateModel, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc />
-    public EntityUpdateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    public EntityUpdateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
 
     }
@@ -42,7 +42,7 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
 
         // apply query pipeline modifiers
         query = await query
-            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ApplyPipeline(Pipeline, DataContext, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
 
         var entity = await query
@@ -55,8 +55,7 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
         // create entity if not found
         if (entity == null)
         {
-            entity = new TEntity();
-            entity.Id = request.Id;
+            entity = new TEntity { Id = request.Id };
 
             // apply create metadata
             if (entity is ITrackCreated createdModel)

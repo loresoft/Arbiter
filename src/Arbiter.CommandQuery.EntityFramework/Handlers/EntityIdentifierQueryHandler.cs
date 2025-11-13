@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,8 +21,8 @@ public class EntityIdentifierQueryHandler<TContext, TEntity, TKey, TReadModel>
     /// Initializes a new instance of the <see cref="EntityIdentifierQueryHandler{TContext, TEntity, TKey, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityIdentifierQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    public EntityIdentifierQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 

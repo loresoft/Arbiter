@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 using Arbiter.CommandQuery.Handlers;
 
 using Microsoft.EntityFrameworkCore;
@@ -28,11 +29,13 @@ public abstract class DataContextHandlerBase<TContext, TRequest, TResponse>
     /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <see cref="DbContext"/> for this handler.</param>
     /// <param name="mapper"> The <see cref="IMapper"/> for this handler.</param>
-    protected DataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
+    /// <param name="pipeline">The <see cref="IQueryPipeline"/> for this handler.</param>
+    protected DataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
         : base(loggerFactory)
     {
         DataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
         Mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        Pipeline = pipeline;
     }
 
     /// <summary>
@@ -44,4 +47,9 @@ public abstract class DataContextHandlerBase<TContext, TRequest, TResponse>
     /// Gets the <see cref="IMapper"/> for this handler.
     /// </summary>
     protected IMapper Mapper { get; }
+
+    /// <summary>
+    /// Gets the <see cref="IQueryPipeline"/> for this handler.
+    /// </summary>
+    protected IQueryPipeline? Pipeline { get; }
 }

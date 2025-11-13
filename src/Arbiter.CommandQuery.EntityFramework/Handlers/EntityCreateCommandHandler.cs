@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,8 +20,8 @@ public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, T
     /// Initializes a new instance of the <see cref="EntityCreateCommandHandler{TContext, TEntity, TKey, TCreateModel, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityCreateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
-        : base(loggerFactory, dataContext, mapper)
+    public EntityCreateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+        : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 

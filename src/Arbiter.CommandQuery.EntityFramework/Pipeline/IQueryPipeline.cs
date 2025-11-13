@@ -12,11 +12,6 @@ namespace Arbiter.CommandQuery.EntityFramework.Pipeline;
 /// The query pipeline supports both standard modifiers (registered without a key) and named modifiers
 /// (registered with a service key). This allows different sets of modifiers to be applied based on context.
 /// </para>
-/// <para>
-/// Standard modifiers are applied when calling <see cref="ApplyModifiers{TEntity}(IQueryable{TEntity}, DbContext, ClaimsPrincipal?)"/>.
-/// Named modifiers are applied when calling <see cref="ApplyModifiers{TEntity}(IQueryable{TEntity}, DbContext, string, ClaimsPrincipal?)"/>
-/// with a specific pipeline name.
-/// </para>
 /// <example>
 /// Example of using the standard pipeline:
 /// <code>
