@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -35,10 +36,18 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
         var dbSet = DataContext
             .Set<TEntity>();
 
-        // don't query if default value
-        var entity = !EqualityComparer<TKey>.Default.Equals(request.Id, default)
-            ? await dbSet.FindAsync([request.Id], cancellationToken).ConfigureAwait(false)
-            : default;
+        var query = dbSet
+            .TagWith($"EntityUpdateCommandHandler; Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}")
+            .TagWithCallSite();
+
+        // apply query pipeline modifiers
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
+
+        var entity = await query
+            .FirstOrDefaultAsync(x => Equals(x.Id, request.Id), cancellationToken)
+            .ConfigureAwait(false);
 
         if (entity == null && !request.Upsert)
             return default!;
@@ -77,7 +86,7 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
             .ConfigureAwait(false);
 
         // return read model
-        return await Read(entity.Id, cancellationToken)
+        return await Read(entity.Id, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
     }
 }

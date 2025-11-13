@@ -18,6 +18,11 @@ public abstract class DataContextHandlerBase<TContext, TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
     /// <summary>
+    /// Represents the name of the context type associated with <typeparamref name="TContext"/>.
+    /// </summary>
+    protected static readonly string ContextName = typeof(TContext).Name;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DataContextHandlerBase{TContext, TRequest, TResponse}"/> class.
     /// </summary>
     /// <param name="loggerFactory">The logger factory to create an <see cref="ILogger"/> for this handler.</param>

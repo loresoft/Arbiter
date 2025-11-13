@@ -30,6 +30,7 @@ public class EntityIdentifierQueryHandler<TContext, TEntity, TKey, TReadModel>
         EntityIdentifierQuery<TKey, TReadModel> request,
         CancellationToken cancellationToken = default)
     {
-        return await Read(request.Id, cancellationToken).ConfigureAwait(false);
+        return await Read(request.Id, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

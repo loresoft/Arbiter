@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,6 @@ public class EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>
     {
     }
 
-
     /// <inheritdoc/>
     protected override async ValueTask<IReadOnlyList<TReadModel>?> Process(
         EntityIdentifiersQuery<TKey, TReadModel> request,
@@ -36,7 +36,14 @@ public class EntityIdentifiersQueryHandler<TContext, TEntity, TKey, TReadModel>
         var query = DataContext
             .Set<TEntity>()
             .AsNoTracking()
-            .TagWith($"EntityIdentifiersQueryHandler; Context:{typeof(TContext).Name}, Entity:{typeof(TEntity).Name}, Model:{typeof(TReadModel).Name}")
+            .TagWith($"EntityIdentifiersQueryHandler; Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}");
+
+        // apply query pipeline modifiers
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
+
+        query = query
             .TagWithCallSite()
             .Where(p => request.Ids.Contains(p.Id));
 

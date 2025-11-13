@@ -67,11 +67,13 @@ public interface IQueryPipeline
     /// <param name="query">The query to modify.</param>
     /// <param name="context">The database context associated with the query.</param>
     /// <param name="principal">The claims principal representing the current user, if available.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The query after all modifiers have been applied.</returns>
-    IQueryable<TEntity> ApplyModifiers<TEntity>(
+    ValueTask<IQueryable<TEntity>> ApplyModifiers<TEntity>(
         IQueryable<TEntity> query,
         DbContext context,
-        ClaimsPrincipal? principal = null)
+        ClaimsPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
         where TEntity : class;
 
     /// <summary>
@@ -82,6 +84,7 @@ public interface IQueryPipeline
     /// <param name="context">The database context associated with the query.</param>
     /// <param name="pipelineName">The name of the pipeline to use for resolving query modifiers.</param>
     /// <param name="principal">The claims principal representing the current user, if available.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The query after all modifiers have been applied.</returns>
     /// <remarks>
     /// <para>
@@ -95,10 +98,11 @@ public interface IQueryPipeline
     /// services.AddKeyedScoped&lt;IQueryModifier&lt;MyEntity&gt;, MyModifier&gt;("pipeline-name");
     /// </code>
     /// </remarks>
-    IQueryable<TEntity> ApplyModifiers<TEntity>(
+    ValueTask<IQueryable<TEntity>> ApplyModifiers<TEntity>(
         IQueryable<TEntity> query,
         DbContext context,
         string pipelineName,
-        ClaimsPrincipal? principal = null)
+        ClaimsPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
         where TEntity : class;
 }

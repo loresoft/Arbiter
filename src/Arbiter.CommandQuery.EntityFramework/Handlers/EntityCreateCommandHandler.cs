@@ -62,7 +62,7 @@ public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, T
             .ConfigureAwait(false);
 
         // convert to read model
-        return await Read(entity.Id, cancellationToken)
+        return await Read(entity.Id, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
     }
 }

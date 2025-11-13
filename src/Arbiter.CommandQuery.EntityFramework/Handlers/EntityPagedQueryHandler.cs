@@ -20,16 +20,23 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
     where TContext : DbContext
     where TEntity : class
 {
-    private readonly IQueryPipeline? _queryPipeline;
+    /// <summary>
+    /// Represents the name of the entity type associated with <typeparamref name="TEntity"/>.
+    /// </summary>
+    protected static readonly string EntityName = typeof(TEntity).Name;
+
+    /// <summary>
+    /// Represents the name of the read model type associated with <typeparamref name="TReadModel"/>.
+    /// </summary>
+    protected static readonly string ModelName = typeof(TReadModel).Name;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityPagedQueryHandler{TContext, TEntity, TReadModel}"/> class.
     /// </summary>
     /// <inheritdoc/>
-    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? queryPipeline = null)
+    public EntityPagedQueryHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper)
         : base(loggerFactory, dataContext, mapper)
     {
-        _queryPipeline = queryPipeline;
     }
 
 
@@ -43,11 +50,12 @@ public class EntityPagedQueryHandler<TContext, TEntity, TReadModel>
         var query = DataContext
             .Set<TEntity>()
             .AsNoTracking()
-            .TagWith($"EntityPagedQueryHandler; Context:{typeof(TContext).Name}, Entity:{typeof(TEntity).Name}, Model:{typeof(TReadModel).Name}");
+            .TagWith($"EntityPagedQueryHandler; Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}");
 
         // apply query pipeline modifiers
-        if (_queryPipeline != null)
-            query = _queryPipeline.ApplyModifiers(query, DataContext, request.Principal);
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
 
         // build query from filter
         query = await BuildQuery(request, query)

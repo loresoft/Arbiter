@@ -60,11 +60,13 @@ public interface IQueryModifier<TEntity> where TEntity : class
     /// <param name="query">The query to modify.</param>
     /// <param name="context">The database context associated with the query.</param>
     /// <param name="principal">The claims principal representing the current user, if available.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The modified query.</returns>
-    IQueryable<TEntity> Apply(
+    ValueTask<IQueryable<TEntity>> Apply(
         IQueryable<TEntity> query,
         DbContext context,
-        ClaimsPrincipal? principal = null);
+        ClaimsPrincipal? principal = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the priority of this modifier. Lower numbers execute first.

@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -34,11 +35,17 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
         var dbSet = DataContext
             .Set<TEntity>();
 
-        var keyValue = new object[] { request.Id };
+        var query = dbSet
+            .TagWith($"EntityPatchCommandHandler; Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}")
+            .TagWithCallSite();
 
-        // find entity to update by message id, not model id
-        var entity = await dbSet
-            .FindAsync(keyValue, cancellationToken)
+        // apply query pipeline modifiers
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
+
+        var entity = await query
+            .FirstOrDefaultAsync(x => Equals(x.Id, request.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (entity == null)
@@ -60,6 +67,7 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
             .ConfigureAwait(false);
 
         // return read model
-        return await Read(entity.Id, cancellationToken).ConfigureAwait(false);
+        return await Read(request.Id, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

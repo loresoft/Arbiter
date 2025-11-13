@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -34,17 +35,24 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
         var dbSet = DataContext
             .Set<TEntity>();
 
-        var keyValue = new object[] { request.Id };
+        var query = dbSet
+            .TagWith($"EntityDeleteCommandHandler; Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}")
+            .TagWithCallSite();
 
-        var entity = await dbSet
-            .FindAsync(keyValue, cancellationToken)
+        // apply query pipeline modifiers
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
+
+        var entity = await query
+            .FirstOrDefaultAsync(x => Equals(x.Id, request.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (entity == null)
             return default;
 
         // read the entity before deleting it
-        var readModel = await Read(request.Id, cancellationToken)
+        var readModel = await Read(request.Id, request.FilterName, request.Principal, cancellationToken)
             .ConfigureAwait(false);
 
         // apply update metadata

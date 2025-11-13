@@ -42,13 +42,19 @@ public record EntityPatchCommand<TKey, TReadModel>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
     /// <param name="id">The identifier of the entity to which the JSON patch will be applied.</param>
     /// <param name="patch">The JSON patch document containing the updates to apply.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows for named query modification strategies to be applied.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> or <paramref name="patch"/> is <see langword="null"/>.</exception>
-    public EntityPatchCommand(ClaimsPrincipal? principal, [NotNull] TKey id, [NotNull] JsonPatchDocument patch)
+    public EntityPatchCommand(
+        ClaimsPrincipal? principal,
+        [NotNull] TKey id,
+        [NotNull] JsonPatchDocument patch,
+        string? filterName = null)
         : base(principal, id)
     {
         ArgumentNullException.ThrowIfNull(patch);
 
         Patch = patch;
+        FilterName = filterName;
     }
 
     /// <summary>
@@ -59,6 +65,20 @@ public record EntityPatchCommand<TKey, TReadModel>
     /// </value>
     [JsonPropertyName("patch")]
     public JsonPatchDocument Patch { get; }
+
+    /// <summary>
+    /// Gets the optional name of a specific filter pipeline to apply during query execution.
+    /// </summary>
+    /// <value>
+    /// A string representing the name of the filter pipeline, or <see langword="null"/> if no specific pipeline is specified.
+    /// </value>
+    /// <remarks>
+    /// This property allows for named query modification strategies to be applied, enabling different filtering,
+    /// security policies, or data transformations based on the execution context. The specific behavior depends
+    /// on the registered query pipeline modifiers in the application.
+    /// </remarks>
+    [JsonPropertyName("filterName")]
+    public string? FilterName { get; }
 
     /// <summary>
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/>.

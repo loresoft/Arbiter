@@ -1,5 +1,8 @@
+using System.Security.Principal;
+
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,9 +25,15 @@ public class EntityKeyQueryHandler<TContext, TEntity, TReadModel>
     where TContext : DbContext
     where TEntity : class, IHaveKey, new()
 {
-    private static readonly string _contextName = typeof(TContext).Name;
-    private static readonly string _entityName = typeof(TEntity).Name;
-    private static readonly string _modelName = typeof(TReadModel).Name;
+    /// <summary>
+    /// Represents the name of the entity type associated with <typeparamref name="TEntity"/>.
+    /// </summary>
+    protected static readonly string EntityName = typeof(TEntity).Name;
+
+    /// <summary>
+    /// Represents the name of the read model type associated with <typeparamref name="TReadModel"/>.
+    /// </summary>
+    protected static readonly string ModelName = typeof(TReadModel).Name;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityKeyQueryHandler{TContext, TEntity, TReadModel}"/> class.
@@ -54,9 +63,14 @@ public class EntityKeyQueryHandler<TContext, TEntity, TReadModel>
         var query = DataContext
             .Set<TEntity>()
             .AsNoTracking()
-            .TagWith($"Process(); Context:{_contextName}, Entity:{_entityName}, Model:{_modelName}")
+            .TagWith($"Process(); Context:{ContextName}, Entity:{EntityName}, Model:{ModelName}")
             .TagWithCallSite()
             .Where(p => p.Key == key);
+
+        // apply query pipeline modifiers
+        query = await query
+            .ApplyPipeline(DataContext, request.FilterName, request.Principal, cancellationToken)
+            .ConfigureAwait(false);
 
         var projected = Mapper.ProjectTo<TEntity, TReadModel>(query);
 
