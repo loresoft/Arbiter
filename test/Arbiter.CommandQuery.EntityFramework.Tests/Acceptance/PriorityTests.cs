@@ -16,9 +16,6 @@ public class PriorityTests : DatabaseTestBase
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
 
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
-
         var identifierQuery = new EntityIdentifierQuery<int, PriorityReadModel>(MockPrincipal.Default, PriorityConstants.Normal);
         var identifierResult = await mediator.Send(identifierQuery);
         identifierResult.Should().NotBeNull();
@@ -26,13 +23,22 @@ public class PriorityTests : DatabaseTestBase
     }
 
     [Test]
-    public async Task EntityIdentifiersQuery()
+    public async Task EntityKeyQuery()
     {
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
 
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
+        var keyQuery = new EntityKeyQuery<PriorityReadModel>(MockPrincipal.Default, PriorityConstants.NormalKey);
+        var keyResult = await mediator.Send(keyQuery);
+        keyResult.Should().NotBeNull();
+        keyResult.Id.Should().Be(PriorityConstants.Normal);
+    }
+
+    [Test]
+    public async Task EntityIdentifiersQuery()
+    {
+        var mediator = ServiceProvider.GetService<IMediator>();
+        mediator.Should().NotBeNull();
 
         var identifiers = new[]
         {
@@ -52,9 +58,6 @@ public class PriorityTests : DatabaseTestBase
     {
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
 
         var identifiers = new[]
         {
@@ -81,9 +84,6 @@ public class PriorityTests : DatabaseTestBase
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
 
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
-
         // Query Entity
         var entityQuery = new EntityQuery
         {
@@ -101,9 +101,6 @@ public class PriorityTests : DatabaseTestBase
     {
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
 
         // Query Entity
         var entityQuery = new EntityQuery
@@ -123,9 +120,6 @@ public class PriorityTests : DatabaseTestBase
     {
         var mediator = ServiceProvider.GetService<IMediator>();
         mediator.Should().NotBeNull();
-
-        var mapper = ServiceProvider.GetService<IMapper>();
-        mapper.Should().NotBeNull();
 
         // Query Entity
         var entityQuery = new EntityQuery

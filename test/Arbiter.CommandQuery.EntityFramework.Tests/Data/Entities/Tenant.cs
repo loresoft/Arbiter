@@ -1,7 +1,7 @@
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 public partial class Tenant
-    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
+    : IHaveIdentifier<int>, IHaveKey, ITrackCreated, ITrackUpdated
 {
     public Tenant()
     {
@@ -12,6 +12,8 @@ public partial class Tenant
 
     #region Generated Properties
     public int Id { get; set; }
+
+    public Guid Key { get; set; }
 
     public string Name { get; set; } = null!;
 

@@ -15,5 +15,7 @@ public static class TaskServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.Task, int, Models.TaskReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.Task, int, Models.TaskReadModel, Models.TaskCreateModel, Models.TaskUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.Task, Models.TaskReadModel>();
     }
 }

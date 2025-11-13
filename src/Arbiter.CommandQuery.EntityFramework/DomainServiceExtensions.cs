@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Handlers;
+using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 
@@ -58,6 +59,26 @@ public static class DomainServiceExtensions
         return services;
     }
 
+
+    /// <summary>
+    /// Adds a query handler for retrieving entities by their globally unique alternate key.
+    /// </summary>
+    /// <typeparam name="TContext">The type of <see cref="DbContext"/>.</typeparam>
+    /// <typeparam name="TEntity">The type of entity being operated on by the <see cref="DbContext"/></typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    public static IServiceCollection AddEntityKeyQuery<TContext, TEntity, TReadModel>(this IServiceCollection services)
+        where TContext : DbContext
+        where TEntity : class, IHaveKey, new()
+        where TReadModel : class
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddTransient<IRequestHandler<EntityKeyQuery<TReadModel>, TReadModel>, EntityKeyQueryHandler<TContext, TEntity, TReadModel>>();
+
+        return services;
+    }
 
     /// <summary>
     /// Registers a custom entity identifier query handler in the service collection.

@@ -4,6 +4,8 @@ public partial class TenantUpdateModel
     : ITrackUpdated, ITrackConcurrency
 {
     #region Generated Properties
+    public Guid Key { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }

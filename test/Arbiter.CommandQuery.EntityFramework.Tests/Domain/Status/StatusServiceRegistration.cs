@@ -15,5 +15,7 @@ public static class StatusServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.Status, int, Models.StatusReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.Status, int, Models.StatusReadModel, Models.StatusCreateModel, Models.StatusUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.Status, Models.StatusReadModel>();
     }
 }

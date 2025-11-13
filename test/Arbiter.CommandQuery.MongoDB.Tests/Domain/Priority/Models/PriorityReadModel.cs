@@ -3,6 +3,8 @@ namespace Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
 public partial class PriorityReadModel
     : EntityReadModel
 {
+    public Guid Key { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }

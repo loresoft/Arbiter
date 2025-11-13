@@ -6,6 +6,8 @@ public partial class TaskReadModel
     #region Generated Properties
     public int Id { get; set; }
 
+    public Guid Key { get; set; }
+
     public int StatusId { get; set; }
 
     public int? PriorityId { get; set; }

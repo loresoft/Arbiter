@@ -1,5 +1,6 @@
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Dispatcher;
 
 using Microsoft.AspNetCore.Builder;
@@ -65,6 +66,9 @@ public partial class DispatcherEndpoint : IEndpointRoute
         CancellationToken cancellationToken = default)
     {
         var request = dispatchRequest.Request;
+
+        if (request is IRequestPrincipal requestPrincipal)
+            requestPrincipal.ApplyPrincipal(user);
 
         try
         {

@@ -1,11 +1,15 @@
 using Arbiter.CommandQuery.Definitions;
 
 using MongoDB.Abstracts;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Arbiter.CommandQuery.MongoDB.Tests.Data.Entities;
 
-public class Priority : MongoEntity, IHaveIdentifier<string>, ITrackCreated, ITrackUpdated
+public class Priority : MongoEntity, IHaveIdentifier<string>, IHaveKey, ITrackCreated, ITrackUpdated
 {
+    [BsonGuidRepresentation(global::MongoDB.Bson.GuidRepresentation.Standard)]
+    public Guid Key { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }

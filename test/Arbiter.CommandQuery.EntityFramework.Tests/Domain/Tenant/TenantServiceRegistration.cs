@@ -15,5 +15,7 @@ public static class TenantServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.Tenant, int, Models.TenantReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.Tenant, int, Models.TenantReadModel, Models.TenantCreateModel, Models.TenantUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.Tenant, Models.TenantReadModel>();
     }
 }

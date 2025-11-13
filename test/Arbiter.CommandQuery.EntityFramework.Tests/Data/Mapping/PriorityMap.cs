@@ -21,6 +21,12 @@ public partial class PriorityMap
             .HasColumnType("int")
             .ValueGeneratedOnAdd();
 
+        builder.Property(t => t.Key)
+            .IsRequired()
+            .HasColumnName("Key")
+            .HasColumnType("uniqueidentifier")
+            .HasDefaultValueSql("(newid())");
+
         builder.Property(t => t.Name)
             .IsRequired()
             .HasColumnName("Name")
@@ -89,6 +95,7 @@ public partial class PriorityMap
     public readonly struct Columns
     {
         public const string Id = "Id";
+        public const string Key = "Key";
         public const string Name = "Name";
         public const string Description = "Description";
         public const string DisplayOrder = "DisplayOrder";

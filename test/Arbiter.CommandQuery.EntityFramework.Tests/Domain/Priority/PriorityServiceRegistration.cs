@@ -15,5 +15,7 @@ public static class PriorityServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.Priority, int, Models.PriorityReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.Priority, int, Models.PriorityReadModel, Models.PriorityCreateModel, Models.PriorityUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.Priority, Models.PriorityReadModel>();
     }
 }

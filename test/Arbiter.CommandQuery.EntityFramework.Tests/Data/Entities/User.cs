@@ -1,7 +1,7 @@
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 public partial class User
-    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
+    : IHaveIdentifier<int>, IHaveKey, ITrackCreated, ITrackUpdated
 {
     public User()
     {
@@ -14,6 +14,8 @@ public partial class User
 
     #region Generated Properties
     public int Id { get; set; }
+
+    public Guid Key { get; set; }
 
     public string EmailAddress { get; set; } = null!;
 

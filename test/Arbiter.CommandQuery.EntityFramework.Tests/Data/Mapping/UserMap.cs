@@ -21,6 +21,12 @@ public partial class UserMap
             .HasColumnType("int")
             .ValueGeneratedOnAdd();
 
+        builder.Property(t => t.Key)
+            .IsRequired()
+            .HasColumnName("Key")
+            .HasColumnType("uniqueidentifier")
+            .HasDefaultValueSql("(newid())");
+
         builder.Property(t => t.EmailAddress)
             .IsRequired()
             .HasColumnName("EmailAddress")
@@ -122,6 +128,7 @@ public partial class UserMap
     public readonly struct Columns
     {
         public const string Id = "Id";
+        public const string Key = "Key";
         public const string EmailAddress = "EmailAddress";
         public const string IsEmailAddressConfirmed = "IsEmailAddressConfirmed";
         public const string DisplayName = "DisplayName";

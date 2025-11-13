@@ -6,6 +6,8 @@ public partial class UserCreateModel
     #region Generated Properties
     public int Id { get; set; }
 
+    public Guid Key { get; set; }
+
     public string EmailAddress { get; set; } = null!;
 
     public bool IsEmailAddressConfirmed { get; set; }

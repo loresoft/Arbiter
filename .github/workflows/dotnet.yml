@@ -15,12 +15,14 @@ on:
     branches:
       - main
       - develop
+      - release/*
     tags:
       - "v*"
   pull_request:
     branches:
       - main
       - develop
+      - release/*
 
 jobs:
   build:
@@ -35,7 +37,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 9.x
+          dotnet-version: 10.x
 
       - name: Restore Dependencies
         run: dotnet restore

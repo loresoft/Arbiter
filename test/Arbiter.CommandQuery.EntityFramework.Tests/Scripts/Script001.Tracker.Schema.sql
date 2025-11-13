@@ -18,6 +18,7 @@ CREATE TABLE [dbo].[Audit] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Priority]') AND type in (N'U'))
 CREATE TABLE [dbo].[Priority] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [Name] nvarchar(100) NOT NULL,
     [Description] nvarchar(255) NULL,
     [DisplayOrder] int NOT NULL DEFAULT (0),
@@ -33,6 +34,7 @@ CREATE TABLE [dbo].[Priority] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Role]') AND type in (N'U'))
 CREATE TABLE [dbo].[Role] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [Name] nvarchar(256) NOT NULL,
     [Description] nvarchar(MAX) NULL,
     [Created] datetimeoffset NOT NULL DEFAULT (sysutcdatetime()),
@@ -46,6 +48,7 @@ CREATE TABLE [dbo].[Role] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Status]') AND type in (N'U'))
 CREATE TABLE [dbo].[Status] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [Name] nvarchar(100) NOT NULL,
     [Description] nvarchar(255) NULL,
     [DisplayOrder] int NOT NULL DEFAULT (0),
@@ -61,6 +64,7 @@ CREATE TABLE [dbo].[Status] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Task]') AND type in (N'U'))
 CREATE TABLE [dbo].[Task] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [StatusId] int NOT NULL,
     [PriorityId] int NULL,
     [Title] nvarchar(255) NOT NULL,
@@ -96,6 +100,7 @@ CREATE TABLE [dbo].[TaskExtended] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Tenant]') AND type in (N'U'))
 CREATE TABLE [dbo].[Tenant] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [Name] nvarchar(100) NOT NULL,
     [Description] nvarchar(255) NULL,
     [IsActive] bit NOT NULL DEFAULT (1),
@@ -110,6 +115,7 @@ CREATE TABLE [dbo].[Tenant] (
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND type in (N'U'))
 CREATE TABLE [dbo].[User] (
     [Id] int IDENTITY(1,1) NOT NULL,
+    [Key] uniqueidentifier NOT NULL DEFAULT (newid()),
     [EmailAddress] nvarchar(256) NOT NULL,
     [IsEmailAddressConfirmed] bit NOT NULL DEFAULT (0),
     [DisplayName] nvarchar(256) NOT NULL,
@@ -227,3 +233,26 @@ CREATE INDEX [IX_UserLogin_UserId]
 ON [dbo].[UserLogin] ([UserId]);
 
 
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[UserLogin]') AND name = N'IX_Priority_Key')
+CREATE INDEX [IX_Priority_Key]
+ON [dbo].[Priority] ([Key]);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Status]') AND name = N'IX_Status_Key')
+CREATE INDEX [IX_Status_Key]
+ON [dbo].[Status] ([Key]);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Tenant]') AND name = N'IX_Tenant_Key')
+CREATE INDEX [IX_Tenant_Key]
+ON [dbo].[Tenant] ([Key]);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Task]') AND name = N'IX_Task_Key')
+CREATE INDEX [IX_Task_Key]
+ON [dbo].[Task] ([Key]);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = N'IX_User_Key')
+CREATE INDEX [IX_User_Key]
+ON [dbo].[User] ([Key]);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Role]') AND name = N'IX_Role_Key')
+CREATE INDEX [IX_Role_Key]
+ON [dbo].[Role] ([Key]);

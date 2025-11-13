@@ -21,6 +21,12 @@ public partial class TaskMap
             .HasColumnType("int")
             .ValueGeneratedOnAdd();
 
+        builder.Property(t => t.Key)
+            .IsRequired()
+            .HasColumnName("Key")
+            .HasColumnType("uniqueidentifier")
+            .HasDefaultValueSql("(newid())");
+
         builder.Property(t => t.StatusId)
             .IsRequired()
             .HasColumnName("StatusId")
@@ -132,6 +138,7 @@ public partial class TaskMap
     public readonly struct Columns
     {
         public const string Id = "Id";
+        public const string Key = "Key";
         public const string StatusId = "StatusId";
         public const string PriorityId = "PriorityId";
         public const string Title = "Title";

@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
-using Arbiter.CommandQuery.Converters;
+using Arbiter.CommandQuery.Definitions;
 
 namespace Arbiter.CommandQuery.Commands;
 
@@ -31,7 +31,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"User Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
+public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
@@ -51,10 +51,8 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     /// <value>
     /// The <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </value>
-    [JsonPropertyName("principal")]
-    [JsonConverter(typeof(ClaimsPrincipalConverter))]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ClaimsPrincipal? Principal { get; }
+    [JsonIgnore]
+    public ClaimsPrincipal? Principal { get; private set; }
 
     /// <summary>
     /// Gets the timestamp indicating when this command was activated.
@@ -62,7 +60,8 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     /// <value>
     /// The timestamp indicating when this command was activated.
     /// </value>
-    public DateTimeOffset Activated { get; }
+    [JsonIgnore]
+    public DateTimeOffset Activated { get; private set; }
 
     /// <summary>
     /// Gets the user name of the individual who activated this command.
@@ -75,5 +74,17 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>
     /// If the <see cref="Principal"/> is <see langword="null"/>, the value defaults to "system".
     /// </remarks>
     /// <see cref="ClaimsIdentity.Name"/>
-    public string? ActivatedBy { get; }
+    [JsonIgnore]
+    public string? ActivatedBy { get; private set; }
+
+    /// <summary>
+    /// Applies the specified <see cref="ClaimsPrincipal"/> to the command.
+    /// </summary>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> representing the user executing the command.</param>
+    void IRequestPrincipal.ApplyPrincipal(ClaimsPrincipal? principal)
+    {
+        Principal = principal;
+        Activated = DateTimeOffset.UtcNow;
+        ActivatedBy = principal?.Identity?.Name ?? "system";
+    }
 }

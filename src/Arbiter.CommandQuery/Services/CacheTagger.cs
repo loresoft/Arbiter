@@ -93,5 +93,7 @@ public static class CacheTagger
         public const string Continuation = "continue";
         /// <summary>The cache key bucket for a list of items</summary>
         public const string List = "list";
+        /// <summary>The cache key bucket for an entity alternate key</summary>
+        public const string Key = "key";
     }
 }
