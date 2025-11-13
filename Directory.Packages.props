@@ -24,7 +24,7 @@
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="12.2.8" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="MediatR" Version="[12.5.0]" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.252" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.253" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
@@ -71,7 +71,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.8.1" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.8.1" />
-    <PackageVersion Include="TUnit" Version="1.1.0" />
+    <PackageVersion Include="TUnit" Version="1.1.10" />
     <PackageVersion Include="Twilio" Version="7.13.6" />
     <PackageVersion Include="Verify.TUnit" Version="31.6.1" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />

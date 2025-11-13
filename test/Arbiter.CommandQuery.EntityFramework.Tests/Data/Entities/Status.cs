@@ -1,7 +1,7 @@
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 public partial class Status
-    : IHaveIdentifier<int>, ITrackCreated, ITrackUpdated
+    : IHaveIdentifier<int>, IHaveKey, ITrackCreated, ITrackUpdated
 {
     public Status()
     {
@@ -12,6 +12,8 @@ public partial class Status
 
     #region Generated Properties
     public int Id { get; set; }
+
+    public Guid Key { get; set; }
 
     public string Name { get; set; } = null!;
 

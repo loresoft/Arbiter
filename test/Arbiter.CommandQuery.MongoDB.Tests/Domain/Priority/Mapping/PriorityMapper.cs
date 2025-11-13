@@ -17,6 +17,7 @@ internal sealed class PriorityReadModelToPriorityCreateModelMapper
         return source => new Models.PriorityCreateModel
         {
             Id = source.Id,
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -36,6 +37,7 @@ internal sealed class PriorityReadModelToPriorityUpdateModelMapper : CommandQuer
     {
         return source => new Models.PriorityUpdateModel
         {
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -54,6 +56,7 @@ internal sealed class PriorityUpdateModelToPriorityCreateModelMapper : CommandQu
     {
         return source => new Models.PriorityCreateModel
         {
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -72,6 +75,7 @@ internal sealed class PriorityToPriorityReadModelMapper : CommandQuery.Mapping.M
         return source => new Models.PriorityReadModel
         {
             Id = source.Id,
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -91,6 +95,7 @@ internal sealed class PriorityToPriorityUpdateModelMapper : CommandQuery.Mapping
     {
         return source => new Models.PriorityUpdateModel
         {
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -109,6 +114,7 @@ internal sealed class PriorityCreateModelToPriorityMapper : CommandQuery.Mapping
         return source => new Entities.Priority
         {
             Id = source.Id,
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,
@@ -128,6 +134,7 @@ internal sealed class PriorityUpdateModelToPriorityMapper : CommandQuery.Mapping
     {
         return source => new Entities.Priority
         {
+            Key = source.Key,
             Name = source.Name,
             Description = source.Description,
             DisplayOrder = source.DisplayOrder,

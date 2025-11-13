@@ -15,5 +15,7 @@ public static class RoleServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.Role, int, Models.RoleReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.Role, int, Models.RoleReadModel, Models.RoleCreateModel, Models.RoleUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.Role, Models.RoleReadModel>();
     }
 }

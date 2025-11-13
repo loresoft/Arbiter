@@ -15,5 +15,7 @@ public static class UserServiceRegistration
         services.AddEntityQueries<Context.TrackerContext, Entities.User, int, Models.UserReadModel>();
         services.AddEntityCommands<Context.TrackerContext, Entities.User, int, Models.UserReadModel, Models.UserCreateModel, Models.UserUpdateModel>();
         #endregion
+
+        services.AddEntityKeyQuery<Context.TrackerContext, Entities.User, Models.UserReadModel>();
     }
 }

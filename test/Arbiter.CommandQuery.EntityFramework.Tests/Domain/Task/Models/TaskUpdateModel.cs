@@ -4,6 +4,8 @@ public partial class TaskUpdateModel
     : ITrackUpdated, ITrackConcurrency, IHaveTenant<int>
 {
     #region Generated Properties
+    public Guid Key { get; set; }
+
     public int StatusId { get; set; }
 
     public int? PriorityId { get; set; }

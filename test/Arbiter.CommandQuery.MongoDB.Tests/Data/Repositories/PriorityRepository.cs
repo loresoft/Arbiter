@@ -23,9 +23,14 @@ public class PriorityRepository : MongoEntityRepository<Priority>
 
         mongoCollection.Indexes.CreateOne(
             new CreateIndexModel<Priority>(
+                Builders<Priority>.IndexKeys.Ascending(s => s.Key)
+            )
+        );
+
+        mongoCollection.Indexes.CreateOne(
+            new CreateIndexModel<Priority>(
                 Builders<Priority>.IndexKeys.Ascending(s => s.IsActive)
             )
         );
     }
-
 }

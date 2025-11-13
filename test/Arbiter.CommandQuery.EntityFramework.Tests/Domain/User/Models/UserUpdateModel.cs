@@ -4,6 +4,8 @@ public partial class UserUpdateModel
     : ITrackUpdated, ITrackConcurrency
 {
     #region Generated Properties
+    public Guid Key { get; set; }
+
     public string EmailAddress { get; set; } = null!;
 
     public bool IsEmailAddressConfirmed { get; set; }

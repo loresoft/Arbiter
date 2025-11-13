@@ -27,6 +27,18 @@ public class PriorityTests : DatabaseTestBase
     }
 
     [Test]
+    public async Task EntityKeyQuery()
+    {
+        var mediator = ServiceProvider.GetService<IMediator>();
+        mediator.Should().NotBeNull();
+
+        var keyQuery = new EntityKeyQuery<PriorityReadModel>(MockPrincipal.Default, PriorityConstants.Normal.Key);
+        var keyResult = await mediator.Send(keyQuery);
+        keyResult.Should().NotBeNull();
+        keyResult.Id.Should().Be(PriorityConstants.Normal.Id);
+    }
+
+    [Test]
     public async Task EntityIdentifiersQuery()
     {
         var mediator = ServiceProvider.GetService<IMediator>();

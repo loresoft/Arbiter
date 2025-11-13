@@ -44,6 +44,26 @@ public static class DomainServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds a query handler for retrieving entities by their globally unique alternate key.
+    /// </summary>
+    /// <typeparam name="TRepository">The type of the MongoDB repository.</typeparam>
+    /// <typeparam name="TEntity">The type of the entity.</typeparam>
+    /// <typeparam name="TKey">The type of the entity's identifier.</typeparam>
+    /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    public static IServiceCollection AddEntityKeyQuery<TRepository, TEntity, TKey, TReadModel>(this IServiceCollection services)
+        where TRepository : IMongoRepository<TEntity, TKey>
+        where TEntity : class, IHaveIdentifier<TKey>, IHaveKey, new()
+        where TReadModel : class
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddTransient<IRequestHandler<EntityKeyQuery<TReadModel>, TReadModel>, EntityKeyQueryHandler<TRepository,TEntity, TKey, TReadModel>>();
+
+        return services;
+    }
 
     /// <summary>
     /// Registers a custom entity identifier query handler in the service collection.
