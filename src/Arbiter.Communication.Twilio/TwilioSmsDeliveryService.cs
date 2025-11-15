@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Sms;
 
@@ -44,7 +46,7 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
     /// </returns>
     public async Task<SmsResult> Send(SmsMessage message, CancellationToken cancellationToken = default)
     {
-        var truncatedMessage = message.Message.Truncate(20);
+        var truncatedMessage = message.Message.Truncate(50);
         var senderNumber = message.Sender.HasValue() ? message.Sender : _options.Value.SenderNumber;
 
         _logger.LogDebug("Sending SMS to '{Recipient}' from '{Sender} with message '{Message}' using Twilio", message.Recipient, senderNumber, truncatedMessage);
@@ -67,7 +69,8 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
             if (messageResponse.ErrorCode.HasValue)
                 return SmsResult.Fail($"SMS send failed with status {messageResponse.Status}");
 
-            return SmsResult.Success("SMS sent successfully.");
+            var segments = int.TryParse(messageResponse.NumSegments, CultureInfo.InvariantCulture, out var s) ? s : SmsSegment.Calculate(message.Message);
+            return SmsResult.Success("SMS sent successfully.", segments);
         }
         catch (Exception ex)
         {

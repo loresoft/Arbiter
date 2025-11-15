@@ -16,6 +16,11 @@ public readonly record struct SmsResult
     public string? Message { get; init; }
 
     /// <summary>
+    /// Gets the number of segments the SMS message was split into, if applicable.
+    /// </summary>
+    public int? Segments { get; init; }
+
+    /// <summary>
     /// Gets the exception that occurred during the SMS operation, if any.
     /// </summary>
     public Exception? Exception { get; init; }
@@ -24,9 +29,10 @@ public readonly record struct SmsResult
     /// Creates a successful <see cref="SmsResult"/> with an optional message.
     /// </summary>
     /// <param name="message">An optional message describing the success.</param>
+    /// <param name="segments">The number of segments the SMS message was split into, if applicable.</param>
     /// <returns>An <see cref="SmsResult"/> indicating success.</returns>
-    public static SmsResult Success(string? message = null)
-        => new() { Successful = true, Message = message };
+    public static SmsResult Success(string? message = null, int? segments = null)
+        => new() { Successful = true, Message = message, Segments = segments };
 
     /// <summary>
     /// Creates a failed <see cref="SmsResult"/> with an optional message and exception.

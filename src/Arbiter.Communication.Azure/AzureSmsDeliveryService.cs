@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Sms;
 
@@ -41,7 +43,7 @@ public partial class AzureSmsDeliveryService : ISmsDeliveryService
     /// </returns>
     public async Task<SmsResult> Send(SmsMessage message, CancellationToken cancellationToken = default)
     {
-        var truncatedMessage = message.Message.Truncate(20);
+        var truncatedMessage = message.Message.Truncate(50);
         var senderNumber = message.Sender.HasValue() ? message.Sender : _options.Value.SenderNumber;
 
         LogSendingSms(_logger, message.Recipient, senderNumber, truncatedMessage);
@@ -59,8 +61,9 @@ public partial class AzureSmsDeliveryService : ISmsDeliveryService
 
             if (results.Value.Successful)
             {
-                LogSmsSent(_logger, message.Recipient, truncatedMessage);
-                return SmsResult.Success("SMS sent successfully.");
+                var segments = SmsSegment.Calculate(message.Message);
+                LogSmsSent(_logger, message.Recipient, truncatedMessage, segments);
+                return SmsResult.Success("SMS sent successfully.", segments);
             }
 
             LogSmsSendError(_logger, message.Recipient, truncatedMessage);
@@ -77,8 +80,8 @@ public partial class AzureSmsDeliveryService : ISmsDeliveryService
     [LoggerMessage(1, LogLevel.Debug, "Sending SMS to '{Recipient}' from '{Sender} with message '{Message}' using Azure Communication")]
     static partial void LogSendingSms(ILogger logger, string recipient, string? sender, string message);
 
-    [LoggerMessage(2, LogLevel.Information, "Sent SMS to '{Recipient}' with message '{Message}'")]
-    static partial void LogSmsSent(ILogger logger, string recipient, string message);
+    [LoggerMessage(2, LogLevel.Information, "Sent SMS to '{Recipient}' with message '{Message}' using segments {Segments}")]
+    static partial void LogSmsSent(ILogger logger, string recipient, string message, int? segments);
 
     [LoggerMessage(3, LogLevel.Error, "Error sending SMS to '{Recipient}' with message '{Message}'")]
     static partial void LogSmsSendError(ILogger logger, string recipient, string message);
