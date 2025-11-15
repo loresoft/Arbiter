@@ -43,5 +43,4 @@ public static class QueryPipelineExtensions
             ? await pipeline.ApplyModifiers(query, context, pipelineName, principal, cancellationToken).ConfigureAwait(false)
             : await pipeline.ApplyModifiers(query, context, principal, cancellationToken).ConfigureAwait(false);
     }
-
 }
