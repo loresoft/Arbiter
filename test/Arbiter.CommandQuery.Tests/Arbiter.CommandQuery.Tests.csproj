@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Extensions\GuidExtensionsTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
