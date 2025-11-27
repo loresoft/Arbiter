@@ -47,7 +47,7 @@
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.1.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" />
-    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36714.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36726.2" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="6.7.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
