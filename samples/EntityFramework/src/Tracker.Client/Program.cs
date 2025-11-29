@@ -24,6 +24,7 @@ public static class Program
             options.BaseAddress = builder.HostEnvironment.BaseAddress;
             options.EnvironmentName = builder.HostEnvironment.Environment;
         });
+
         await builder.Build().RunAsync();
     }
 }

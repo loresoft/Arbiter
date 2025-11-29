@@ -67,6 +67,7 @@ public partial class DispatcherEndpoint : IEndpointRoute
     {
         var request = dispatchRequest.Request;
 
+        // Apply current user principal if supported
         if (request is IRequestPrincipal requestPrincipal)
             requestPrincipal.ApplyPrincipal(user);
 
