@@ -33,6 +33,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="test/Arbiter.Benchmarks/Arbiter.Benchmarks.csproj" />
+    <Project Path="test/Arbiter.CommandQuery.Endpoints.Tests/Arbiter.CommandQuery.Endpoints.Tests.csproj" Id="37537fec-12a1-479b-ace7-2759f6587de6" />
     <Project Path="test/Arbiter.CommandQuery.EntityFramework.Tests/Arbiter.CommandQuery.EntityFramework.Tests.csproj" Id="dbcd6c95-6bf3-4786-81d2-a94fff7b9956" />
     <Project Path="test/Arbiter.CommandQuery.MongoDB.Tests/Arbiter.CommandQuery.MongoDB.Tests.csproj" Id="a664a030-159e-403f-8063-5a36616687b7" />
     <Project Path="test/Arbiter.CommandQuery.Tests/Arbiter.CommandQuery.Tests.csproj" Id="ea445280-2bc1-4030-b0c2-e454ce5c4aa6" />

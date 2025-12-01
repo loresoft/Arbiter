@@ -122,6 +122,8 @@ public static class Program
             app.UseResponseCompression();
         }
 
+        app.UseRequestLogging(config => config.IncludeRequestBody = true);
+
         app.UseExceptionHandler();
         app.UseStatusCodePages();
 

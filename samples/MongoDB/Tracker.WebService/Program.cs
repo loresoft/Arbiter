@@ -134,7 +134,7 @@ public static class Program
             app.UseResponseCompression();
         }
 
-        app.UseSerilogRequestLogging();
+        app.UseRequestLogging(config => config.IncludeRequestBody = true);
 
         app.UseExceptionHandler();
         app.UseStatusCodePages();

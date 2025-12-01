@@ -77,12 +77,11 @@ public static class GridExtensions
         };
     }
 
-
     public static DataResult<T> ToResult<T>(this EntityPagedResult<T> pagedResult)
     {
         return new DataResult<T>(
-            Total: (int)(pagedResult.Total ?? 0),
-            Items: pagedResult.Data ?? []
+            total: (int)(pagedResult.Total ?? 0),
+            items: pagedResult.Data ?? []
         );
     }
 
