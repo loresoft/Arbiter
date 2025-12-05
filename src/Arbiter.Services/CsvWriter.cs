@@ -1,9 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-using Arbiter.CommandQuery.Definitions;
-
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// Provides functionality to write CSV data to a stream, text writer, or string.

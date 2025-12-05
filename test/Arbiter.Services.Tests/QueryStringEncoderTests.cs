@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Queries;
+using Arbiter.Services;
 
-namespace Arbiter.CommandQuery.Services.Tests;
+namespace Arbiter.Services.Tests;
 
 public class QueryStringEncoderTests
 {

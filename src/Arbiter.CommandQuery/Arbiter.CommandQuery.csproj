@@ -26,13 +26,13 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Bcl.Memory" VersionOverride="9.0.11" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" VersionOverride="9.0.11" />
     <PackageReference Include="Microsoft.Extensions.Http" VersionOverride="9.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.Mediation\Arbiter.Mediation.csproj" />
+    <ProjectReference Include="..\Arbiter.Services\Arbiter.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

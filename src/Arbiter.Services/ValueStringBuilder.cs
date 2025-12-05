@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// A high-performance, low-allocation mutable string builder using a Span-based buffer.

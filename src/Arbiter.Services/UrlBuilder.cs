@@ -2,7 +2,9 @@ using System.Buffers;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace Arbiter.CommandQuery.Services;
+using Arbiter.CommandQuery.Services;
+
+namespace Arbiter.Services;
 
 /// <summary>
 /// Provides a high-performance builder for constructing and manipulating Uniform Resource Locators (URLs).

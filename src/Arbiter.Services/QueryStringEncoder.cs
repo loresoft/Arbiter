@@ -2,7 +2,7 @@ using System.Buffers.Text;
 using System.IO.Compression;
 using System.Text.Json;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// A service to encode and decode values for query strings.

@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
 namespace Arbiter.CommandQuery.Commands;
 

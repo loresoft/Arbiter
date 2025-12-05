@@ -39,6 +39,7 @@
     <Project Path="test/Arbiter.CommandQuery.Tests/Arbiter.CommandQuery.Tests.csproj" Id="ea445280-2bc1-4030-b0c2-e454ce5c4aa6" />
     <Project Path="test/Arbiter.Communication.Tests/Arbiter.Communication.Tests.csproj" Id="9da5eada-3069-46ed-900a-c319b7858690" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
+    <Project Path="test/Arbiter.Services.Tests/Arbiter.Services.Tests.csproj" Id="f3d73b4c-09de-4369-b45a-eba1aac348ed" />
   </Folder>
   <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />
   <Project Path="src/Arbiter.CommandQuery.EntityFramework/Arbiter.CommandQuery.EntityFramework.csproj" />
@@ -47,4 +48,5 @@
   <Project Path="src/Arbiter.CommandQuery/Arbiter.CommandQuery.csproj" />
   <Project Path="src/Arbiter.Mediation.OpenTelemetry/Arbiter.Mediation.OpenTelemetry.csproj" Id="b28ea0e4-e239-4846-a3d5-d184da2d39b1" />
   <Project Path="src/Arbiter.Mediation/Arbiter.Mediation.csproj" />
+  <Project Path="src/Arbiter.Services/Arbiter.Services.csproj" Id="d25d1a52-81b3-4a16-9a77-415950b0cac3" />
 </Solution>

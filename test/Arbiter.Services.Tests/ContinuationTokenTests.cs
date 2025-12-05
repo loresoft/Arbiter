@@ -4,9 +4,10 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Arbiter.CommandQuery.Services;
 
-namespace Arbiter.CommandQuery.Tests.Services;
+using Arbiter.Services;
+
+namespace Arbiter.Services.Tests;
 
 public class ContinuationTokenTests
 {

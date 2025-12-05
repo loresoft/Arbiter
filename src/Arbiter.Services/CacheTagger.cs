@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// A service to tag models with cache tags.

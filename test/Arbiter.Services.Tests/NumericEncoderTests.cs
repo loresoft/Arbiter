@@ -1,6 +1,6 @@
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
-namespace Arbiter.CommandQuery.Tests.Services;
+namespace Arbiter.Services.Tests;
 
 public class NumericEncoderTests
 {

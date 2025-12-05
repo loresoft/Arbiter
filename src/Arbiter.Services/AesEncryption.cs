@@ -4,7 +4,7 @@ using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// Provides AES-256-CBC encryption and decryption functionality with password-based key derivation.

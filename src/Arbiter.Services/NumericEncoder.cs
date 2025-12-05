@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// High-performance numeric encoder using Crockford Base32 for URL-safe obfuscation of primary keys.

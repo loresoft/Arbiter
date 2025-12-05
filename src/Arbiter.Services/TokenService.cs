@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// Provides static methods for generating cryptographic keys, creating, and validating JSON Web Tokens (JWT) using HMAC SHA-256.

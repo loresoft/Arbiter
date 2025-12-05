@@ -1,6 +1,6 @@
 using System.Globalization;
 
-using Arbiter.CommandQuery.Definitions;
+using Arbiter.Services;
 
 using BenchmarkDotNet.Attributes;
 
@@ -27,7 +27,7 @@ public class CsvWriterBenchmark
     [Benchmark]
     public async Task<string> ArbiterCsvWriterSelector()
     {
-        return await CommandQuery.Services.CsvWriter.WriteAsync(
+        return await CsvWriter.WriteAsync(
             headers: _headers,
             rows: _people,
             selector: static p => [p.Name, p.Age.ToString(), p.Email]
@@ -37,7 +37,7 @@ public class CsvWriterBenchmark
     [Benchmark]
     public async Task<string> ArbiterCsvWriterInterface()
     {
-        return await CommandQuery.Services.CsvWriter.WriteAsync(_people);
+        return await CsvWriter.WriteAsync(_people);
     }
 
     [Benchmark]

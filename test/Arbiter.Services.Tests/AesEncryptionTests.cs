@@ -1,7 +1,8 @@
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
+
 using System.Security.Cryptography;
 
-namespace Arbiter.CommandQuery.Tests.Services;
+namespace Arbiter.Services.Tests;
 
 public class AesEncryptionTests
 {
@@ -261,7 +262,7 @@ public class AesEncryptionTests
         var plainText = "Original message";
         var password = "Password123";
         var encrypted = AesEncryption.Encrypt(plainText, password);
-        
+
         // Tamper with the encrypted data
         var bytes = Convert.FromBase64String(encrypted);
         bytes[bytes.Length - 1] ^= 0xFF; // Flip bits in last byte
@@ -331,10 +332,10 @@ public class AesEncryptionTests
 
         // Assert
         encrypted1.Should().NotBe(encrypted2);
-        
+
         var decrypted1 = AesEncryption.Decrypt(encrypted1, password1);
         var decrypted2 = AesEncryption.Decrypt(encrypted2, password2);
-        
+
         decrypted1.Should().Be(plainText);
         decrypted2.Should().Be(plainText);
     }
@@ -413,7 +414,7 @@ public class AesEncryptionTests
     {
         // Note: While not recommended, the implementation should handle it
         // This test documents the behavior rather than recommending it
-        
+
         // Arrange
         var plainText = "Test";
         var password = "a"; // Minimum non-empty password

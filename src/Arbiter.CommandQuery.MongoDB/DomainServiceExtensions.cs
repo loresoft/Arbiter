@@ -2,7 +2,7 @@ using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.MongoDB.Handlers;
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

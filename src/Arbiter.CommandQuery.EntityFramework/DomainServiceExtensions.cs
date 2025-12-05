@@ -3,7 +3,7 @@ using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Handlers;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

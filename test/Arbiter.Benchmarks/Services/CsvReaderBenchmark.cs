@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text;
 
+using Arbiter.Services;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Arbiter.Benchmarks.Services;
@@ -29,7 +31,7 @@ public class CsvReaderBenchmark
     {
         using var stream = new MemoryStream(_csvBytes, writable: false);
 
-        return await Arbiter.CommandQuery.Services.CsvReader.ReadAsync(
+        return await CsvReader.ReadAsync(
             stream: stream,
             parser: CreatePerson
         );
@@ -39,7 +41,7 @@ public class CsvReaderBenchmark
     public IReadOnlyList<Person> ArbiterCsvReaderSync()
     {
         var buffer = _csvContent.AsSpan();
-        return Arbiter.CommandQuery.Services.CsvReader.Read(
+        return CsvReader.Read(
             buffer,
             parser: CreatePerson
         );

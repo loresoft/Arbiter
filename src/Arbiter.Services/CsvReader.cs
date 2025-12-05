@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// Provides static methods to read and parse CSV data from various sources such as streams, strings, and text readers.

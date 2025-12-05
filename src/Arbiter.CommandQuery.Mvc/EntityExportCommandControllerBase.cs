@@ -1,10 +1,9 @@
 using System.Net.Mime;
 using System.Text.Json;
 
-using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Services;
 using Arbiter.Mediation;
+using Arbiter.Services;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

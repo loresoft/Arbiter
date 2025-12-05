@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.Definitions;
+namespace Arbiter.Services;
 
 /// <summary>
 /// Defines an interface for providing CSV-style header and row data extraction
