@@ -1,5 +1,7 @@
 using System.Buffers;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Threading;
 
 namespace Arbiter.Services;
 
@@ -38,52 +40,37 @@ namespace Arbiter.Services;
 public static class CsvReader
 {
     /// <summary>
-    /// Asynchronously reads CSV-formatted data from a <see cref="TextReader"/> and parses each row into an object of type <typeparamref name="T"/>.
+    /// Asynchronously reads CSV-formatted data from a <see cref="TextReader"/> and parses each row into an object of type <typeparamref name="T"/>
+    /// using the static <see cref="ISupportReader{T}.RowFactory"/> method.
     /// </summary>
-    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <typeparam name="T">The type of objects to create from the data rows. Must implement <see cref="ISupportReader{T}"/>.</typeparam>
     /// <param name="reader">The <see cref="TextReader"/> from which the CSV content will be read.</param>
-    /// <param name="parser">
-    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
-    /// The first argument is the current row's fields, and the second is the header fields (if present).
-    /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the row factory for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and the row factory receives <see langword="null"/> for the headers argument.
     /// Default is <see langword="true"/>.
     /// </param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> or <paramref name="parser"/> is <see langword="null"/>.</exception>
-    public static async Task<IReadOnlyList<T>> ReadAsync<T>(
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is <see langword="null"/>.</exception>
+    public static Task<IReadOnlyList<T>> ReadAsync<T>(
         TextReader reader,
-        Func<string[], string[]?, T> parser,
         bool hasHeader = true,
         CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(reader);
-        ArgumentNullException.ThrowIfNull(parser);
-
-        var content = await reader
-            .ReadToEndAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return Read(content.AsSpan(), parser, hasHeader);
-    }
+        where T : ISupportReader<T>
+        => ReadAsync(reader, T.RowFactory, hasHeader, cancellationToken);
 
     /// <summary>
-    /// Asynchronously reads CSV-formatted data from a <see cref="Stream"/> and parses each row into an object of type <typeparamref name="T"/>.
+    /// Asynchronously reads CSV-formatted data from a <see cref="Stream"/> and parses each row into an object of type <typeparamref name="T"/>
+    /// using the static <see cref="ISupportReader{T}.RowFactory"/> method.
     /// </summary>
-    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <typeparam name="T">The type of objects to create from the data rows. Must implement <see cref="ISupportReader{T}"/>.</typeparam>
     /// <param name="stream">The input <see cref="Stream"/> to read the CSV content from.</param>
-    /// <param name="parser">
-    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
-    /// The first argument is the current row's fields, and the second is the header fields (if present).
-    /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the row factory for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and the row factory receives <see langword="null"/> for the headers argument.
     /// Default is <see langword="true"/>.
     /// </param>
     /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <see langword="null"/>.</param>
@@ -91,21 +78,85 @@ public static class CsvReader
     /// <returns>
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="parser"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is <see langword="null"/>.</exception>
+    public static Task<IReadOnlyList<T>> ReadAsync<T>(
+        Stream stream,
+        bool hasHeader = true,
+        Encoding? encoding = null,
+        CancellationToken cancellationToken = default)
+        where T : ISupportReader<T>
+        => ReadAsync(stream, T.RowFactory, hasHeader, encoding, cancellationToken);
+
+
+    /// <summary>
+    /// Asynchronously reads CSV-formatted data from a <see cref="TextReader"/> and parses each row into an object of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <param name="reader">The <see cref="TextReader"/> from which the CSV content will be read.</param>
+    /// <param name="rowFactory">
+    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
+    /// The first argument is the current row's fields, and the second is the header fields (if present).
+    /// </param>
+    /// <param name="hasHeader">
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="rowFactory"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
+    /// </param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> or <paramref name="rowFactory"/> is <see langword="null"/>.</exception>
+    public static async Task<IReadOnlyList<T>> ReadAsync<T>(
+        TextReader reader,
+        Func<IReadOnlyList<string>, IReadOnlyList<string>?, T> rowFactory,
+        bool hasHeader = true,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(reader);
+        ArgumentNullException.ThrowIfNull(rowFactory);
+
+        var content = await reader
+            .ReadToEndAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return Read(content.AsSpan(), rowFactory, hasHeader);
+    }
+
+    /// <summary>
+    /// Asynchronously reads CSV-formatted data from a <see cref="Stream"/> and parses each row into an object of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <param name="stream">The input <see cref="Stream"/> to read the CSV content from.</param>
+    /// <param name="rowFactory">
+    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
+    /// The first argument is the current row's fields, and the second is the header fields (if present).
+    /// </param>
+    /// <param name="hasHeader">
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="rowFactory"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
+    /// </param>
+    /// <param name="encoding">The text encoding to use. Defaults to UTF-8 if <see langword="null"/>.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of parsed objects.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="rowFactory"/> is <see langword="null"/>.</exception>
     public static async Task<IReadOnlyList<T>> ReadAsync<T>(
         Stream stream,
-        Func<string[], string[]?, T> parser,
+        Func<IReadOnlyList<string>, IReadOnlyList<string>?, T> rowFactory,
         bool hasHeader = true,
         Encoding? encoding = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        ArgumentNullException.ThrowIfNull(parser);
+        ArgumentNullException.ThrowIfNull(rowFactory);
 
         encoding ??= Encoding.UTF8;
         using var reader = new StreamReader(stream, encoding, bufferSize: 4096, leaveOpen: true);
 
-        return await ReadAsync(reader, parser, hasHeader, cancellationToken).ConfigureAwait(false);
+        return await ReadAsync(reader, rowFactory, hasHeader, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -118,7 +169,7 @@ public static class CsvReader
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of string arrays, each representing a row in the CSV data.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is <see langword="null"/>.</exception>
-    public static async Task<IReadOnlyList<string[]>> ReadAsync(
+    public static async Task<IReadOnlyList<IReadOnlyList<string>>> ReadAsync(
         TextReader reader,
         CancellationToken cancellationToken = default)
     {
@@ -142,7 +193,7 @@ public static class CsvReader
     /// A <see cref="Task{TResult}"/> whose result is an <see cref="IReadOnlyList{T}"/> of string arrays, each representing a row in the CSV data.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is <see langword="null"/>.</exception>
-    public static async Task<IReadOnlyList<string[]>> ReadAsync(
+    public static async Task<IReadOnlyList<IReadOnlyList<string>>> ReadAsync(
         Stream stream,
         Encoding? encoding = null,
         CancellationToken cancellationToken = default)
@@ -156,32 +207,52 @@ public static class CsvReader
     }
 
     /// <summary>
-    /// Reads CSV-formatted data from a character buffer and parses each row into an object of type <typeparamref name="T"/>.
+    /// Reads CSV-formatted data from a character buffer and parses each row into an object of type <typeparamref name="T"/>
+    /// using the static <see cref="ISupportReader{T}.RowFactory"/> method.
     /// </summary>
-    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <typeparam name="T">The type of objects to create from the data rows. Must implement <see cref="ISupportReader{T}"/> and have a parameterless constructor.</typeparam>
     /// <param name="csvContent">The buffer containing CSV-formatted characters.</param>
-    /// <param name="parser">
-    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
-    /// The first argument is the current row's fields, and the second is the header fields (if present).
-    /// </param>
     /// <param name="hasHeader">
-    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
-    /// If <see langword="false"/>, all rows are treated as data and <paramref name="parser"/> receives <see langword="null"/> for the headers argument.
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the row factory for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and the row factory receives <see langword="null"/> for the headers argument.
     /// Default is <see langword="true"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IReadOnlyList{T}"/> of parsed objects.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="parser"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<T> Read<T>(
         ReadOnlySpan<char> csvContent,
-        Func<string[], string[]?, T> parser,
+        bool hasHeader = true)
+        where T : ISupportReader<T>
+        => Read(csvContent, T.RowFactory, hasHeader);
+
+    /// <summary>
+    /// Reads CSV-formatted data from a character buffer and parses each row into an object of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of objects to create from the data rows.</typeparam>
+    /// <param name="csvContent">The buffer containing CSV-formatted characters.</param>
+    /// <param name="rowFactory">
+    /// A function that maps each row's fields and the header row to an object of type <typeparamref name="T"/>.
+    /// The first argument is the current row's fields, and the second is the header fields (if present).
+    /// </param>
+    /// <param name="hasHeader">
+    /// Indicates if the first row is a header row. If <see langword="true"/>, the first row is treated as headers and passed to the parser for each subsequent row.
+    /// If <see langword="false"/>, all rows are treated as data and <paramref name="rowFactory"/> receives <see langword="null"/> for the headers argument.
+    /// Default is <see langword="true"/>.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IReadOnlyList{T}"/> of parsed objects.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="rowFactory"/> is <see langword="null"/>.</exception>
+    public static IReadOnlyList<T> Read<T>(
+        ReadOnlySpan<char> csvContent,
+        Func<IReadOnlyList<string>, IReadOnlyList<string>?, T> rowFactory,
         bool hasHeader = true)
     {
-        ArgumentNullException.ThrowIfNull(parser);
+        ArgumentNullException.ThrowIfNull(rowFactory);
 
         var results = new List<T>();
-        string[]? headers = null;
+        IReadOnlyList<string>? headers = null;
         bool isFirstRow = true;
 
         ReadCore(csvContent, ',', '"', row =>
@@ -196,7 +267,7 @@ public static class CsvReader
             {
                 isFirstRow = false;
             }
-            var item = parser(row, hasHeader ? headers : null);
+            var item = rowFactory(row, hasHeader ? headers : null);
             results.Add(item);
         });
 
@@ -213,12 +284,12 @@ public static class CsvReader
     /// <returns>
     /// An <see cref="IReadOnlyList{T}"/> of string arrays, each representing a row in the CSV data.
     /// </returns>
-    public static IReadOnlyList<string[]> Read(
+    public static IReadOnlyList<IReadOnlyList<string>> Read(
         ReadOnlySpan<char> csvContent,
         char delimiter = ',',
         char quote = '"')
     {
-        var rows = new List<string[]>();
+        var rows = new List<IReadOnlyList<string>>();
 
         ReadCore(csvContent, delimiter, quote, rows.Add);
 
@@ -226,7 +297,7 @@ public static class CsvReader
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "String parsing logic")]
-    private static void ReadCore(ReadOnlySpan<char> span, char delimiter, char quote, Action<string[]> processRow)
+    private static void ReadCore(ReadOnlySpan<char> span, char delimiter, char quote, Action<IReadOnlyList<string>> processRow)
     {
         var currentRow = new List<string>();
 

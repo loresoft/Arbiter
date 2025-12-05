@@ -33,7 +33,7 @@ public class CsvReaderBenchmark
 
         return await CsvReader.ReadAsync(
             stream: stream,
-            parser: CreatePerson
+            rowFactory: CreatePerson
         );
     }
 
@@ -43,7 +43,7 @@ public class CsvReaderBenchmark
         var buffer = _csvContent.AsSpan();
         return CsvReader.Read(
             buffer,
-            parser: CreatePerson
+            rowFactory: CreatePerson
         );
     }
 
@@ -58,7 +58,7 @@ public class CsvReaderBenchmark
     }
 
 
-    private static Person CreatePerson(string[] fields, string[]? headers)
+    private static Person CreatePerson(IReadOnlyList<string> fields, IReadOnlyList<string>? headers)
     {
         return new Person(
             Name: fields[0],

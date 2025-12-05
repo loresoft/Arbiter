@@ -2,8 +2,6 @@ using System.Buffers;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-using Arbiter.CommandQuery.Services;
-
 namespace Arbiter.Services;
 
 /// <summary>

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 
 using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
 using BenchmarkDotNet.Attributes;
 
