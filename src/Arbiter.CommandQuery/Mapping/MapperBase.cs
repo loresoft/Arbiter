@@ -194,8 +194,11 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
         // Get the mapping expression defined by the derived class
         var mappingExpression = CreateMapping();
 
+        // Rewrite the expression to add null checks for nested property access
+        var rewrittenExpression = RewriteNestedPropertyAccess(mappingExpression);
+
         // Compile the expression into a factory function for creating new objects
-        var factory = mappingExpression.Compile();
+        var factory = rewrittenExpression.Compile();
 
         // Create mapper that assigns to existing object with optimized expression building
         // We need new parameters for the mapper action (source, destination)
@@ -204,10 +207,10 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
 
         // Extract individual property assignments from the mapping expression
         // This transforms "new Dest { Prop = src.Value }" into "dest.Prop = src.Value" assignments
-        if (!TryExtractAssignments(mappingExpression, sourceParam, destinationParam, out var assignments))
+        if (!TryExtractAssignments(rewrittenExpression, sourceParam, destinationParam, out var assignments))
         {
             // If assignments could not be extracted (unsupported mapping expression),
-            return (factory, null, mappingExpression);
+            return (factory, null, rewrittenExpression);
         }
 
         if (assignments.Count == 0)
@@ -215,7 +218,7 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
             // If no assignments were extracted, create an empty action that does nothing
             // This can happen with simple constructor-only mappings
             var emptyAction = Expression.Lambda<Action<TSource, TDestination>>(Expression.Empty(), sourceParam, destinationParam).Compile();
-            return (factory, emptyAction, mappingExpression);
+            return (factory, emptyAction, rewrittenExpression);
         }
 
         // Create the expression body - either a single assignment or a block of assignments
@@ -227,7 +230,21 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
         var mapperLambda = Expression.Lambda<Action<TSource, TDestination>>(block, sourceParam, destinationParam);
         var mapper = mapperLambda.Compile();
 
-        return (factory, mapper, mappingExpression);
+        return (factory, mapper, rewrittenExpression);
+    }
+
+    /// <summary>
+    /// Rewrites the mapping expression to add null checks for nested property access.
+    /// Transforms expressions like 'source.Distributor.Name' into 'source.Distributor != null ? source.Distributor.Name : default'.
+    /// </summary>
+    /// <param name="expression">The original mapping expression.</param>
+    /// <returns>The rewritten expression with null checks injected.</returns>
+    [RequiresUnreferencedCode("Expression manipulation requires unreferenced code for AOT scenarios")]
+    private static Expression<Func<TSource, TDestination>> RewriteNestedPropertyAccess(Expression<Func<TSource, TDestination>> expression)
+    {
+        var visitor = new NullCheckInjector();
+        var rewrittenBody = visitor.Visit(expression.Body);
+        return Expression.Lambda<Func<TSource, TDestination>>(rewrittenBody, expression.Parameters);
     }
 
     /// <summary>
@@ -305,5 +322,249 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
         /// <returns>The new parameter if it matches the old parameter, otherwise the original parameter.</returns>
         protected override Expression VisitParameter(ParameterExpression node)
             => ReferenceEquals(node, oldParameter) ? newParameter : node;
+    }
+
+    /// <summary>
+    /// An expression visitor that injects null checks for nested property access.
+    /// Transforms expressions like 'source.Distributor.Name' into conditional expressions
+    /// that check for null at each level of nesting.
+    /// Skips rewriting if the expression already contains explicit null checks.
+    /// </summary>
+    private sealed class NullCheckInjector : ExpressionVisitor
+    {
+        private bool _insideConditionalTest;
+
+        /// <summary>
+        /// Visits a conditional expression and skips rewriting the test condition to avoid interfering with existing null checks.
+        /// </summary>
+        /// <param name="node">The conditional expression to visit.</param>
+        /// <returns>The visited conditional expression.</returns>
+        protected override Expression VisitConditional(ConditionalExpression node)
+        {
+            // Check if this conditional expression is already performing a null check
+            if (IsNullCheckPattern(node))
+            {
+                // This is already a null check pattern (e.g., x != null ? x.Property : default)
+                // Don't rewrite it, just return as-is
+                return node;
+            }
+
+            // Visit the test expression without injecting null checks
+            // (the test is often where null checks are performed)
+            var previousInsideTest = _insideConditionalTest;
+            _insideConditionalTest = true;
+            var test = Visit(node.Test);
+            _insideConditionalTest = previousInsideTest;
+
+            // Visit the true and false branches normally
+            var ifTrue = Visit(node.IfTrue);
+            var ifFalse = Visit(node.IfFalse);
+
+            return node.Update(test, ifTrue, ifFalse);
+        }
+
+        /// <summary>
+        /// Visits a member access expression and injects null checks for nested property access.
+        /// </summary>
+        /// <param name="node">The member access expression to visit.</param>
+        /// <returns>
+        /// A conditional expression with null checks if the member access is nested,
+        /// otherwise the original expression after visiting its components.
+        /// </returns>
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            // If we're inside a conditional test expression, don't inject null checks
+            // as we're likely already checking for null
+            if (_insideConditionalTest)
+            {
+                return base.VisitMember(node);
+            }
+
+            // First, visit the expression to ensure any nested member accesses are also processed
+            var visitedExpression = Visit(node.Expression);
+            
+            // If the expression is null (static member) or not a member access, no null check needed
+            if (visitedExpression is null || visitedExpression is not MemberExpression)
+                return node.Update(visitedExpression);
+
+            // Collect the chain of member accesses (e.g., source.Distributor.Partner.Name)
+            var memberChain = new List<MemberExpression>();
+            var current = node;
+            
+            while (current.Expression is MemberExpression memberExpression)
+            {
+                memberChain.Add(current);
+                current = memberExpression;
+            }
+            
+            // If there's no chain (direct property access), no null check needed
+            if (memberChain.Count == 0)
+                return node.Update(visitedExpression);
+
+            // Only inject null checks for reference types
+            var rootExpression = current.Expression;
+            if (rootExpression is null || !current.Type.IsClass)
+                return node.Update(visitedExpression);
+
+            // Build the null check condition from the bottom up
+            // For source.Distributor.Partner.Name, we need:
+            // source.Distributor != null && source.Distributor.Partner != null
+            Expression? condition = null;
+            Expression rebuiltExpression = rootExpression;
+
+            // Start from the root and build up the condition
+            for (int i = memberChain.Count - 1; i >= 0; i--)
+            {
+                var member = memberChain[i];
+                rebuiltExpression = Expression.MakeMemberAccess(rebuiltExpression, member.Member);
+
+                // Only add null checks for reference types
+                if (member.Expression!.Type.IsClass)
+                {
+                    var nullCheck = Expression.NotEqual(
+                        member.Expression,
+                        Expression.Constant(null, member.Expression.Type));
+
+                    condition = condition is null
+                        ? nullCheck
+                        : Expression.AndAlso(condition, nullCheck);
+                }
+            }
+
+            // If no condition was built, return the original expression
+            if (condition is null)
+                return node.Update(visitedExpression);
+
+            // Create the conditional expression: condition ? value : default
+            var defaultValue = Expression.Default(node.Type);
+            return Expression.Condition(condition, rebuiltExpression, defaultValue);
+        }
+
+        /// <summary>
+        /// Determines if a conditional expression represents a null check pattern.
+        /// Recognizes patterns like: x != null ? x.Property : default
+        /// </summary>
+        /// <param name="node">The conditional expression to check.</param>
+        /// <returns>True if the expression is a null check pattern; otherwise, false.</returns>
+        private static bool IsNullCheckPattern(ConditionalExpression node)
+        {
+            // Pattern 1: x != null ? ... : default
+            // Pattern 2: x == null ? default : ...
+            if (node.Test is BinaryExpression binaryTest)
+            {
+                var isNotEqual = binaryTest.NodeType == ExpressionType.NotEqual;
+                var isEqual = binaryTest.NodeType == ExpressionType.Equal;
+
+                if (!isNotEqual && !isEqual)
+                    return false;
+
+                // Check if one side is a null constant
+                var isLeftNull = binaryTest.Left is ConstantExpression leftConst && leftConst.Value is null;
+                var isRightNull = binaryTest.Right is ConstantExpression rightConst && rightConst.Value is null;
+
+                if (!isLeftNull && !isRightNull)
+                    return false;
+
+                // The other side should be a member access or parameter
+                var checkedExpression = isLeftNull ? binaryTest.Right : binaryTest.Left;
+                
+                // Verify the checked expression is used in one of the branches
+                if (isNotEqual)
+                {
+                    // x != null ? x.Property : default
+                    return ContainsMemberAccess(node.IfTrue, checkedExpression);
+                }
+                else
+                {
+                    // x == null ? default : x.Property
+                    return ContainsMemberAccess(node.IfFalse, checkedExpression);
+                }
+            }
+
+            // Pattern 3: AndAlso/OrElse with null checks
+            if (node.Test.NodeType == ExpressionType.AndAlso || node.Test.NodeType == ExpressionType.OrElse)
+            {
+                return ContainsNullCheck(node.Test);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an expression contains a member access based on the specified expression.
+        /// </summary>
+        private static bool ContainsMemberAccess(Expression expression, Expression baseExpression)
+        {
+            if (expression is MemberExpression memberExpr)
+            {
+                // Check if this member expression or any parent matches
+                var current = memberExpr;
+                while (current != null)
+                {
+                    if (ExpressionEquals(current.Expression, baseExpression))
+                        return true;
+
+                    current = current.Expression as MemberExpression;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a binary expression contains null checks (x != null or x == null).
+        /// </summary>
+        private static bool ContainsNullCheck(Expression expression)
+        {
+            if (expression is BinaryExpression binary)
+            {
+                var isNullCheck = (binary.NodeType == ExpressionType.NotEqual || binary.NodeType == ExpressionType.Equal) &&
+                                  (IsNullConstant(binary.Left) || IsNullConstant(binary.Right));
+
+                if (isNullCheck)
+                    return true;
+
+                // Recursively check left and right for AndAlso/OrElse chains
+                if (binary.NodeType == ExpressionType.AndAlso || binary.NodeType == ExpressionType.OrElse)
+                {
+                    return ContainsNullCheck(binary.Left) || ContainsNullCheck(binary.Right);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if an expression is a null constant.
+        /// </summary>
+        private static bool IsNullConstant(Expression expression)
+        {
+            return expression is ConstantExpression constant && constant.Value is null;
+        }
+
+        /// <summary>
+        /// Compares two expressions for structural equality.
+        /// </summary>
+        private static bool ExpressionEquals(Expression? expr1, Expression? expr2)
+        {
+            if (ReferenceEquals(expr1, expr2))
+                return true;
+
+            if (expr1 is null || expr2 is null)
+                return false;
+
+            if (expr1.NodeType != expr2.NodeType || expr1.Type != expr2.Type)
+                return false;
+
+            // For parameters, compare by name and type
+            if (expr1 is ParameterExpression param1 && expr2 is ParameterExpression param2)
+                return param1.Name == param2.Name && param1.Type == param2.Type;
+
+            // For member access, compare member and expression
+            if (expr1 is MemberExpression member1 && expr2 is MemberExpression member2)
+                return member1.Member == member2.Member && ExpressionEquals(member1.Expression, member2.Expression);
+
+            return false;
+        }
     }
 }
