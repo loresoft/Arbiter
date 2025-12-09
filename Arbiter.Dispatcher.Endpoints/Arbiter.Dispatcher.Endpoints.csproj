@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>Arbiter Dispatcher Endpoint</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\Arbiter.Dispatcher\Arbiter.Dispatcher.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Arbiter.Mediation" />
+  </ItemGroup>
+
+</Project>

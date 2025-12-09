@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 
-using Arbiter.CommandQuery.Dispatcher;
 using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Queries;
 
@@ -15,7 +14,6 @@ namespace Arbiter.CommandQuery;
 /// and <see cref="ProblemDetails"/> types in Blazor WebAssembly and other .NET applications.
 /// </remarks>
 [JsonSerializable(typeof(CompleteModel))]
-[JsonSerializable(typeof(DispatchRequest))]
 [JsonSerializable(typeof(EntityFilter))]
 [JsonSerializable(typeof(EntityQuery))]
 [JsonSerializable(typeof(EntitySort))]
