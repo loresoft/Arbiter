@@ -204,7 +204,7 @@ public static class ContinuationToken
     }
 
     /// <summary>
-    /// Parses a continuation token and extracts three values.
+    /// Parsing a continuation token and extracts three values.
     /// </summary>
     /// <typeparam name="T1">The type of the first value.</typeparam>
     /// <typeparam name="T2">The type of the second value.</typeparam>
@@ -235,7 +235,7 @@ public static class ContinuationToken
         {
             bool => 2,
             byte => 2,
-            DateTime => 9,
+            DateTime => 10,
             DateTimeOffset => 11,
             decimal => 17,
             double => 9,
@@ -396,16 +396,23 @@ public static class ContinuationToken
         buffer[0] = (byte)TypeMarker.DateTime;
 
         BinaryPrimitives.WriteInt64LittleEndian(buffer[1..], value.Ticks);
+        
+        // Store DateTime.Kind to preserve it during round-trip
+        // 0 = Unspecified, 1 = Utc, 2 = Local
+        buffer[9] = (byte)value.Kind;
 
-        return 9;
+        return 10;
     }
 
     private static DateTime ReadDateTime(ReadOnlySpan<byte> buffer, ref int position)
     {
         var ticks = BinaryPrimitives.ReadInt64LittleEndian(buffer[position..]);
         position += 8;
+        
+        // Read DateTime.Kind to restore the original kind
+        var kind = (DateTimeKind)buffer[position++];
 
-        return new DateTime(ticks);
+        return new DateTime(ticks, kind);
     }
 
     private static int WriteDateTimeOffset(Span<byte> buffer, DateTimeOffset value)

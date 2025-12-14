@@ -203,9 +203,36 @@ public class ContinuationTokenTests
     }
 
     [Test]
+    public void RoundTrip_WithDateTime_PreservesKind()
+    {
+        // Arrange
+        var testValues = new[]
+        {
+            new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Utc),
+            new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Local),
+            new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Unspecified),
+            DateTime.UtcNow,
+            DateTime.Now,
+            DateTime.MinValue,
+            DateTime.MaxValue
+        };
+
+        foreach (var value in testValues)
+        {
+            // Act
+            var token = ContinuationToken.Create(value);
+            var result = ContinuationToken.Parse<DateTime>(token);
+
+            // Assert
+            result.Should().Be(value);
+            result.Kind.Should().Be(value.Kind, $"DateTime.Kind should be preserved for value {value}");
+        }
+    }
+
+    [Test]
     public void RoundTrip_WithDateTimeOffset_PreservesValue()
     {
-        // Arrange - Test values with UTC offset (zero) which round-trip correctly
+        // Arrange
         var testValues = new[]
         {
             DateTimeOffset.MinValue,
