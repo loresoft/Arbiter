@@ -139,7 +139,12 @@ public static class Program
             app.UseResponseCompression();
         }
 
-        app.UseRequestLogging(config => config.IncludeRequestBody = true);
+        app.UseRequestLogging(config =>
+        {
+            config.IncludeRequestBody = true;
+            config.IgnorePath("/_framework/**");
+            config.IgnorePath("/_content/**");
+        });
 
         app.UseHttpsRedirection();
 

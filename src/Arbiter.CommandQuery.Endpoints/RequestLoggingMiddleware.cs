@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Text;
 
+using Arbiter.Services;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +22,7 @@ public partial class RequestLoggingMiddleware
     private readonly ILogger<RequestLoggingMiddleware> _logger;
     private readonly RequestLoggingOptions _options;
     private readonly ReadOnlyMemory<char>[] _allowedMimeTypes;
+    private readonly List<GlobMatcher> _ignorePathMatchers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequestLoggingMiddleware"/> class.
@@ -38,6 +41,9 @@ public partial class RequestLoggingMiddleware
 
         // Pre-process MIME types into ReadOnlyMemory<char> for zero-allocation span comparisons
         _allowedMimeTypes = [.. _options.RequestBodyMimeTypes.Select(static t => t.AsMemory())];
+
+        // Pre-process ignore paths into GlobMatchers for efficient matching
+        _ignorePathMatchers = [.. _options.IgnorePaths?.Select(path => new GlobMatcher(path)) ?? []];
     }
 
     /// <summary>
@@ -47,12 +53,18 @@ public partial class RequestLoggingMiddleware
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
+        var requestPath = context.Request.Path.Value;
+        if (_ignorePathMatchers.Exists(m => m.IsMatch(requestPath)))
+        {
+            await _next(context).ConfigureAwait(false);
+            return;
+        }
+
         // start timing
         var timestamp = Stopwatch.GetTimestamp();
 
         // capture request details
         var requestMethod = context.Request.Method;
-        var requestPath = context.Request.Path.Value;
 
         // capture request body if configured
         var requestBody = await ReadBody(context.Request).ConfigureAwait(false);

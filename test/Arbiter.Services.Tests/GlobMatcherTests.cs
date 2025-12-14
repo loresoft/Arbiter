@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Arbiter.Services;
 
 namespace Arbiter.Services.Tests;
@@ -194,6 +191,11 @@ public class GlobMatcherTests
     [Arguments("", "", true)]
     [Arguments("", "test.txt", false)]
     [Arguments("*.txt", "", false)]
+    [Arguments("*", "", true)]
+    [Arguments("**", "", true)]
+    [Arguments("?", "", false)]
+    [Arguments("[abc]", "", false)]
+    [Arguments("{a,b}", "", false)]
     public void IsMatch_EmptyStrings(string pattern, string path, bool expected)
     {
         var matcher = new GlobMatcher(pattern);
@@ -249,7 +251,7 @@ public class GlobMatcherTests
     {
         var matcher = new GlobMatcher("*.txt");
         var path = "test.txt".AsSpan();
-        
+
         var result = matcher.IsMatch(path);
 
         result.Should().BeTrue();
@@ -260,7 +262,7 @@ public class GlobMatcherTests
     {
         var matcher = new GlobMatcher("*.txt");
         var path = "test.csv".AsSpan();
-        
+
         var result = matcher.IsMatch(path);
 
         result.Should().BeFalse();
@@ -382,7 +384,7 @@ public class GlobMatcherTests
     public void IsMatch_Performance_ManyMatches()
     {
         var matcher = new GlobMatcher("**/*.cs");
-        
+
         for (int i = 0; i < 1000; i++)
         {
             var result = matcher.IsMatch($"src/folder{i}/File{i}.cs");
@@ -395,7 +397,7 @@ public class GlobMatcherTests
     {
         var matcher = new GlobMatcher("*.txt");
         var path = "test.txt";
-        
+
         var result1 = matcher.IsMatch(path);
         var result2 = matcher.IsMatch(path);
         var result3 = matcher.IsMatch(path);
@@ -411,6 +413,69 @@ public class GlobMatcherTests
     [Arguments("[a-zA-Z0-9].txt", "5.txt", true)]
     [Arguments("[a-zA-Z0-9].txt", "_.txt", false)]
     public void IsMatch_CharacterClass_MultipleRanges(string pattern, string path, bool expected)
+    {
+        var matcher = new GlobMatcher(pattern);
+        var result = matcher.IsMatch(path);
+
+        result.Should().Be(expected);
+    }
+
+    [Test]
+    [Arguments("*.txt", "file.txt", true)]
+    [Arguments("*.txt", "folder/file.txt", false)] // * should NOT cross directory boundaries
+    [Arguments("*.txt", "a/b/file.txt", false)] // * should NOT cross directory boundaries
+    [Arguments("*file.txt", "somefile.txt", true)]
+    [Arguments("*file.txt", "folder/somefile.txt", false)] // * should NOT cross directory boundaries
+    [Arguments("test*", "test.txt", true)]
+    [Arguments("test*", "test/file.txt", false)] // * should NOT cross directory boundaries
+    [Arguments("a*c", "abc", true)]
+    [Arguments("a*c", "a/c", false)] // * should NOT cross directory separators
+    [Arguments("a*c", "a\\c", false)] // * should NOT cross directory separators (Windows style)
+    [Arguments("**/*.txt", "folder/file.txt", true)] // ** SHOULD cross directory boundaries
+    [Arguments("**/*.txt", "a/b/c/file.txt", true)] // ** SHOULD cross directory boundaries
+    public void IsMatch_SingleWildcard_DoesNotCrossDirectories(string pattern, string path, bool expected)
+    {
+        var matcher = new GlobMatcher(pattern);
+        var result = matcher.IsMatch(path);
+
+        result.Should().Be(expected);
+    }
+
+    [Test]
+    [Arguments("test?.txt", "test1.txt", true)]
+    [Arguments("test?.txt", "testa.txt", true)]
+    [Arguments("test?.txt", "test/.txt", false)] // ? should NOT match path separator
+    [Arguments("a?c", "abc", true)]
+    [Arguments("a?c", "a/c", false)] // ? should NOT match path separator (Unix-style)
+    [Arguments("a?c", "a\\c", false)] // ? should NOT match path separator (Windows-style)
+    [Arguments("file?.txt", "file1.txt", true)]
+    [Arguments("file?.txt", "file/.txt", false)] // ? should NOT match path separator
+    [Arguments("???", "abc", true)]
+    [Arguments("???", "a/c", false)] // ? should NOT match path separator
+    [Arguments("test?file", "test1file", true)]
+    [Arguments("test?file", "test/file", false)] // ? should NOT match path separator
+    public void IsMatch_QuestionMark_DoesNotMatchPathSeparator(string pattern, string path, bool expected)
+    {
+        var matcher = new GlobMatcher(pattern);
+        var result = matcher.IsMatch(path);
+
+        result.Should().Be(expected);
+    }
+
+    [Test]
+    [Arguments("*.{txt,csv}", "file.txt", true)]
+    [Arguments("*.{txt,csv}", "file.csv", true)]
+    [Arguments("*.{txt,csv}", "file.pdf", false)]
+    [Arguments("*.{txt,csv}", "x", false)] // Prefix matches but none of the alternatives do
+    [Arguments("*test.{a,b}", "mytest.a", true)]
+    [Arguments("*test.{a,b}", "mytest.b", true)]
+    [Arguments("*test.{a,b}", "mytest.c", false)]
+    [Arguments("*test.{a,b}", "other.a", false)] // Doesn't match "test" part
+    [Arguments("?.{x,y}", "a.x", true)]
+    [Arguments("?.{x,y}", "b.y", true)]
+    [Arguments("?.{x,y}", "c.z", false)]
+    [Arguments("?.{x,y}", "ab.x", false)] // ? only matches single character
+    public void IsMatch_BraceExpansion_WithWildcardsInPrefix(string pattern, string path, bool expected)
     {
         var matcher = new GlobMatcher(pattern);
         var result = matcher.IsMatch(path);
