@@ -1,4 +1,4 @@
-using Arbiter.CommandQuery.Dispatcher;
+using Arbiter.Dispatcher;
 
 using Rocks;
 

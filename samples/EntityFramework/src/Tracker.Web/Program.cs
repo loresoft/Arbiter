@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Endpoints;
+using Arbiter.Dispatcher.Server;
 using Arbiter.Mediation.OpenTelemetry;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -101,7 +102,8 @@ public static class Program
             .AddTrackerWeb();
 
         services
-            .AddEndpointRoutes();
+            .AddEndpointRoutes()
+            .AddDispatcherService();
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions());
@@ -139,7 +141,14 @@ public static class Program
             app.UseResponseCompression();
         }
 
-        app.UseRequestLogging(config => config.IncludeRequestBody = true);
+        app.UseDispatchService();
+
+        app.UseRequestLogging(config =>
+        {
+            config.IncludeRequestBody = true;
+            config.IgnorePath("/_framework/**");
+            config.IgnorePath("/_content/**");
+        });
 
         app.UseHttpsRedirection();
 
@@ -153,6 +162,7 @@ public static class Program
             .AddAdditionalAssemblies(typeof(Client.Routes).Assembly);
 
         app.MapEndpointRoutes();
+        app.MapDispatchService();
 
     }
 }

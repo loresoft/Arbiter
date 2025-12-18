@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -82,7 +84,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
-public record EntityCreateCommand<TCreateModel, TReadModel>
+[MessagePackObject(keyAsPropertyName: true)]
+public partial record EntityCreateCommand<TCreateModel, TReadModel>
     : EntityModelBase<TCreateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -113,7 +116,11 @@ public record EntityCreateCommand<TCreateModel, TReadModel>
     /// </list>
     /// </para>
     /// </remarks>
-    public EntityCreateCommand(ClaimsPrincipal? principal, [NotNull] TCreateModel model, string? filterName = null)
+    [SerializationConstructor]
+    public EntityCreateCommand(
+        [IgnoreMember] ClaimsPrincipal? principal,
+        [NotNull] TCreateModel model,
+        string? filterName = null)
         : base(principal, model)
     {
         FilterName = filterName;

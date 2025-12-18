@@ -1,7 +1,10 @@
+using System.Runtime.Serialization;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
+
+using MessagePack;
 
 namespace Arbiter.CommandQuery.Commands;
 
@@ -52,6 +55,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// The <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </value>
     [JsonIgnore]
+    [IgnoreMember]
     public ClaimsPrincipal? Principal { get; private set; }
 
     /// <summary>
@@ -61,6 +65,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// The timestamp indicating when this command was activated.
     /// </value>
     [JsonIgnore]
+    [IgnoreMember]
     public DateTimeOffset Activated { get; private set; }
 
     /// <summary>
@@ -75,6 +80,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// </remarks>
     /// <see cref="ClaimsIdentity.Name"/>
     [JsonIgnore]
+    [IgnoreMember]
     public string? ActivatedBy { get; private set; }
 
     /// <summary>

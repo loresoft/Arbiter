@@ -1,39 +1,41 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Arbiter.CommandQuery.Dispatcher;
+using Arbiter.Mediation;
+
+namespace Arbiter.Dispatcher.Client;
 
 /// <summary>
 /// A dispatcher that uses <see cref="IMediator"/> to send requests.  Use for Blazor Interactive Server rendering mode.
 /// </summary>
-public class MediatorDispatcher : IDispatcher
+public class ServerDispatcher : IDispatcher
 {
     private readonly IMediator _mediator;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MediatorDispatcher"/> class.
+    /// Initializes a new instance of the <see cref="ServerDispatcher"/> class.
     /// </summary>
     /// <param name="mediator">The <see cref="IMediator"/> to send request to.</param>
     /// <exception cref="ArgumentNullException">When <paramref name="mediator"/> is null</exception>
-    public MediatorDispatcher(IMediator mediator)
+    public ServerDispatcher(IMediator mediator)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     }
 
     /// <inheritdoc />
-    public async ValueTask<TResponse?> Send<TRequest, TResponse>(
+    public ValueTask<TResponse?> Send<TRequest, TResponse>(
         TRequest request,
         CancellationToken cancellationToken = default)
         where TRequest : IRequest<TResponse>
     {
-        return await _mediator.Send<TRequest, TResponse>(request, cancellationToken).ConfigureAwait(false);
+        return _mediator.Send<TRequest, TResponse>(request, cancellationToken);
     }
 
     /// <inheritdoc />
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
-    public async ValueTask<TResponse?> Send<TResponse>(
+    public ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default)
     {
-        return await _mediator.Send(request, cancellationToken).ConfigureAwait(false);
+        return _mediator.Send(request, cancellationToken);
     }
 }

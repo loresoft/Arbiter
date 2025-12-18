@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-using Arbiter.CommandQuery;
+using Arbiter.Dispatcher;
 
 using LoreSoft.Blazor.Controls;
 
@@ -33,12 +33,11 @@ public static class ServiceRegistration
         if (tags.Contains("WebAssembly"))
         {
             services
-                .AddRemoteDispatcher((sp, client) =>
+                .AddRemoteDispatcher(static sp =>
                 {
                     var hostEnvironment = sp.GetRequiredService<IOptions<EnvironmentOptions>>();
-                    client.BaseAddress = new Uri(hostEnvironment.Value.BaseAddress);
-                })
-                .AddHttpMessageHandler<ProgressBarHandler>();
+                    return hostEnvironment.Value.BaseAddress;
+                });
         }
 
         if (tags.Contains("Server"))

@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Arbiter.CommandQuery.Dispatcher;
+using Arbiter.Mediation;
+
+namespace Arbiter.Dispatcher.Client;
 
 /// <summary>
 /// An <see langword="interface"/> to represent a dispatcher for sending request messages.

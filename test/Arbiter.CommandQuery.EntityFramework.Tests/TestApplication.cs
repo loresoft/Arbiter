@@ -1,3 +1,5 @@
+using Arbiter.Dispatcher;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

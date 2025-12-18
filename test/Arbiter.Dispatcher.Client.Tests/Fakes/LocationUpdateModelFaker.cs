@@ -1,0 +1,22 @@
+using Arbiter.Dispatcher.Client.Tests.Models;
+
+namespace Arbiter.Dispatcher.Client.Tests.Fakes;
+
+public class LocationUpdateModelFaker : Faker<LocationUpdateModel>
+{
+    public LocationUpdateModelFaker()
+    {
+        RuleFor(p => p.Name, f => f.Company.CompanyName());
+        RuleFor(p => p.Description, f => f.Lorem.Sentence());
+        RuleFor(p => p.AddressLine1, f => f.Address.StreetAddress());
+        RuleFor(p => p.AddressLine2, f => f.Address.SecondaryAddress());
+        RuleFor(p => p.AddressLine3, f => f.Address.StreetAddress());
+        RuleFor(p => p.City, f => f.Address.City());
+        RuleFor(p => p.StateProvince, f => f.Address.State());
+        RuleFor(p => p.PostalCode, f => f.Address.ZipCode());
+        RuleFor(p => p.Latitude, f => f.Address.Latitude());
+        RuleFor(p => p.Longitude, f => f.Address.Longitude());
+        RuleFor(p => p.Updated, f => f.Date.Past());
+        RuleFor(p => p.UpdatedBy, f => f.Internet.UserName());
+    }
+}

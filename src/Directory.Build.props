@@ -14,11 +14,11 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
-  <PropertyGroup Label="Debug">
+  <!--<PropertyGroup Label="Debug">
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>false</IncludeSymbols>
-  </PropertyGroup>
+  </PropertyGroup>-->
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

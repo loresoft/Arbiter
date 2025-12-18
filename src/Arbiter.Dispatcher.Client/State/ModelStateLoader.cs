@@ -1,7 +1,6 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Dispatcher;
 
-namespace Arbiter.CommandQuery.State;
+namespace Arbiter.Dispatcher.State;
 
 /// <summary>
 /// Provides state management functionality for read-only operations on models that implement <see cref="IHaveIdentifier{TKey}"/>.

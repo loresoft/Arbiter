@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Arbiter.CommandQuery.EntityFramework\Arbiter.CommandQuery.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Dispatcher.Client\Arbiter.Dispatcher.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

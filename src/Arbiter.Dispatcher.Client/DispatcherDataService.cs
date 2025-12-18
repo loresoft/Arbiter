@@ -3,8 +3,9 @@ using System.Security.Claims;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
+using Arbiter.Dispatcher.Client;
 
-namespace Arbiter.CommandQuery.Dispatcher;
+namespace Arbiter.Dispatcher;
 
 /// <summary>
 /// Provides a data service for dispatching common data requests to a data store.
