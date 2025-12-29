@@ -72,7 +72,7 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.9.0" />
     <PackageVersion Include="TUnit" Version="1.6.28" />
     <PackageVersion Include="Twilio" Version="7.14.0" />
-    <PackageVersion Include="Verify.TUnit" Version="31.9.2" />
+    <PackageVersion Include="Verify.TUnit" Version="31.9.3" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 </Project>
