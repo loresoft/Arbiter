@@ -18,8 +18,7 @@ public class ObjectPoolTests
         var pool = new ObjectPool<TestObject>(
             objectFactory: () => new TestObject(),
             resetAction: obj => obj.IsReset = true,
-            maxSize: 10,
-            initialCapacity: 5
+            maxSize: 10
         );
 
         pool.Should().NotBeNull();
@@ -37,13 +36,6 @@ public class ObjectPoolTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new ObjectPool<TestObject>(() => new TestObject(), maxSize: -1));
-    }
-
-    [Test]
-    public void Constructor_WithNegativeInitialCapacity_ThrowsArgumentOutOfRangeException()
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new ObjectPool<TestObject>(() => new TestObject(), initialCapacity: -1));
     }
 
     [Test]
@@ -80,31 +72,6 @@ public class ObjectPoolTests
 
         // At least some objects should have been reused
         reusedCount.Should().BeGreaterThan(0);
-    }
-
-    [Test]
-    public void Constructor_WithInitialCapacity_PreallocatesObjects()
-    {
-        int factoryCallCount = 0;
-        var pool = new ObjectPool<TestObject>(
-            objectFactory: () =>
-            {
-                factoryCallCount++;
-                return new TestObject { Value = factoryCallCount };
-            },
-            initialCapacity: 5
-        );
-
-        // Factory should have been called 5 times during construction
-        factoryCallCount.Should().Be(5);
-
-        // Getting objects should reuse preallocated ones
-        var obj1 = pool.Get();
-        var obj2 = pool.Get();
-
-        // These should be preallocated objects (values 1-5)
-        obj1.Value.Should().BeGreaterThan(0).And.BeLessThanOrEqualTo(5);
-        obj2.Value.Should().BeGreaterThan(0).And.BeLessThanOrEqualTo(5);
     }
 
     #endregion
@@ -262,10 +229,10 @@ public class ObjectPoolTests
         var allReused = new[] { reused1, reused2, reused3, reused4 };
         var originalObjects = new[] { obj1, obj2, obj3, obj4 };
         var reusedCount = allReused.Count(r => originalObjects.Contains(r));
-        
+
         // Should reuse at most 3 objects (1 in cache + 2 in queue)
         reusedCount.Should().BeLessThanOrEqualTo(3);
-        
+
         // And obj4 should not be reused (it was the 4th object returned)
         allReused.Should().NotContain(obj4);
     }
@@ -409,10 +376,10 @@ public class ObjectPoolTests
         // Now both obj1 and obj2 are in the pool
         // obj1 was just returned (goes to single-item cache, displacing obj2)
         // obj2 should now be in the queue
-        
+
         var firstGet = pool.Get();
         var secondGet = pool.Get();
-        
+
         // We should get both objects back (in some order)
         var retrieved = new[] { firstGet, secondGet };
         retrieved.Should().Contain(obj1);
@@ -552,7 +519,7 @@ public class ObjectPoolTests
         // The StringBuilder should have been trimmed to 256 capacity
         // We can verify this by checking the sb object directly after return
         // Note: The reset action trims during Return(), so we check the object state
-        
+
         // Since we can't easily verify internal state after return without getting it back,
         // let's verify the trimming behavior by creating a dedicated test StringBuilder pool
         var testPool = new ObjectPool<StringBuilder>(
@@ -687,7 +654,7 @@ public class ObjectPoolTests
         var pooledObjects = new[] { reused1, reused2 };
         pooledObjects.Should().Contain(obj1);
         pooledObjects.Should().Contain(obj2);
-        
+
         // Third Get should create a new object (not obj3)
         reused3.Should().NotBeSameAs(obj3);
         reused3.Value.Should().Be(0); // New object has default value

@@ -13,7 +13,7 @@ namespace Arbiter.CommandQuery.EntityFramework.Tests;
 
 public class TestApplication : TestHostApplication, IAsyncInitializer
 {
-    private readonly MsSqlContainer _msSqlContainer = new MsSqlBuilder()
+    private readonly MsSqlContainer _msSqlContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2025-latest")
         .WithPassword("Bn87bBYhLjYRj%9zRgUc")
         .Build();
 
