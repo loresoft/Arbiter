@@ -1,6 +1,8 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Mediation;
 
+using Google.Protobuf;
+
 using Grpc.Core;
 
 using MessagePack;
@@ -17,20 +19,9 @@ namespace Arbiter.Dispatcher.Server;
 /// applies the current user principal if supported, and dispatches them to the mediator for processing.
 /// The response is then serialized and returned to the caller.
 /// </remarks>
-[BindServiceMethod(typeof(DispatcherService), nameof(BindService))]
-public class DispatcherService
+public class DispatcherService : DispatcherRpc.DispatcherRpcBase
 {
-    /// <summary>
-    /// Binds the service methods to the gRPC server.
-    /// </summary>
-    /// <param name="service">The dispatcher service instance to bind.</param>
-    /// <returns>A <see cref="ServerServiceDefinition"/> containing the bound service methods.</returns>
-    public static ServerServiceDefinition BindService(DispatcherService service)
-    {
-        return ServerServiceDefinition.CreateBuilder()
-            .AddMethod(DispatcherMethod.Execute, service.Execute)
-            .Build();
-    }
+    public const string TypeHeader = "x-message-type";
 
     private readonly ILogger<DispatcherService> _logger;
     private readonly IMediator _mediator;
@@ -52,35 +43,24 @@ public class DispatcherService
         _options = options;
     }
 
-    /// <summary>
-    /// Executes a request by deserializing it, applying the current user principal if supported,
-    /// dispatching it to the mediator, and returning the serialized response.
-    /// </summary>
-    /// <param name="requestBytes">The serialized request bytes.</param>
-    /// <param name="context">The server call context containing request metadata and cancellation token.</param>
-    /// <returns>The serialized response bytes.</returns>
-    /// <exception cref="RpcException">
-    /// Thrown when the x-message-type header is missing, the message type cannot be resolved,
-    /// or the request payload cannot be deserialized.
-    /// </exception>
-    /// <remarks>
-    /// The method expects the message type name to be provided in the 'x-message-type' header.
-    /// If the request implements <see cref="IRequestPrincipal"/>, the current user principal from
-    /// the HTTP context will be applied to the request before processing.
-    /// </remarks>
-    public async Task<byte[]> Execute(
-        byte[] requestBytes,
-        ServerCallContext context)
+
+    public override async Task<DispatcherResponse> Execute(DispatcherRequest request, ServerCallContext context)
     {
         try
         {
+            var requestBytes = request.Payload.ToByteArray();
+
+            _logger.LogInformation("Execute method called with {ByteCount} bytes", requestBytes?.Length ?? 0);
+
             // Get type from metadata header
-            var messageTypeName = context.RequestHeaders.GetValue(DispatcherMethod.TypeHeader);
+            var messageTypeName = context.RequestHeaders.GetValue(TypeHeader);
+            _logger.LogInformation("Message type header value: {MessageTypeName}", messageTypeName ?? "NULL");
+
             if (string.IsNullOrEmpty(messageTypeName))
             {
                 _logger.LogWarning("Missing x-message-type header");
-                throw new RpcException(new Status(StatusCode.InvalidArgument, 
-                    $"Required header '{DispatcherMethod.TypeHeader}' is missing. Please include the message type name in the request headers."));
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Required header '{TypeHeader}' is missing. Please include the message type name in the request headers."));
             }
 
             // Resolve request message type
@@ -88,21 +68,29 @@ public class DispatcherService
             if (requestType == null)
             {
                 _logger.LogWarning("Unknown message type: {MessageTypeName}", messageTypeName);
-                throw new RpcException(new Status(StatusCode.InvalidArgument, 
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
                     $"Unable to resolve message type '{messageTypeName}'. Ensure the type is available in the current context and the assembly-qualified name is correct."));
             }
 
-            // Single deserialization directly to the actual type
-            var request = MessagePackSerializer.Deserialize(requestType, requestBytes, _options, context.CancellationToken);
-            if (request == null)
+            // Validate request payload
+            if (requestBytes == null || requestBytes.Length == 0)
+            {
+                _logger.LogWarning("Empty request payload for message type: {MessageTypeName}", messageTypeName);
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"The request payload is empty for message type '{messageTypeName}'. A valid serialized request is required."));
+            }
+
+            // deserialization of request
+            var requestMessage = MessagePackSerializer.Deserialize(requestType, requestBytes, _options, context.CancellationToken);
+            if (requestMessage == null)
             {
                 _logger.LogWarning("Failed to deserialize request of type: {MessageTypeName}", messageTypeName);
-                throw new RpcException(new Status(StatusCode.InvalidArgument, 
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
                     $"Failed to deserialize request payload to type '{messageTypeName}'. The message format may be invalid or incompatible."));
             }
 
             // Apply current user principal if supported
-            if (request is IRequestPrincipal requestPrincipal)
+            if (requestMessage is IRequestPrincipal requestPrincipal)
             {
                 // get current user
                 var httpContext = context.GetHttpContext();
@@ -112,10 +100,14 @@ public class DispatcherService
             }
 
             // Send to Mediator
-            var response = await _mediator.Send(request, context.CancellationToken).ConfigureAwait(false);
+            var responseMessage = await _mediator.Send(requestMessage, context.CancellationToken).ConfigureAwait(false);
+            if (responseMessage == null)
+                return new DispatcherResponse { Payload = ByteString.Empty };
 
             // Single serialization of response
-            return MessagePackSerializer.Serialize(response, _options, context.CancellationToken);
+            var responseBytes = MessagePackSerializer.Serialize(responseMessage, _options, context.CancellationToken);
+            return new DispatcherResponse { Payload = ByteString.CopyFrom(responseBytes) };
+
         }
         catch (Exception ex) when (ex is not RpcException)
         {

@@ -146,8 +146,8 @@ public static class Program
         app.UseRequestLogging(config =>
         {
             config.IncludeRequestBody = true;
-            config.IgnorePath("/_framework/**");
-            config.IgnorePath("/_content/**");
+            //config.IgnorePath("/_framework/**");
+            //config.IgnorePath("/_content/**");
         });
 
         app.UseHttpsRedirection();

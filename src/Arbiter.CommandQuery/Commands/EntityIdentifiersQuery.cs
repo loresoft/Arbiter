@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -73,7 +75,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifierQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
-public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
+[MessagePackObject]
+public partial record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifiersQuery{TKey, TReadModel}"/> class.
@@ -111,6 +114,19 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="EntityIdentifiersQuery{TKey, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="ids">The list of identifiers for the entities to retrieve. This collection cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityIdentifiersQuery([NotNull] IReadOnlyList<TKey> ids, string? filterName = null)
+        : this(principal: null, ids, filterName)
+    {
+    }
+
+    /// <summary>
     /// Gets the list of identifiers for the entities to retrieve.
     /// </summary>
     /// <value>
@@ -130,6 +146,7 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
     /// different sets of identifiers produce different cache entries.
     /// </para>
     /// </remarks>
+    [Key(0)]
     [NotNull]
     [JsonPropertyName("ids")]
     public IReadOnlyList<TKey> Ids { get; }
@@ -163,6 +180,7 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
     ///     filterName: "bulk-admin");
     /// </code>
     /// </example>
+    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

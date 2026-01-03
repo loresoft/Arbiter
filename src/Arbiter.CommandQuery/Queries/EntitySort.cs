@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
@@ -44,7 +46,8 @@ namespace Arbiter.CommandQuery.Queries;
 /// <seealso cref="SortDirections"/>
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityFilter"/>
-public class EntitySort
+[MessagePackObject]
+public partial class EntitySort
 {
     /// <summary>
     /// Gets or sets the name of the property to sort by.
@@ -62,6 +65,7 @@ public class EntitySort
     /// or entity property expressions.
     /// </para>
     /// </remarks>
+    [Key(0)]
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
 
@@ -83,6 +87,7 @@ public class EntitySort
     /// </para>
     /// </remarks>
     /// <seealso cref="SortDirections"/>
+    [Key(1)]
     [JsonPropertyName("direction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonConverter(typeof(JsonStringEnumConverter<SortDirections>))]

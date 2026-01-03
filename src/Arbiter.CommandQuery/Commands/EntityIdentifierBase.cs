@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -55,6 +57,7 @@ public abstract record EntityIdentifierBase<TKey, TResponse>
     /// <value>
     /// The identifier of the entity for this command.
     /// </value>
+    [Key(0)]
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }

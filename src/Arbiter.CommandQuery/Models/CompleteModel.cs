@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// Operation complete result model
 /// </summary>
-public class CompleteModel
+[MessagePackObject]
+public partial class CompleteModel
 {
     /// <summary>
     /// Gets or sets a value indicating whether operation was successful.
@@ -13,6 +16,7 @@ public class CompleteModel
     /// <value>
     ///   <see langword="true"/> if was successful; otherwise, <see langword="false"/>.
     /// </value>
+    [Key(0)]
     [JsonPropertyName("successful")]
     public bool Successful { get; set; }
 
@@ -22,6 +26,7 @@ public class CompleteModel
     /// <value>
     /// The operation result message.
     /// </value>
+    [Key(1)]
     [JsonPropertyName("message")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Message { get; set; }

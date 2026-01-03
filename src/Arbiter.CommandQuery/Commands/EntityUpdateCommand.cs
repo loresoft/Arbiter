@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -80,7 +82,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="EntityCreateCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityPatchCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
-public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
+[MessagePackObject]
+public partial record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     : EntityModelBase<TUpdateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -123,7 +126,8 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
         [NotNull] TKey id,
         TUpdateModel model,
         bool upsert = false,
-        string? filterName = null) : base(principal, model)
+        string? filterName = null)
+        : base(principal, model)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -131,6 +135,24 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
         Upsert = upsert;
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="model">The update model containing the data for the update operation.</param>
+    /// <param name="id">The identifier of the entity to update.</param>
+    /// <param name="upsert">Whether to insert the entity if it does not exist.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during the update operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> or <paramref name="model"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityUpdateCommand(
+        TUpdateModel model,
+        [NotNull] TKey id,
+        bool upsert = false,
+        string? filterName = null)
+        : this(principal: null, id, model, upsert, filterName)
+    { }
 
     /// <summary>
     /// Gets the identifier of the entity to update.
@@ -142,6 +164,7 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     /// This identifier is used to locate the specific entity instance to update. If <see cref="Upsert"/> is <see langword="true"/>
     /// and no entity with this identifier exists, a new entity will be created with this identifier.
     /// </remarks>
+    [Key(1)]
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }
@@ -187,6 +210,7 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     ///     principal, productId, updateModel, upsert: true);
     /// </code>
     /// </example>
+    [Key(2)]
     [JsonPropertyName("upsert")]
     public bool Upsert { get; }
 
@@ -221,6 +245,7 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     ///     filterName: "bulk-update");
     /// </code>
     /// </example>
+    [Key(3)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

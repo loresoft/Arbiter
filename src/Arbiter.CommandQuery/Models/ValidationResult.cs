@@ -1,21 +1,26 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// A class that represents the result of a validation.
 /// </summary>
-public class ValidationResult
+[MessagePackObject]
+public partial class ValidationResult
 {
     /// <summary>
     /// Gets or sets whether the validation was successful.
     /// </summary>
+    [Key(0)]
     [JsonPropertyName("isValid")]
     public bool IsValid => Errors.Count == 0;
 
     /// <summary>
     /// Gets or sets the validation errors.  The dictionary key is the property name, and the value is an array of error messages.
     /// </summary>
+    [Key(1)]
     [JsonPropertyName("errors")]
     public IDictionary<string, string[]> Errors { get; set; } = new Dictionary<string, string[]>(StringComparer.Ordinal);
 

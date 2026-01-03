@@ -84,7 +84,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
-[MessagePackObject(keyAsPropertyName: true)]
+[MessagePackObject]
 public partial record EntityCreateCommand<TCreateModel, TReadModel>
     : EntityModelBase<TCreateModel, TReadModel>, ICacheExpire
 {
@@ -116,15 +116,29 @@ public partial record EntityCreateCommand<TCreateModel, TReadModel>
     /// </list>
     /// </para>
     /// </remarks>
-    [SerializationConstructor]
     public EntityCreateCommand(
-        [IgnoreMember] ClaimsPrincipal? principal,
+        ClaimsPrincipal? principal,
         [NotNull] TCreateModel model,
         string? filterName = null)
         : base(principal, model)
     {
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityCreateCommand{TCreateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="model">The create model containing the data for the new entity. This value cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during the creation operation. This allows different creation strategies or validation rules to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityCreateCommand(
+        [NotNull] TCreateModel model,
+        string? filterName = null)
+        : this(principal: null, model, filterName)
+    { }
+
 
     /// <summary>
     /// Gets the optional name of a specific filter pipeline to apply during the creation operation.
@@ -162,6 +176,7 @@ public partial record EntityCreateCommand<TCreateModel, TReadModel>
     ///     filterName: "bulk-import");
     /// </code>
     /// </example>
+    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

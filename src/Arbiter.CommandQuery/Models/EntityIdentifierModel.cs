@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
@@ -10,9 +12,11 @@ namespace Arbiter.CommandQuery.Models;
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 /// <seealso cref="IHaveIdentifier{TKey}" />
-public class EntityIdentifierModel<TKey> : IHaveIdentifier<TKey>
+[MessagePackObject]
+public partial class EntityIdentifierModel<TKey> : IHaveIdentifier<TKey>
 {
     /// <inheritdoc />
+    [Key(0)]
     [NotNull]
     [JsonPropertyName("id")]
     [JsonPropertyOrder(-9999)]

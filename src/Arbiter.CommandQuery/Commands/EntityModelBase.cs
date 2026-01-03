@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -63,6 +65,7 @@ public abstract record EntityModelBase<TEntityModel, TReadModel>
     /// <value>
     /// The view model containing the data for the operation.
     /// </value>
+    [Key(0)]
     [NotNull]
     [JsonPropertyName("model")]
     public TEntityModel Model { get; }

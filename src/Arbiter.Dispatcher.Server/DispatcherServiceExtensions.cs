@@ -13,6 +13,10 @@ public static class DispatcherServiceExtensions
     {
         services.AddGrpc();
 
+        // Register the DispatcherService itself
+        services.TryAddSingleton<DispatcherService>();
+
+        // MessagePack Serializer Options Registration
         services.TryAddSingleton(MessagePackSerializerOptions.Standard
             .WithResolver(MessagePack.Resolvers.TypelessContractlessStandardResolver.Instance)
             .WithCompression(MessagePackCompression.Lz4BlockArray));

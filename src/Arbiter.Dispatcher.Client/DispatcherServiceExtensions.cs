@@ -6,6 +6,8 @@ using Arbiter.Dispatcher.State;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 
+using MessagePack;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -18,25 +20,25 @@ public static class DispatcherServiceExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(serviceAddress);
 
-        return services.AddRemoteDispatcher(_ =>
-        {
-            var httpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
-            var channelOptions = new GrpcChannelOptions()
-            {
-                HttpHandler = httpHandler,
-                MaxReceiveMessageSize = 10 * 1024 * 1024, // 10 MB
-                MaxSendMessageSize = 10 * 1024 * 1024, // 10 MB
-            };
+        return services;
+        //return services.AddRemoteDispatcher(_ =>
+        //{
+        //    var httpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
+        //    var channelOptions = new GrpcChannelOptions()
+        //    {
+        //        HttpHandler = httpHandler,
+        //        MaxReceiveMessageSize = 10 * 1024 * 1024, // 10 MB
+        //        MaxSendMessageSize = 10 * 1024 * 1024, // 10 MB
+        //    };
 
-            return GrpcChannel.ForAddress(serviceAddress, channelOptions);
-        });
+        //    return GrpcChannel.ForAddress(serviceAddress, channelOptions);
+        //});
     }
 
     public static IServiceCollection AddRemoteDispatcher(this IServiceCollection services, Func<IServiceProvider, string> addressFactory)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(addressFactory);
-
         return services.AddRemoteDispatcher(sp =>
         {
             var serviceAddress = addressFactory(sp);
@@ -58,15 +60,22 @@ public static class DispatcherServiceExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(channelFactory);
 
+        // MessagePack Serializer Options Registration
+        services.TryAddSingleton(MessagePackSerializerOptions.Standard
+            .WithResolver(MessagePack.Resolvers.TypelessContractlessStandardResolver.Instance)
+            .WithCompression(MessagePackCompression.Lz4BlockArray));
+
         // Remote Dispatcher Registration
         services.TryAddTransient(sp =>
         {
             var channel = channelFactory(sp);
-            return new RemoteDispatcher(channel);
+            var options = sp.GetRequiredService<MessagePackSerializerOptions>();
+
+            return new DispatcherRpc.DispatcherRpcClient(channel);
         });
 
         // IDispatcher Registration
-        services.TryAddTransient<IDispatcher>(sp => sp.GetRequiredService<RemoteDispatcher>());
+        services.TryAddTransient<IDispatcher, RemoteDispatcher>();
 
         // Dispatcher Data Service Registration
         services.TryAddTransient<IDispatcherDataService, DispatcherDataService>();

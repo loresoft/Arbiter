@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
@@ -50,7 +52,8 @@ namespace Arbiter.CommandQuery.Queries;
 ///     .AddSort("CreatedDate:desc");
 /// </code>
 /// </example>
-public class EntityQuery
+[MessagePackObject]
+public partial class EntityQuery
 {
     /// <summary>
     /// Gets or sets the raw query expression to search for entities.
@@ -59,6 +62,7 @@ public class EntityQuery
     /// A string containing the raw query expression, or <see langword="null"/> if no raw query is specified.
     /// This can be used for full-text search or custom query expressions depending on the underlying data provider.
     /// </value>
+    [Key(0)]
     [JsonPropertyName("query")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Query { get; set; }
@@ -74,6 +78,7 @@ public class EntityQuery
     /// Sort expressions are applied in sequence, allowing for multi-level sorting (e.g., sort by category, then by name within each category).
     /// Use the <see cref="AddSort(EntitySort)"/> or <see cref="AddSort(string)"/> methods to add sort expressions fluently.
     /// </remarks>
+    [Key(1)]
     [JsonPropertyName("sort")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IList<EntitySort>? Sort { get; set; }
@@ -88,6 +93,7 @@ public class EntityQuery
     /// The filter can be a simple property-based filter or a complex group filter containing multiple nested conditions
     /// combined with logical operators (AND/OR). Use <see cref="EntityFilter.IsGroup"/> to determine if the filter contains nested filters.
     /// </remarks>
+    [Key(2)]
     [JsonPropertyName("filter")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public EntityFilter? Filter { get; set; }
@@ -103,6 +109,7 @@ public class EntityQuery
     /// This property is used in conjunction with <see cref="PageSize"/> for traditional page-based pagination.
     /// When both <see cref="Page"/> and <see cref="PageSize"/> are specified, the query will return the specified page of results.
     /// </remarks>
+    [Key(3)]
     [JsonPropertyName("page")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Page { get; set; }
@@ -118,6 +125,7 @@ public class EntityQuery
     /// This property controls the maximum number of entities returned in a single query execution.
     /// It is used in conjunction with <see cref="Page"/> for page-based pagination or independently to limit result set size.
     /// </remarks>
+    [Key(4)]
     [JsonPropertyName("pageSize")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? PageSize { get; set; }
@@ -139,6 +147,7 @@ public class EntityQuery
     /// from a previous query result and passed to subsequent queries to retrieve the next set of results.
     /// </para>
     /// </remarks>
+    [Key(5)]
     [JsonPropertyName("continuationToken")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ContinuationToken { get; set; }

@@ -8,12 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Arbiter.Dispatcher.Server\DispatcherMethod.cs" Link="Server\DispatcherMethod.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="Grpc.Net.Client.Web" />
+    <PackageReference Include="Grpc.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MessagePack" />
   </ItemGroup>
 
@@ -22,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Server\" />
+    <Protobuf Include="Protos\dispatcher.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>

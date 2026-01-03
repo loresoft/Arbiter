@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
+using MessagePack;
+
 using SystemTextJsonPatch;
 
 namespace Arbiter.CommandQuery.Commands;
@@ -33,7 +35,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"Updated product name: {result?.Name}");
 /// </code>
 /// </example>
-public record EntityPatchCommand<TKey, TReadModel>
+public partial record EntityPatchCommand<TKey, TReadModel>
     : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -56,6 +58,25 @@ public record EntityPatchCommand<TKey, TReadModel>
         Patch = patch;
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityPatchCommand{TKey, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="id">The identifier of the entity to which the JSON patch will be applied.</param>
+    /// <param name="patch">The JSON patch document containing the updates to apply.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <remarks>
+    /// <para>
+    /// If <paramref name="id"/> is <see langword="null"/>, an <see cref="ArgumentNullException"/> will be thrown.
+    /// </para>
+    /// </remarks>
+    [JsonConstructor]
+    public EntityPatchCommand(
+        [NotNull] TKey id,
+        [NotNull] JsonPatchDocument patch,
+        string? filterName = null)
+        : this(principal: null, id, patch, filterName: filterName)
+    { }
 
     /// <summary>
     /// Gets the JSON patch document to apply to the entity with the specified identifier.

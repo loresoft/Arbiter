@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -55,6 +57,7 @@ public abstract record EntityIdentifiersBase<TKey, TResponse>
     /// <value>
     /// The collection of identifiers for this command.
     /// </value>
+    [Key(0)]
     [JsonPropertyName("ids")]
     public IReadOnlyList<TKey> Ids { get; }
 }
