@@ -141,13 +141,11 @@ public static class Program
             app.UseResponseCompression();
         }
 
-        app.UseDispatchService();
-
         app.UseRequestLogging(config =>
         {
             config.IncludeRequestBody = true;
-            //config.IgnorePath("/_framework/**");
-            //config.IgnorePath("/_content/**");
+            config.IgnorePath("/_framework/**");
+            config.IgnorePath("/_content/**");
         });
 
         app.UseHttpsRedirection();

@@ -55,4 +55,25 @@ public class RequestLoggingOptions
     /// The log level to use. Default is <see cref="LogLevel.Information"/>.
     /// </value>
     public LogLevel LogLevel { get; set; } = LogLevel.Information;
+
+    /// <summary>
+    /// Gets or sets the list of request paths to ignore for logging.
+    /// </summary>
+    /// <remarks>
+    /// Supports glob patterns for flexible path matching (e.g., "/health", "/api/*/status", "**.svg").
+    /// </remarks>
+    public IList<string>? IgnorePaths { get; set; }
+
+    /// <summary>
+    /// Adds a request path to ignore for logging.
+    /// </summary>
+    /// <param name="globPattern">The path or glob pattern to ignore (e.g., "/health", "/api/*/status", "**.svg").</param>
+    /// <returns>The current <see cref="RequestLoggingOptions"/> instance for method chaining.</returns>
+    public RequestLoggingOptions IgnorePath(string globPattern)
+    {
+        IgnorePaths ??= [];
+        IgnorePaths.Add(globPattern);
+
+        return this;
+    }
 }
