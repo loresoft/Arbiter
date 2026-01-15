@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -73,6 +75,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifierQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
+[MessagePackObject(true)]
 public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
 {
     /// <summary>
@@ -108,6 +111,19 @@ public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IRea
 
         Ids = ids;
         FilterName = filterName;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityIdentifiersQuery{TKey, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="ids">The list of identifiers for the entities to retrieve. This collection cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="ids"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityIdentifiersQuery([NotNull] IReadOnlyList<TKey> ids, string? filterName = null)
+        : this(principal: null, ids, filterName)
+    {
     }
 
     /// <summary>

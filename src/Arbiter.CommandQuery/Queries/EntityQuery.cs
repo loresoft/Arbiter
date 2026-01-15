@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
@@ -50,6 +52,7 @@ namespace Arbiter.CommandQuery.Queries;
 ///     .AddSort("CreatedDate:desc");
 /// </code>
 /// </example>
+[MessagePackObject(true)]
 public class EntityQuery
 {
     /// <summary>

@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
@@ -34,6 +36,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// };
 /// </code>
 /// </example>
+[MessagePackObject(true)]
 [JsonConverter(typeof(EntityFilterConverter))]
 public class EntityFilter
 {

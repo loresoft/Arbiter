@@ -1,7 +1,7 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Dispatcher;
+using Arbiter.Dispatcher.Client;
 
-namespace Arbiter.CommandQuery.State;
+namespace Arbiter.Dispatcher.State;
 
 /// <summary>
 /// Provides state management functionality for editable models that supports full CRUD operations.

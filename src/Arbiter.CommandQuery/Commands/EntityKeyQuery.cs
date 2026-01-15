@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -70,6 +72,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifierQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
+[MessagePackObject(true)]
 public record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel>
 {
     /// <summary>
@@ -108,6 +111,29 @@ public record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel>
     {
         Key = key;
         FilterName = filterName;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityKeyQuery{TReadModel}"/> class.
+    /// </summary>
+    /// <param name="key">The globally unique alternate key (<see cref="Guid"/>) of the entity to retrieve.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <remarks>
+    /// <para>
+    /// The <paramref name="key"/> parameter is a globally unique identifier that serves as an alternate way to
+    /// identify the entity, independent of the primary key. This is commonly used in scenarios where:
+    /// <list type="bullet">
+    /// <item><description>The entity needs a stable, public identifier for external API consumption</description></item>
+    /// <item><description>The primary key should remain hidden for security reasons</description></item>
+    /// <item><description>The entity participates in distributed systems requiring globally unique identifiers</description></item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityKeyQuery(Guid key, string? filterName = null)
+        : this(principal: null, key, filterName)
+    {
     }
 
     /// <summary>

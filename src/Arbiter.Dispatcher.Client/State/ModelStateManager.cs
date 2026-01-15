@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.State;
+namespace Arbiter.Dispatcher.State;
 
 /// <summary>
 /// Provides state management functionality for a model of type <typeparamref name="TModel"/>.

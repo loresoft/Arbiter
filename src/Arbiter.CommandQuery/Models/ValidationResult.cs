@@ -1,10 +1,13 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// A class that represents the result of a validation.
 /// </summary>
+[MessagePackObject(true)]
 public class ValidationResult
 {
     /// <summary>

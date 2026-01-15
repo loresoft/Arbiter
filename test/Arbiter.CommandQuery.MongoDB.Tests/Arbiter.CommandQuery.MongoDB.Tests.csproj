@@ -13,8 +13,6 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Injectio" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="Testcontainers.MongoDb" />
     <PackageReference Include="TestHost.Abstracts" />
     <PackageReference Include="TUnit" />

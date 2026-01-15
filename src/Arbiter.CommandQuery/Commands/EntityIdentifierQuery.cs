@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -37,7 +39,7 @@ namespace Arbiter.CommandQuery.Commands;
 ///
 /// // Send the query to the mediator instance
 /// var result = await mediator.Send(query);
-/// 
+///
 /// if (result != null)
 /// {
 ///     Console.WriteLine($"Product Name: {result.Name}");
@@ -50,8 +52,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <code>
 /// var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Role, "Admin") }));
 /// var query = new EntityIdentifierQuery&lt;int, ProductReadModel&gt;(
-///     principal, 
-///     456, 
+///     principal,
+///     456,
 ///     filterName: "admin-view");
 ///
 /// // This might include additional fields or bypass certain security filters
@@ -61,6 +63,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifiersQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
+[MessagePackObject(true)]
 public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TReadModel>
 {
     /// <summary>
@@ -93,6 +96,20 @@ public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TRead
         Id = id;
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityIdentifierQuery{TKey, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="id">The identifier of the entity to retrieve. This value cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityIdentifierQuery([NotNull] TKey id, string? filterName = null)
+        : this(principal: null, id, filterName)
+    {
+    }
+
 
     /// <summary>
     /// Gets the identifier of the entity to retrieve.
@@ -132,8 +149,8 @@ public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TRead
     /// <code>
     /// // Using a named pipeline for detailed view
     /// var query = new EntityIdentifierQuery&lt;int, ProductReadModel&gt;(
-    ///     userPrincipal, 
-    ///     productId, 
+    ///     userPrincipal,
+    ///     productId,
     ///     filterName: "detailed-view");
     /// </code>
     /// </example>

@@ -19,15 +19,15 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" VersionOverride="9.0.11" />
-    <PackageReference Include="System.IO.Hashing" VersionOverride="9.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" VersionOverride="9.0.12" />
+    <PackageReference Include="System.IO.Hashing" VersionOverride="9.0.12" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" VersionOverride="9.0.11" />
-    <PackageReference Include="System.IO.Hashing" VersionOverride="9.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" VersionOverride="9.0.12" />
+    <PackageReference Include="System.IO.Hashing" VersionOverride="9.0.12" />
   </ItemGroup>
 
 </Project>

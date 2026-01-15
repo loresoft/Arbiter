@@ -1,6 +1,7 @@
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Dispatcher;
+using Arbiter.Dispatcher;
+using Arbiter.Dispatcher.Client;
 
 using Microsoft.AspNetCore.Components.Authorization;
 

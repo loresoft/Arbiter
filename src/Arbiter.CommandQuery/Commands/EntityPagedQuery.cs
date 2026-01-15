@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -47,6 +49,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityPagedResult{TReadModel}"/>
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
+[MessagePackObject(true)]
 public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResult<TReadModel>>
 {
     /// <summary>
@@ -70,6 +73,24 @@ public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResul
     {
         Query = query ?? new EntityQuery();
         FilterName = filterName;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityPagedQuery{TReadModel}"/> class.
+    /// </summary>
+    /// <param name="query">The <see cref="EntityQuery"/> defining the filter, sort, and pagination criteria for the query. If <see langword="null"/>, a new empty <see cref="EntityQuery"/> will be created.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during query execution. This allows different query modification strategies to be applied based on context.</param>
+    /// <remarks>
+    /// <para>
+    /// If <paramref name="query"/> is <see langword="null"/>, a default empty <see cref="EntityQuery"/> is initialized,
+    /// which can be useful for retrieving all entities with default pagination settings.
+    /// </para>
+    /// </remarks>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityPagedQuery(EntityQuery? query, string? filterName = null)
+        : this(principal: null, query, filterName)
+    {
     }
 
     /// <summary>

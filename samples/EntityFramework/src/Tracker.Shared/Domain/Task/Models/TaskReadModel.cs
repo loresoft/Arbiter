@@ -2,9 +2,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Tracker.Domain.Models;
 
 [Equatable]
+[MessagePackObject(true)]
 public partial class TaskReadModel
     : EntityReadModel, ISupportSearch
 {

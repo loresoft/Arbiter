@@ -15,6 +15,7 @@ namespace Arbiter.CommandQuery.Commands;
 public abstract record CacheableQueryBase<TResponse> : PrincipalCommandBase<TResponse>, ICacheResult
 {
     private DateTimeOffset? _absoluteExpiration;
+
     private TimeSpan? _slidingExpiration;
 
     /// <summary>

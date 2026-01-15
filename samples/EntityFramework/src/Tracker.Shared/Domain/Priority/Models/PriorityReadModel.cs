@@ -3,9 +3,12 @@ using System.Collections.Generic;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Tracker.Domain.Models;
 
 [Equatable]
+[MessagePackObject(true)]
 public partial class PriorityReadModel
     : EntityReadModel, ISupportSearch
 {

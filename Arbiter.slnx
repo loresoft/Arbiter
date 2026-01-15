@@ -38,6 +38,7 @@
     <Project Path="test/Arbiter.CommandQuery.MongoDB.Tests/Arbiter.CommandQuery.MongoDB.Tests.csproj" Id="a664a030-159e-403f-8063-5a36616687b7" />
     <Project Path="test/Arbiter.CommandQuery.Tests/Arbiter.CommandQuery.Tests.csproj" Id="ea445280-2bc1-4030-b0c2-e454ce5c4aa6" />
     <Project Path="test/Arbiter.Communication.Tests/Arbiter.Communication.Tests.csproj" Id="9da5eada-3069-46ed-900a-c319b7858690" />
+    <Project Path="test/Arbiter.Dispatcher.Client.Tests/Arbiter.Dispatcher.Client.Tests.csproj" Id="a27a225b-7be5-4fa8-9023-690f07312a86" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
     <Project Path="test/Arbiter.Services.Tests/Arbiter.Services.Tests.csproj" Id="f3d73b4c-09de-4369-b45a-eba1aac348ed" />
   </Folder>
@@ -46,6 +47,8 @@
   <Project Path="src/Arbiter.CommandQuery.MongoDB/Arbiter.CommandQuery.MongoDB.csproj" />
   <Project Path="src/Arbiter.CommandQuery.Mvc/Arbiter.CommandQuery.Mvc.csproj" Id="2b53d754-a9d9-498e-91d1-f2f3810b8c42" />
   <Project Path="src/Arbiter.CommandQuery/Arbiter.CommandQuery.csproj" />
+  <Project Path="src/Arbiter.Dispatcher.Client/Arbiter.Dispatcher.Client.csproj" Id="a8dc1ebc-37b2-44d4-ac36-ceeb04de395b" />
+  <Project Path="src/Arbiter.Dispatcher.Server/Arbiter.Dispatcher.Server.csproj" Id="06f452bc-2f7b-43ce-b2d2-b97204f08b69" />
   <Project Path="src/Arbiter.Mediation.OpenTelemetry/Arbiter.Mediation.OpenTelemetry.csproj" Id="b28ea0e4-e239-4846-a3d5-d184da2d39b1" />
   <Project Path="src/Arbiter.Mediation/Arbiter.Mediation.csproj" />
   <Project Path="src/Arbiter.Services/Arbiter.Services.csproj" Id="d25d1a52-81b3-4a16-9a77-415950b0cac3" />

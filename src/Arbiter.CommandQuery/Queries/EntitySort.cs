@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Queries;
 
 /// <summary>
@@ -44,6 +46,7 @@ namespace Arbiter.CommandQuery.Queries;
 /// <seealso cref="SortDirections"/>
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityFilter"/>
+[MessagePackObject(true)]
 public class EntitySort
 {
     /// <summary>

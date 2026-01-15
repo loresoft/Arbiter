@@ -1,4 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+
+using MessagePack;
 
 namespace Arbiter.CommandQuery.Queries;
 
@@ -6,11 +9,13 @@ namespace Arbiter.CommandQuery.Queries;
 /// A paged result for an entity query.
 /// </summary>
 /// <typeparam name="TReadModel">The type of the read model.</typeparam>
+[MessagePackObject(true)]
 public class EntityPagedResult<TReadModel>
 {
     /// <summary>
     /// Gets an empty instance of the <see cref="EntityPagedResult{TReadModel}"/> class.
     /// </summary>
+    [SuppressMessage("Design", "MA0018:Do not declare static members on generic types", Justification = "<Pending>")]
     public static EntityPagedResult<TReadModel> Empty { get; } = new();
 
     /// <summary>

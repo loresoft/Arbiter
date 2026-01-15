@@ -1,5 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.State;
+using Arbiter.Dispatcher.State;
 
 namespace Arbiter.CommandQuery.Tests.State;
 

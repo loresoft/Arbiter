@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -58,6 +60,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityCreateCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
+[MessagePackObject(true)]
 public record EntityDeleteCommand<TKey, TReadModel>
     : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
@@ -90,6 +93,20 @@ public record EntityDeleteCommand<TKey, TReadModel>
     {
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityDeleteCommand{TKey, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="id">The identifier of the entity to be deleted. This value cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during the delete operation. This allows different deletion strategies or security policies to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityDeleteCommand(
+        [NotNull] TKey id,
+        string? filterName = null)
+        : this(principal: null, id, filterName)
+    { }
 
     /// <summary>
     /// Gets the optional name of a specific filter pipeline to apply during the delete operation.

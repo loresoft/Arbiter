@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -82,6 +84,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
+[MessagePackObject(true)]
 public record EntityCreateCommand<TCreateModel, TReadModel>
     : EntityModelBase<TCreateModel, TReadModel>, ICacheExpire
 {
@@ -113,11 +116,29 @@ public record EntityCreateCommand<TCreateModel, TReadModel>
     /// </list>
     /// </para>
     /// </remarks>
-    public EntityCreateCommand(ClaimsPrincipal? principal, [NotNull] TCreateModel model, string? filterName = null)
+    public EntityCreateCommand(
+        ClaimsPrincipal? principal,
+        [NotNull] TCreateModel model,
+        string? filterName = null)
         : base(principal, model)
     {
         FilterName = filterName;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityCreateCommand{TCreateModel, TReadModel}"/> class.
+    /// </summary>
+    /// <param name="model">The create model containing the data for the new entity. This value cannot be <see langword="null"/>.</param>
+    /// <param name="filterName">Optional name of a specific filter pipeline to apply during the creation operation. This allows different creation strategies or validation rules to be applied based on context.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
+    [JsonConstructor]
+    [SerializationConstructor]
+    public EntityCreateCommand(
+        [NotNull] TCreateModel model,
+        string? filterName = null)
+        : this(principal: null, model, filterName)
+    { }
+
 
     /// <summary>
     /// Gets the optional name of a specific filter pipeline to apply during the creation operation.

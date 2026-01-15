@@ -2,7 +2,6 @@ using System.Linq.Dynamic.Core;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Queries;
-using Arbiter.CommandQuery.Services;
 using Arbiter.Services;
 
 namespace Arbiter.CommandQuery.Extensions;
