@@ -36,9 +36,9 @@ namespace Arbiter.CommandQuery.Queries;
 /// };
 /// </code>
 /// </example>
-[MessagePackObject]
+[MessagePackObject(true)]
 [JsonConverter(typeof(EntityFilterConverter))]
-public partial class EntityFilter
+public class EntityFilter
 {
     /// <summary>
     /// Gets or sets the name of the field or property to filter on.
@@ -46,7 +46,6 @@ public partial class EntityFilter
     /// <value>
     /// The name of the field or property to filter on.
     /// </value>
-    [Key(0)]
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
@@ -56,7 +55,6 @@ public partial class EntityFilter
     /// <value>
     /// The value to filter on.
     /// </value>
-    [Key(1)]
     [JsonPropertyName("value")]
     public object? Value { get; set; }
 
@@ -68,7 +66,6 @@ public partial class EntityFilter
     /// The operator to use for the filter.
     /// </value>
     /// <seealso cref="FilterOperators"/>
-    [Key(2)]
     [JsonPropertyName("operator")]
     [JsonConverter(typeof(JsonStringEnumConverter<FilterOperators>))]
     public FilterOperators? Operator { get; set; }
@@ -81,7 +78,6 @@ public partial class EntityFilter
     /// The logical operator to use for combining filters.
     /// </value>
     /// <seealso cref="FilterLogic"/>
-    [Key(3)]
     [JsonPropertyName("logic")]
     [JsonConverter(typeof(JsonStringEnumConverter<FilterLogic>))]
     public FilterLogic? Logic { get; set; }
@@ -92,7 +88,6 @@ public partial class EntityFilter
     /// <value>
     /// The list of nested filters to apply to the query.
     /// </value>
-    [Key(4)]
     [JsonPropertyName("filters")]
     public IList<EntityFilter>? Filters { get; set; }
 

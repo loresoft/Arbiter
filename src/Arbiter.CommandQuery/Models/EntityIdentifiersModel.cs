@@ -9,8 +9,8 @@ namespace Arbiter.CommandQuery.Models;
 /// An identifiers base model<see langword="class"/>
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
-[MessagePackObject]
-public partial class EntityIdentifiersModel<TKey>
+[MessagePackObject(true)]
+public class EntityIdentifiersModel<TKey>
 {
     /// <summary>
     /// Gets or sets the list of identifiers.
@@ -18,7 +18,6 @@ public partial class EntityIdentifiersModel<TKey>
     /// <value>
     /// The list of identifiers.
     /// </value>
-    [Key(0)]
     [NotNull]
     [JsonPropertyName("ids")]
     public IReadOnlyCollection<TKey> Ids { get; set; } = null!;

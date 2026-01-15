@@ -15,8 +15,6 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="Rocks" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="Verify.TUnit" />

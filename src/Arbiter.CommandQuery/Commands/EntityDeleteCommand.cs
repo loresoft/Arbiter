@@ -60,8 +60,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityCreateCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
-[MessagePackObject]
-public partial record EntityDeleteCommand<TKey, TReadModel>
+[MessagePackObject(true)]
+public record EntityDeleteCommand<TKey, TReadModel>
     : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -137,7 +137,6 @@ public partial record EntityDeleteCommand<TKey, TReadModel>
     ///     filterName: "hard-delete");
     /// </code>
     /// </example>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

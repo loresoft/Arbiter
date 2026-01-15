@@ -160,7 +160,8 @@ public static class Program
             .AddAdditionalAssemblies(typeof(Client.Routes).Assembly);
 
         app.MapEndpointRoutes();
-        app.MapDispatchService();
+
+        app.MapDispatcherService().RequireAuthorization();
 
     }
 }

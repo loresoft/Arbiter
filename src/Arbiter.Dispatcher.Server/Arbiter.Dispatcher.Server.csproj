@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" />
-    <PackageReference Include="Grpc.AspNetCore.Web" />
     <PackageReference Include="MessagePack" />
   </ItemGroup>
 
@@ -17,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\dispatcher.proto" GrpcServices="Server" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

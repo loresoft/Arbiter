@@ -35,7 +35,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"Updated product name: {result?.Name}");
 /// </code>
 /// </example>
-public partial record EntityPatchCommand<TKey, TReadModel>
+public record EntityPatchCommand<TKey, TReadModel>
     : EntityIdentifierBase<TKey, TReadModel>, ICacheExpire
 {
     /// <summary>

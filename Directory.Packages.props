@@ -13,7 +13,7 @@
     <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
     <PackageVersion Include="Azure.Communication.Sms" Version="1.0.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Blazilla" Version="2.1.0" />
+    <PackageVersion Include="Blazilla" Version="2.2.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="6.0.16" />
@@ -31,53 +31,28 @@
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.4.2" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="MediatR" Version="[12.5.0]" />
-    <PackageVersion Include="MemoryPack" Version="1.21.4" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.257" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.1.1" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.276" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.1.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.1.0" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.278" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.2.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.3.0" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.3.2" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.1.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
@@ -90,20 +65,20 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.11.0-beta.2" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.0.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.4" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.7" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.1" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.2" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.7.1" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.2" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.10.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.10.0" />
-    <PackageVersion Include="TUnit" Version="1.9.81" />
+    <PackageVersion Include="TUnit" Version="1.11.28" />
     <PackageVersion Include="Twilio" Version="7.14.1" />
-    <PackageVersion Include="Verify.TUnit" Version="31.9.3" />
+    <PackageVersion Include="Verify.TUnit" Version="31.9.4" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 </Project>

@@ -75,8 +75,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifierQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
-[MessagePackObject]
-public partial record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
+[MessagePackObject(true)]
+public record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryBase<IReadOnlyList<TReadModel>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifiersQuery{TKey, TReadModel}"/> class.
@@ -146,7 +146,6 @@ public partial record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryB
     /// different sets of identifiers produce different cache entries.
     /// </para>
     /// </remarks>
-    [Key(0)]
     [NotNull]
     [JsonPropertyName("ids")]
     public IReadOnlyList<TKey> Ids { get; }
@@ -180,7 +179,6 @@ public partial record EntityIdentifiersQuery<TKey, TReadModel> : CacheableQueryB
     ///     filterName: "bulk-admin");
     /// </code>
     /// </example>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

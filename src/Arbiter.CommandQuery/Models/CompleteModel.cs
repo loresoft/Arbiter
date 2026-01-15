@@ -7,8 +7,8 @@ namespace Arbiter.CommandQuery.Models;
 /// <summary>
 /// Operation complete result model
 /// </summary>
-[MessagePackObject]
-public partial class CompleteModel
+[MessagePackObject(true)]
+public class CompleteModel
 {
     /// <summary>
     /// Gets or sets a value indicating whether operation was successful.
@@ -16,7 +16,6 @@ public partial class CompleteModel
     /// <value>
     ///   <see langword="true"/> if was successful; otherwise, <see langword="false"/>.
     /// </value>
-    [Key(0)]
     [JsonPropertyName("successful")]
     public bool Successful { get; set; }
 
@@ -26,7 +25,6 @@ public partial class CompleteModel
     /// <value>
     /// The operation result message.
     /// </value>
-    [Key(1)]
     [JsonPropertyName("message")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Message { get; set; }

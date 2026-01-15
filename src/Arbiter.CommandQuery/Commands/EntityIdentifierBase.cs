@@ -57,7 +57,6 @@ public abstract record EntityIdentifierBase<TKey, TResponse>
     /// <value>
     /// The identifier of the entity for this command.
     /// </value>
-    [Key(0)]
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }

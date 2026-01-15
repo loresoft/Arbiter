@@ -46,8 +46,8 @@ namespace Arbiter.CommandQuery.Queries;
 /// <seealso cref="SortDirections"/>
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityFilter"/>
-[MessagePackObject]
-public partial class EntitySort
+[MessagePackObject(true)]
+public class EntitySort
 {
     /// <summary>
     /// Gets or sets the name of the property to sort by.
@@ -65,7 +65,6 @@ public partial class EntitySort
     /// or entity property expressions.
     /// </para>
     /// </remarks>
-    [Key(0)]
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
 
@@ -87,7 +86,6 @@ public partial class EntitySort
     /// </para>
     /// </remarks>
     /// <seealso cref="SortDirections"/>
-    [Key(1)]
     [JsonPropertyName("direction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonConverter(typeof(JsonStringEnumConverter<SortDirections>))]

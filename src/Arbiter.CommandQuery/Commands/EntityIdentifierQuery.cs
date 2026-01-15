@@ -63,8 +63,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifiersQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
-[MessagePackObject]
-public partial record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TReadModel>
+[MessagePackObject(true)]
+public record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBase<TReadModel>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityIdentifierQuery{TKey, TReadModel}"/> class.
@@ -121,7 +121,6 @@ public partial record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBa
     /// This identifier is used to locate the specific entity instance and is also incorporated into the cache key
     /// to ensure that each entity is cached independently.
     /// </remarks>
-    [Key(0)]
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }
@@ -155,7 +154,6 @@ public partial record EntityIdentifierQuery<TKey, TReadModel> : CacheableQueryBa
     ///     filterName: "detailed-view");
     /// </code>
     /// </example>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

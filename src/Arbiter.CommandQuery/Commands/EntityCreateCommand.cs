@@ -84,8 +84,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="ICacheExpire"/>
 /// <seealso cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
-[MessagePackObject]
-public partial record EntityCreateCommand<TCreateModel, TReadModel>
+[MessagePackObject(true)]
+public record EntityCreateCommand<TCreateModel, TReadModel>
     : EntityModelBase<TCreateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -176,7 +176,6 @@ public partial record EntityCreateCommand<TCreateModel, TReadModel>
     ///     filterName: "bulk-import");
     /// </code>
     /// </example>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

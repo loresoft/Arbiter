@@ -72,8 +72,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
 /// <seealso cref="EntityIdentifierQuery{TKey, TReadModel}"/>
 /// <seealso cref="EntityPagedQuery{TReadModel}"/>
-[MessagePackObject]
-public partial record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel>
+[MessagePackObject(true)]
+public record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityKeyQuery{TReadModel}"/> class.
@@ -151,7 +151,6 @@ public partial record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel
     /// The key is incorporated into the cache key generation to ensure that each unique entity is cached separately.
     /// </para>
     /// </remarks>
-    [Key(0)]
     [NotNull]
     [JsonPropertyName("key")]
     public Guid Key { get; }
@@ -185,7 +184,6 @@ public partial record EntityKeyQuery<TReadModel> : CacheableQueryBase<TReadModel
     ///     filterName: "public-api");
     /// </code>
     /// </example>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

@@ -82,8 +82,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="EntityCreateCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityPatchCommand{TKey, TReadModel}"/>
 /// <seealso cref="EntityDeleteCommand{TKey, TReadModel}"/>
-[MessagePackObject]
-public partial record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
+[MessagePackObject(true)]
+public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     : EntityModelBase<TUpdateModel, TReadModel>, ICacheExpire
 {
     /// <summary>
@@ -164,7 +164,6 @@ public partial record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     /// This identifier is used to locate the specific entity instance to update. If <see cref="Upsert"/> is <see langword="true"/>
     /// and no entity with this identifier exists, a new entity will be created with this identifier.
     /// </remarks>
-    [Key(1)]
     [NotNull]
     [JsonPropertyName("id")]
     public TKey Id { get; }
@@ -210,7 +209,6 @@ public partial record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     ///     principal, productId, updateModel, upsert: true);
     /// </code>
     /// </example>
-    [Key(2)]
     [JsonPropertyName("upsert")]
     public bool Upsert { get; }
 
@@ -245,7 +243,6 @@ public partial record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     ///     filterName: "bulk-update");
     /// </code>
     /// </example>
-    [Key(3)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

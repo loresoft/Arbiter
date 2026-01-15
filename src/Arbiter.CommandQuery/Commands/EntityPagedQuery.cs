@@ -49,8 +49,8 @@ namespace Arbiter.CommandQuery.Commands;
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityPagedResult{TReadModel}"/>
 /// <seealso cref="CacheableQueryBase{TResponse}"/>
-[MessagePackObject]
-public partial record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResult<TReadModel>>
+[MessagePackObject(true)]
+public record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPagedResult<TReadModel>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityPagedQuery{TReadModel}"/> class.
@@ -100,7 +100,6 @@ public partial record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPa
     /// An <see cref="EntityQuery"/> object containing the filtering, sorting, and pagination configuration.
     /// This property is never <see langword="null"/> as it is initialized in the constructor.
     /// </value>
-    [Key(0)]
     [JsonPropertyName("query")]
     public EntityQuery Query { get; }
 
@@ -115,7 +114,6 @@ public partial record EntityPagedQuery<TReadModel> : CacheableQueryBase<EntityPa
     /// security policies, or data transformations based on the execution context. The specific behavior depends
     /// on the registered query pipeline modifiers in the application.
     /// </remarks>
-    [Key(1)]
     [JsonPropertyName("filterName")]
     public string? FilterName { get; }
 

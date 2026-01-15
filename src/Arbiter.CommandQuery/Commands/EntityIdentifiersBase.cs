@@ -57,7 +57,6 @@ public abstract record EntityIdentifiersBase<TKey, TResponse>
     /// <value>
     /// The collection of identifiers for this command.
     /// </value>
-    [Key(0)]
     [JsonPropertyName("ids")]
     public IReadOnlyList<TKey> Ids { get; }
 }
