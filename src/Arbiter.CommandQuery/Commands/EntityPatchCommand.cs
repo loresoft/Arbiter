@@ -5,8 +5,6 @@ using System.Text.Json.Serialization;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Services;
 
-using MessagePack;
-
 using SystemTextJsonPatch;
 
 namespace Arbiter.CommandQuery.Commands;

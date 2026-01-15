@@ -1,7 +1,3 @@
-using System.Net;
-
-using Arbiter.CommandQuery;
-using Arbiter.CommandQuery.Models;
 using Arbiter.Services;
 
 namespace Arbiter.CommandQuery.Extensions;
