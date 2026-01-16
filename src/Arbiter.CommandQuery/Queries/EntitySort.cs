@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using Equatable.Attributes;
+
 using MessagePack;
 
 namespace Arbiter.CommandQuery.Queries;
@@ -46,8 +48,9 @@ namespace Arbiter.CommandQuery.Queries;
 /// <seealso cref="SortDirections"/>
 /// <seealso cref="EntityQuery"/>
 /// <seealso cref="EntityFilter"/>
+[Equatable]
 [MessagePackObject(true)]
-public class EntitySort
+public partial class EntitySort
 {
     /// <summary>
     /// Gets or sets the name of the property to sort by.
@@ -150,18 +153,6 @@ public class EntitySort
         };
 
         return sort;
-    }
-
-    /// <summary>
-    /// Computes the hash code for the current <see cref="EntitySort"/> instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code value that represents the current <see cref="EntitySort"/> instance,
-    /// computed from both the <see cref="Name"/> and <see cref="Direction"/> properties.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Name, Direction);
     }
 
     /// <summary>

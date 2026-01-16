@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using Equatable.Attributes;
+
 using MessagePack;
 
 namespace Arbiter.CommandQuery.Queries;
@@ -52,8 +54,9 @@ namespace Arbiter.CommandQuery.Queries;
 ///     .AddSort("CreatedDate:desc");
 /// </code>
 /// </example>
+[Equatable]
 [MessagePackObject(true)]
-public class EntityQuery
+public partial class EntityQuery
 {
     /// <summary>
     /// Gets or sets the raw query expression to search for entities.
@@ -77,6 +80,7 @@ public class EntityQuery
     /// Sort expressions are applied in sequence, allowing for multi-level sorting (e.g., sort by category, then by name within each category).
     /// Use the <see cref="AddSort(EntitySort)"/> or <see cref="AddSort(string)"/> methods to add sort expressions fluently.
     /// </remarks>
+    [SequenceEquality]
     [JsonPropertyName("sort")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IList<EntitySort>? Sort { get; set; }
@@ -146,33 +150,6 @@ public class EntityQuery
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ContinuationToken { get; set; }
 
-    /// <summary>
-    /// Computes the hash code for the current <see cref="EntityQuery"/> instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current <see cref="EntityQuery"/> instance, suitable for use in hashing algorithms and data structures like hash tables.
-    /// </returns>
-    /// <remarks>
-    /// The hash code is computed based on the <see cref="Page"/> and <see cref="PageSize"/> properties.
-    /// Note that this implementation does not include all properties in the hash code calculation.
-    /// </remarks>
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(Query);
-        hash.Add(Page);
-        hash.Add(PageSize);
-        hash.Add(ContinuationToken);
-        hash.Add(Filter?.GetHashCode() ?? 0);
-
-        if (Sort == null)
-            return hash.ToHashCode();
-
-        for (var i = 0; i < Sort.Count; i++)
-            hash.Add(Sort[i].GetHashCode());
-
-        return hash.ToHashCode();
-    }
 
     /// <summary>
     /// Adds a sort expression to the query by parsing a string representation.

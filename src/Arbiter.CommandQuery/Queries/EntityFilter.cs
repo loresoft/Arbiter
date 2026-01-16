@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
 
+using Equatable.Attributes;
+
 using MessagePack;
 
 namespace Arbiter.CommandQuery.Queries;
@@ -36,9 +38,10 @@ namespace Arbiter.CommandQuery.Queries;
 /// };
 /// </code>
 /// </example>
+[Equatable]
 [MessagePackObject(true)]
 [JsonConverter(typeof(EntityFilterConverter))]
-public class EntityFilter
+public partial class EntityFilter
 {
     /// <summary>
     /// Gets or sets the name of the field or property to filter on.
@@ -88,6 +91,7 @@ public class EntityFilter
     /// <value>
     /// The list of nested filters to apply to the query.
     /// </value>
+    [SequenceEquality]
     [JsonPropertyName("filters")]
     public IList<EntityFilter>? Filters { get; set; }
 
@@ -124,29 +128,5 @@ public class EntityFilter
 
         // All other operators require a value
         return Value is not null;
-    }
-
-
-    /// <summary>
-    /// Computes the hash code for the current <see cref="EntityFilter"/> instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current <see cref="EntityFilter"/> instance.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(Name);
-        hash.Add(Operator);
-        hash.Add(Value);
-        hash.Add(Logic);
-
-        if (Filters == null)
-            return hash.ToHashCode();
-
-        foreach (var filter in Filters)
-            hash.Add(filter.GetHashCode());
-
-        return hash.ToHashCode();
     }
 }
