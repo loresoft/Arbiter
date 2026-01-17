@@ -15,26 +15,48 @@ namespace Arbiter.Dispatcher.Server;
 /// <summary>
 /// An <see cref="IResult"/> that serializes a value to MessagePack format and writes it to the HTTP response.
 /// </summary>
-/// <typeparam name="TValue">The type of the value to serialize.</typeparam>
-public class MessagePackResult<TValue> :
+/// <remarks>
+/// <para>
+/// This class provides a way to return MessagePack-serialized responses from ASP.NET Core minimal API endpoints.
+/// MessagePack is a binary serialization format that is typically faster and more compact than JSON.
+/// </para>
+/// <para>
+/// The class automatically handles null values by returning a 204 No Content response, and supports
+/// explicit type specification for serialization scenarios where the runtime type differs from the desired
+/// serialization type. This is particularly useful with collection initializers or when serializing
+/// derived types as their base type or interface.
+/// </para>
+/// <para>
+/// When used in minimal API endpoints, this class implements <see cref="IEndpointMetadataProvider"/>
+/// to automatically populate OpenAPI metadata for proper API documentation.
+/// </para>
+/// </remarks>
+public class MessagePackResult :
     IResult,
     IValueHttpResult,
-    IValueHttpResult<TValue>,
     IStatusCodeHttpResult,
     IContentTypeHttpResult,
     IEndpointMetadataProvider
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="MessagePackResult{TValue}"/> class.
+    /// Initializes a new instance of the <see cref="MessagePackResult"/> class.
     /// </summary>
     /// <param name="value">The value to serialize. If <c>null</c>, a 204 No Content response is returned.</param>
     /// <param name="statusCode">The HTTP status code. If not specified, defaults to 200 OK for non-null values and 204 No Content for null values.</param>
     /// <param name="contentType">The content type. If not specified, defaults to the MessagePack content type.</param>
-    public MessagePackResult(TValue? value, int? statusCode = null, string? contentType = null)
+    /// <param name="valueType">The type to use for MessagePack serialization. If not specified, defaults to the runtime type of the value.</param>
+    /// <remarks>
+    /// The <paramref name="valueType"/> parameter is used to explicitly specify the type for serialization.
+    /// This is particularly useful when the runtime type differs from the desired serialization type.
+    /// A common scenario is with collection initializers, where the concrete type (e.g., <c>List&lt;T&gt;</c>)
+    /// may need to be serialized as a different type (e.g., <c>IEnumerable&lt;T&gt;</c> or <c>T[]</c>).
+    /// </remarks>
+    public MessagePackResult(object? value, int? statusCode = null, string? contentType = null, Type? valueType = null)
     {
         Value = value;
         StatusCode = statusCode;
         ContentType = contentType;
+        ValueType = valueType;
     }
 
     /// <summary>
@@ -43,10 +65,7 @@ public class MessagePackResult<TValue> :
     /// <value>
     /// The value to serialize, or <c>null</c> if no content should be returned.
     /// </value>
-    public TValue? Value { get; }
-
-    /// <inheritdoc/>
-    object? IValueHttpResult.Value => Value;
+    public object? Value { get; }
 
     /// <summary>
     /// Gets the content type for the response.
@@ -64,6 +83,25 @@ public class MessagePackResult<TValue> :
     /// </value>
     public int? StatusCode { get; }
 
+    /// <summary>
+    /// Gets the type to use for MessagePack serialization.
+    /// </summary>
+    /// <value>
+    /// The type to use for serialization, or <c>null</c> to use the runtime type of <see cref="Value"/>.
+    /// </value>
+    /// <remarks>
+    /// <para>
+    /// This property allows explicit specification of the serialization type, which is useful when
+    /// the value should be serialized as a base type or interface rather than its concrete type.
+    /// If not specified, the actual runtime type of the value is used.
+    /// </para>
+    /// <para>
+    /// The type is used both for MessagePack serialization and to generate a portable type name
+    /// that is added to the response headers via <see cref="DispatcherConstants.ResponseTypeHeader"/>.
+    /// This portable name helps clients properly deserialize the response by providing explicit type information.
+    /// </para>
+    /// </remarks>
+    public Type? ValueType { get; }
 
     /// <summary>
     /// Executes the result operation, serializing the value to MessagePack format and writing it to the HTTP response.
@@ -86,7 +124,7 @@ public class MessagePackResult<TValue> :
         if (StatusCode is { } statusCode)
             httpContext.Response.StatusCode = statusCode;
 
-        var valueType = Value.GetType();
+        var valueType = ValueType ?? Value.GetType();
         var responseType = valueType.GetPortableName();
 
         var options = httpContext.RequestServices.GetService<MessagePackSerializerOptions>()

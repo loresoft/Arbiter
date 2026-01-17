@@ -33,7 +33,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"User Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal
+public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal, IResponseType
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
@@ -46,6 +46,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
         Activated = DateTimeOffset.UtcNow;
         ActivatedBy = principal?.Identity?.Name ?? "system";
     }
+
 
     /// <summary>
     /// Gets the <see cref="ClaimsPrincipal"/> representing the user executing the command.
@@ -82,6 +83,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     [IgnoreMember]
     public string? ActivatedBy { get; private set; }
 
+
     /// <summary>
     /// Applies the specified <see cref="ClaimsPrincipal"/> to the command.
     /// </summary>
@@ -92,4 +94,9 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
         Activated = DateTimeOffset.UtcNow;
         ActivatedBy = principal?.Identity?.Name ?? "system";
     }
+
+    /// <summary>
+    /// Gets the type of the response returned by the command.
+    /// </summary>
+    Type IResponseType.ResponseType => typeof(TResponse);
 }
