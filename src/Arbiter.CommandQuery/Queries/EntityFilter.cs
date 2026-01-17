@@ -1,10 +1,12 @@
 using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Converters;
+using Arbiter.CommandQuery.Formatters;
 
 using Equatable.Attributes;
 
 using MessagePack;
+using MessagePack.Formatters;
 
 namespace Arbiter.CommandQuery.Queries;
 
@@ -59,6 +61,7 @@ public partial class EntityFilter
     /// The value to filter on.
     /// </value>
     [JsonPropertyName("value")]
+    [MessagePackFormatter(typeof(TypePreservingFormatter))]
     public object? Value { get; set; }
 
     /// <summary>
