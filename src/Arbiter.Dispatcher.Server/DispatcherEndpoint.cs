@@ -215,7 +215,7 @@ public partial class DispatcherEndpoint
 
         return isJson
             ? TypedResults.Json<ProblemDetails>(problemDetails, contentType: MediaTypeNames.Application.ProblemJson, statusCode: problemDetails.Status)
-            : new MessagePackResult<ProblemDetails>(problemDetails, statusCode: problemDetails.Status);
+            : new MessagePackResult(problemDetails, statusCode: problemDetails.Status);
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public partial class DispatcherEndpoint
 
         return isJson
             ? TypedResults.Json<ProblemDetails>(problemDetails, contentType: MediaTypeNames.Application.ProblemJson, statusCode: problemDetails.Status)
-            : new MessagePackResult<ProblemDetails>(problemDetails, statusCode: problemDetails.Status);
+            : new MessagePackResult(problemDetails, statusCode: problemDetails.Status);
     }
 
     [LoggerMessage(LogLevel.Warning, "Failed to deserialize request of type: {requestType}")]

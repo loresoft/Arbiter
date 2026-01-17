@@ -153,7 +153,6 @@ public class MessagePackResult :
         // Document 200 OK with MessagePack content
         builder.Metadata.Add(new ProducesResponseTypeMetadata(
             statusCode: StatusCodes.Status200OK,
-            type: typeof(TValue),
             contentTypes: [MessagePackDefaults.MessagePackContentType]));
 
         // Document 204 No Content for null values
