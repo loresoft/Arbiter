@@ -81,6 +81,26 @@ public static class CommandQueryExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds MessagePack options to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configure">An optional action to configure the MessagePack serializer options.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <seealso cref="MessagePackDefaults"/>
+    public static IServiceCollection AddMessagePackOptions(this IServiceCollection services, Action<MessagePack.MessagePackSerializerOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        // Configure MessagePack options
+        var options = MessagePackDefaults.DefaultSerializerOptions;
+        configure?.Invoke(options);
+
+        // MessagePack Serializer Options Registration
+        services.TryAddSingleton(options);
+
+        return services;
+    }
 
     /// <summary>
     /// Adds the entity query behaviors to the service collection.

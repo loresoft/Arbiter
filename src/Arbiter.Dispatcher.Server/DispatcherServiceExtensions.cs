@@ -1,3 +1,5 @@
+using Arbiter.CommandQuery;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +23,7 @@ public static class DispatcherServiceExtensions
         services.TryAddSingleton<DispatcherEndpoint>();
 
         // MessagePack Serializer Options Registration
-        services.TryAddSingleton(DispatcherConstants.DefaultSerializerOptions);
+        services.AddMessagePackOptions();
 
         return services;
     }

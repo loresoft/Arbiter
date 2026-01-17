@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.Reflection;
 
+using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Extensions;
 
 using MessagePack;
@@ -69,17 +71,17 @@ public class MessagePackResult<TValue> :
     /// </summary>
     /// <param name="httpContext">The <see cref="HttpContext"/> for the current request.</param>
     /// <returns>A task that represents the asynchronous execute operation.</returns>
-    public Task ExecuteAsync(HttpContext httpContext)
+    public async Task ExecuteAsync(HttpContext httpContext)
     {
         ArgumentNullException.ThrowIfNull(httpContext);
 
         httpContext.Response.ContentType = ContentType
-            ?? DispatcherConstants.MessagePackContentType;
+            ?? MessagePackDefaults.MessagePackContentType;
 
         if (Value is null)
         {
             httpContext.Response.StatusCode = StatusCodes.Status204NoContent;
-            return Task.CompletedTask;
+            return;
         }
 
         if (StatusCode is { } statusCode)
@@ -89,12 +91,16 @@ public class MessagePackResult<TValue> :
         var responseType = valueType.GetPortableName();
 
         var options = httpContext.RequestServices.GetService<MessagePackSerializerOptions>()
-            ?? DispatcherConstants.DefaultSerializerOptions;
+            ?? MessagePackDefaults.DefaultSerializerOptions;
 
         if (responseType is not null)
             httpContext.Response.Headers[DispatcherConstants.ResponseTypeHeader] = responseType;
 
-        return MessagePackSerializer.SerializeAsync(valueType, httpContext.Response.Body, Value, options, httpContext.RequestAborted);
+        MessagePackSerializer.Serialize(valueType, httpContext.Response.BodyWriter, Value, options, httpContext.RequestAborted);
+
+        await httpContext.Response.BodyWriter
+            .FlushAsync(httpContext.RequestAborted)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -111,7 +117,7 @@ public class MessagePackResult<TValue> :
         builder.Metadata.Add(new ProducesResponseTypeMetadata(
             statusCode: StatusCodes.Status200OK,
             type: typeof(TValue),
-            contentTypes: [DispatcherConstants.MessagePackContentType]));
+            contentTypes: [MessagePackDefaults.MessagePackContentType]));
 
         // Document 204 No Content for null values
         builder.Metadata.Add(new ProducesResponseTypeMetadata(
