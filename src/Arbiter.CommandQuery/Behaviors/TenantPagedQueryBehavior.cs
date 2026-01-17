@@ -13,7 +13,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// </summary>
 /// <typeparam name="TKey">The type of the model key</typeparam>
 /// <typeparam name="TEntityModel">The type of the model</typeparam>
-public class TenantPagedQueryBehavior<TKey, TEntityModel>
+public partial class TenantPagedQueryBehavior<TKey, TEntityModel>
     : PipelineBehaviorBase<EntityPagedQuery<TEntityModel>, EntityPagedResult<TEntityModel>>
     where TEntityModel : class
 {
@@ -66,7 +66,7 @@ public class TenantPagedQueryBehavior<TKey, TEntityModel>
         var tenantId = await TenantResolver.GetTenantId(principal).ConfigureAwait(false);
         if (Equals(tenantId, default(TKey)))
         {
-            Logger.LogError("Could not find tenant for the query request.");
+            LogTenantNotFound(Logger);
             throw new DomainException(500, "Could not find tenant for the query request.");
         }
 
@@ -94,4 +94,7 @@ public class TenantPagedQueryBehavior<TKey, TEntityModel>
 
         return interfaceType.IsAssignableFrom(entityType);
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Could not find tenant for the query request.")]
+    private static partial void LogTenantNotFound(ILogger logger);
 }

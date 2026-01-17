@@ -2,9 +2,6 @@ using System.Net.Http.Headers;
 
 using Arbiter.CommandQuery;
 
-using MessagePack;
-using MessagePack.Resolvers;
-
 #if DISPATCHER_CLIENT
 namespace Arbiter.Dispatcher.Client;
 #else

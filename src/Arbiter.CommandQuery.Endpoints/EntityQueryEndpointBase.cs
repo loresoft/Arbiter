@@ -22,7 +22,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// This class is intended for use in Blazor and WebAssembly applications to standardize entity query API patterns.
 /// It supports mapping endpoints for retrieving entities by ID, paged results, and filtered lists.
 /// </remarks>
-public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IEndpointRoute
+public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IEndpointRoute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityQueryEndpointBase{TKey, TListModel, TReadModel}"/> class.
@@ -128,7 +128,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error GetQuery: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(GetQuery), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -170,7 +170,7 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error GetPagedQuery: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(GetPagedQuery), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -203,10 +203,13 @@ public abstract class EntityQueryEndpointBase<TKey, TListModel, TReadModel> : IE
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error PostPagedQuery: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(PostPagedQuery), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
     }
+
+    [LoggerMessage(LogLevel.Error, "Error {methodName}: {errorMessage}")]
+    private static partial void LogError(ILogger logger, Exception exception, string methodName, string errorMessage);
 }

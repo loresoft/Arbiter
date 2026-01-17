@@ -1,7 +1,6 @@
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Definitions;
@@ -24,7 +23,7 @@ namespace Arbiter.Dispatcher.Server;
 /// <summary>
 /// Provides an HTTP endpoint for dispatching mediator commands and queries.
 /// </summary>
-public class DispatcherEndpoint
+public partial class DispatcherEndpoint
 {
     private readonly ILogger<DispatcherEndpoint> _logger;
 
@@ -94,7 +93,7 @@ public class DispatcherEndpoint
 
             if (request == null)
             {
-                _logger.LogWarning("Failed to deserialize request of type: {RequestType}", requestType.Name);
+                LogFailedToDeserializeRequest(_logger, requestType.Name);
                 return BadRequest($"Failed to deserialize request of type: {requestType.Name}", isJson);
             }
 
@@ -118,6 +117,7 @@ public class DispatcherEndpoint
         }
         catch (Exception ex)
         {
+            LogError(_logger, ex, nameof(Send), ex.Message);
             return ExceptionResult(ex, isJson);
         }
     }
@@ -136,7 +136,7 @@ public class DispatcherEndpoint
         // read the request type header
         if (!httpRequest.Headers.TryGetValue(DispatcherConstants.RequestTypeHeader, out var requestTypeHeader))
         {
-            _logger.LogWarning("Missing {Header} header", DispatcherConstants.RequestTypeHeader);
+            LogMissingHeader(_logger, DispatcherConstants.RequestTypeHeader);
             message = $"Missing {DispatcherConstants.RequestTypeHeader} header";
             return null;
         }
@@ -145,7 +145,7 @@ public class DispatcherEndpoint
         var requestTypeName = requestTypeHeader.FirstOrDefault();
         if (string.IsNullOrEmpty(requestTypeName))
         {
-            _logger.LogWarning("Empty {Header} header", DispatcherConstants.RequestTypeHeader);
+            LogEmptyHeader(_logger, DispatcherConstants.RequestTypeHeader);
             message = $"Empty {DispatcherConstants.RequestTypeHeader} header";
             return null;
         }
@@ -154,7 +154,7 @@ public class DispatcherEndpoint
         var requestType = Type.GetType(requestTypeName, throwOnError: false, ignoreCase: true);
         if (requestType is null)
         {
-            _logger.LogWarning("Unable to resolve request type: {RequestType}", requestTypeName);
+            LogUnableToResolveRequestType(_logger, requestTypeName);
             message = $"Unable to resolve request type: {requestTypeName}";
             return null;
         }
@@ -227,4 +227,19 @@ public class DispatcherEndpoint
             ? TypedResults.Json<ProblemDetails>(problemDetails, contentType: MediaTypeNames.Application.ProblemJson, statusCode: problemDetails.Status)
             : new MessagePackResult<ProblemDetails>(problemDetails, statusCode: problemDetails.Status);
     }
+
+    [LoggerMessage(LogLevel.Warning, "Failed to deserialize request of type: {requestType}")]
+    private static partial void LogFailedToDeserializeRequest(ILogger logger, string requestType);
+
+    [LoggerMessage(LogLevel.Warning, "Missing {header} header")]
+    private static partial void LogMissingHeader(ILogger logger, string header);
+
+    [LoggerMessage(LogLevel.Warning, "Empty {header} header")]
+    private static partial void LogEmptyHeader(ILogger logger, string header);
+
+    [LoggerMessage(LogLevel.Warning, "Unable to resolve request type: {requestType}")]
+    private static partial void LogUnableToResolveRequestType(ILogger logger, string requestType);
+
+    [LoggerMessage(LogLevel.Error, "Error {methodName}: {errorMessage}")]
+    private static partial void LogError(ILogger logger, Exception exception, string methodName, string errorMessage);
 }

@@ -12,7 +12,7 @@ namespace Arbiter.CommandQuery.Handlers;
 public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private static readonly string _typeName = typeof(RequestHandlerBase<TRequest, TResponse>).Name;
+    private readonly string _typeName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequestHandlerBase{TRequest, TResponse}"/> class.
@@ -23,7 +23,11 @@ public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequest
     {
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
-        Logger = loggerFactory.CreateLogger(_typeName);
+        // Capture the type name once to avoid repeated calls to GetType in logging
+        var type = GetType();
+        _typeName = type.Name;
+
+        Logger = loggerFactory.CreateLogger(type);
     }
 
     /// <summary>

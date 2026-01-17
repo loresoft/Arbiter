@@ -11,7 +11,7 @@ namespace Arbiter.Communication.Sms;
 /// <remarks>
 /// This service supports loading SMS templates from embedded resources, applying model data, and sending SMS messages using the configured delivery service.
 /// </remarks>
-public class SmsTemplateService : ISmsTemplateService
+public partial class SmsTemplateService : ISmsTemplateService
 {
     private readonly ILogger<SmsTemplateService> _logger;
     private readonly IOptions<SmsConfiguration> _options;
@@ -66,7 +66,7 @@ public class SmsTemplateService : ISmsTemplateService
         {
             if (!_templateService.TryGetTemplate<SmsTemplate>(templateName, out var template))
             {
-                _logger.LogError("Could not find template: {TemplateName}", templateName);
+                LogTemplateNotFound(_logger, templateName);
                 return SmsResult.Fail($"Could not find template '{templateName}'");
             }
 
@@ -75,7 +75,7 @@ public class SmsTemplateService : ISmsTemplateService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending SMS: {ErrorMessage}", ex.Message);
+            LogError(_logger, ex, nameof(Send), ex.Message);
             throw;
         }
     }
@@ -112,7 +112,7 @@ public class SmsTemplateService : ISmsTemplateService
 
             if (string.IsNullOrEmpty(sender))
             {
-                _logger.LogError("Sender number is not configured in SmsConfiguration.");
+                LogSenderNumberNotConfigured(_logger);
                 return SmsResult.Fail("Sender number is not configured.");
             }
 
@@ -124,8 +124,17 @@ public class SmsTemplateService : ISmsTemplateService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error Sending SMS: {ErrorMessage}", ex.Message);
+            LogError(_logger, ex, nameof(Send), ex.Message);
             throw;
         }
     }
+
+    [LoggerMessage(LogLevel.Error, "Could not find template: {templateName}")]
+    private static partial void LogTemplateNotFound(ILogger logger, string templateName);
+
+    [LoggerMessage(LogLevel.Error, "Sender number is not configured in SmsConfiguration.")]
+    private static partial void LogSenderNumberNotConfigured(ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "Error {methodName}: {errorMessage}")]
+    private static partial void LogError(ILogger logger, Exception exception, string methodName, string errorMessage);
 }

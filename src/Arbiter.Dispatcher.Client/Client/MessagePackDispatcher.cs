@@ -1,10 +1,5 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text.Json;
 
 using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Definitions;

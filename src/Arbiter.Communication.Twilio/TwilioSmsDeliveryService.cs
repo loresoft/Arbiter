@@ -15,7 +15,7 @@ namespace Arbiter.Communication.Twilio;
 /// <summary>
 /// Provides an implementation of <see cref="ISmsDeliveryService"/> that delivers SMS messages using Twilio.
 /// </summary>
-public class TwilioSmsDeliveryService : ISmsDeliveryService
+public partial class TwilioSmsDeliveryService : ISmsDeliveryService
 {
     private readonly ILogger<TwilioSmsDeliveryService> _logger;
     private readonly IOptions<SmsConfiguration> _options;
@@ -35,6 +35,7 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
         TwilioClient.Init(_options.Value.UserName, _options.Value.Password);
     }
 
+
     /// <summary>
     /// Sends the specified <see cref="SmsMessage"/> asynchronously using Twilio.
     /// </summary>
@@ -49,7 +50,7 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
         var truncatedMessage = message.Message.Truncate(50);
         var senderNumber = message.Sender.HasValue() ? message.Sender : _options.Value.SenderNumber;
 
-        _logger.LogDebug("Sending SMS to '{Recipient}' from '{Sender} with message '{Message}' using Twilio", message.Recipient, senderNumber, truncatedMessage);
+        LogSendingSms(_logger, message.Recipient, senderNumber, truncatedMessage);
 
         try
         {
@@ -61,10 +62,7 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
                 )
                 .ConfigureAwait(false);
 
-            _logger.LogInformation(
-                "Twilio Message Response {Status}; Sid: {Sid}; Recipient: {Recipient}; Error: {errorMessage} ",
-                messageResponse.Status, messageResponse.Sid, messageResponse.To, messageResponse.ErrorMessage
-            );
+            LogTwilioResponse(_logger, messageResponse.Status, messageResponse.Sid, messageResponse.To, messageResponse.ErrorMessage);
 
             if (messageResponse.ErrorCode.HasValue)
                 return SmsResult.Fail($"SMS send failed with status {messageResponse.Status}");
@@ -74,8 +72,17 @@ public class TwilioSmsDeliveryService : ISmsDeliveryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending SMS to '{Recipient}': {ErrorMessage}", message.Recipient, ex.Message);
+            LogSendError(_logger, ex, message.Recipient, ex.Message);
             return SmsResult.Fail("An error occurred while sending the SMS", ex);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Sending SMS to '{Recipient}' from '{Sender}' with message '{Message}' using Twilio")]
+    private static partial void LogSendingSms(ILogger logger, string recipient, string sender, string message);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Twilio Message Response {Status}; Sid: {Sid}; Recipient: {Recipient}; Error: {ErrorMessage}")]
+    private static partial void LogTwilioResponse(ILogger logger, object status, string sid, string recipient, string? errorMessage);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error sending SMS to '{Recipient}': {ErrorMessage}")]
+    private static partial void LogSendError(ILogger logger, Exception exception, string recipient, string errorMessage);
 }

@@ -13,7 +13,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// <typeparam name="TKey">The type of the model key</typeparam>
 /// <typeparam name="TEntityModel">The type of the model</typeparam>
 /// <typeparam name="TResponse">The type of the response</typeparam>
-public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
+public partial class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
     : PipelineBehaviorBase<EntityModelBase<TEntityModel, TResponse>, TResponse>
     where TEntityModel : class
 {
@@ -61,8 +61,11 @@ public class TenantAuthenticateCommandBehavior<TKey, TEntityModel, TResponse>
         if (Equals(tenantId, tenantModel.TenantId))
             return;
 
-        Logger.LogError("User {UserName} does not have access to specified tenant: {TenantId}", principal.Identity?.Name, tenantId);
+        LogTenantAccessDenied(Logger, principal.Identity?.Name, tenantId);
 
         throw new DomainException(HttpStatusCode.Forbidden, "User does not have access to specified tenant.");
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "User {UserName} does not have access to specified tenant: {TenantId}")]
+    private static partial void LogTenantAccessDenied(ILogger logger, string? userName, TKey? tenantId);
 }
