@@ -111,13 +111,13 @@ public partial class DispatcherEndpoint
                 return Results.Empty;
             }
 
-            // Determine response type if available, used for serialization
+            // Determine response type from the request, used for serialization
             Type? responseType = null;
-            if (response is IResponseType responseInstance)
+            if (request is IResponseType responseInstance)
                 responseType = responseInstance.ResponseType;
 
             return isJson
-                ? TypedResults.Json<object>(response)
+                ? TypedResults.Ok(response)
                 : new MessagePackResult(response, valueType: responseType);
         }
         catch (Exception ex)
