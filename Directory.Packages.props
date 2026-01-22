@@ -49,7 +49,7 @@
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.1.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
@@ -58,7 +58,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.11.0-beta.2" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.0.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.13" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.14" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
@@ -70,7 +70,7 @@
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.10.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.10.0" />
     <PackageVersion Include="TUnit" Version="1.12.15" />
-    <PackageVersion Include="Twilio" Version="7.14.1" />
+    <PackageVersion Include="Twilio" Version="7.14.2" />
     <PackageVersion Include="Verify.TUnit" Version="31.9.4" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>

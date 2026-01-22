@@ -181,6 +181,36 @@ public class MessagePackSerializationTests
     }
 
     [Test]
+    public void EntityFilterWithNullableListValueRoundTripSerialization()
+    {
+        // Arrange - create a filter with a List value
+        var values = new List<int?> { 10, 20, 30 };
+        var filter = new EntityFilter
+        {
+            Name = "Price",
+            Operator = FilterOperators.NotIn,
+            Value = values
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(filter, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<EntityFilter>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Name.Should().Be(filter.Name);
+        deserialized.Operator.Should().Be(filter.Operator);
+        deserialized.Value.Should().NotBeNull();
+        deserialized.Value.Should().BeOfType<List<int?>>();
+
+        var deserializedList = (List<int?>)deserialized.Value!;
+        deserializedList.Should().HaveCount(3);
+        deserializedList[0].Should().Be(10);
+        deserializedList[1].Should().Be(20);
+        deserializedList[2].Should().Be(30);
+    }
+
+    [Test]
     public void EntityFilterWithMixedTypeCollectionRoundTripSerialization()
     {
         // Arrange - create a filter with mixed type collection
