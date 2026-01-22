@@ -3,7 +3,7 @@ using Arbiter.Dispatcher.State;
 
 using Rocks;
 
-namespace Arbiter.CommandQuery.Tests.State;
+namespace Arbiter.Dispatcher.Client.Tests.State;
 
 public class ModelStateEditorTests
 {

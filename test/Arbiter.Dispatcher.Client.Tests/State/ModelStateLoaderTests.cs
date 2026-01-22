@@ -1,7 +1,7 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Dispatcher.State;
 
-namespace Arbiter.CommandQuery.Tests.State;
+namespace Arbiter.Dispatcher.Client.Tests.State;
 
 
 

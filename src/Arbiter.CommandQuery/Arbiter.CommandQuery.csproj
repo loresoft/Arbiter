@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Extensions\GuidExtensions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MessagePack" />
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="SystemTextJsonPatch" />
