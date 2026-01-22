@@ -52,9 +52,9 @@
     <PackageVersion Include="OpenTelemetry.Api" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.11.0-beta.2" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.0.0" />
