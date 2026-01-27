@@ -58,16 +58,18 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
             emailMessage = OverrideRecipient(emailMessage);
             Ace.EmailMessage message = ConvertMessage(emailMessage);
 
-            var sendOperation = await _emailClient.SendAsync(WaitUntil.Completed, message, cancellationToken).ConfigureAwait(false);
+            // Send the email message asynchronously
+            var sendOperation = await _emailClient.SendAsync(WaitUntil.Started, message, cancellationToken).ConfigureAwait(false);
 
-            if (sendOperation.Value.Status == Ace.EmailSendStatus.Succeeded)
+            if (sendOperation == null)
             {
-                LogEmailSentAzure(_logger, recipients, truncatedSubject);
-                return EmailResult.Success("Email sent successfully.");
+                LogEmailSendErrorAzure(_logger, recipients, truncatedSubject, "Unknown");
+                return EmailResult.Fail($"Email send failed with status Unknown");
             }
 
-            LogEmailSendErrorAzure(_logger, recipients, truncatedSubject, sendOperation.Value.Status);
-            return EmailResult.Fail($"Email send failed with status {sendOperation.Value.Status}");
+            LogEmailSentAzure(_logger, recipients, truncatedSubject, sendOperation.Id);
+            return EmailResult.Success($"Email queued successfully: {sendOperation.Id}");
+
         }
         catch (Exception ex)
         {
@@ -154,8 +156,8 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
     [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using Azure Communication")]
     static partial void LogSendingEmailAzure(ILogger logger, string recipients, string subject);
 
-    [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}'")]
-    static partial void LogEmailSentAzure(ILogger logger, string recipients, string subject);
+    [LoggerMessage(2, LogLevel.Information, "Sent email to '{Recipients}' with subject '{Subject}': {OperationId}")]
+    static partial void LogEmailSentAzure(ILogger logger, string recipients, string subject, string? operationId);
 
     [LoggerMessage(3, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}'; Status: {Status}")]
     static partial void LogEmailSendErrorAzure(ILogger logger, string recipients, string subject, Ace.EmailSendStatus status);
