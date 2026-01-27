@@ -4,6 +4,7 @@ using Arbiter.Communication.Extensions;
 using Azure;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Ace = Azure.Communication.Email;
 
@@ -16,16 +17,22 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
 {
     private readonly ILogger<AzureEmailDeliveryService> _logger;
     private readonly Ace.EmailClient _emailClient;
+    private readonly IOptions<EmailConfiguration> _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureEmailDeliveryService"/> class.
     /// </summary>
     /// <param name="logger">The logger used for diagnostic and error messages.</param>
     /// <param name="emailClient">The Azure Communication Services email client.</param>
-    public AzureEmailDeliveryService(ILogger<AzureEmailDeliveryService> logger, Ace.EmailClient emailClient)
+    /// <param name="options">The email configuration options.</param>
+    public AzureEmailDeliveryService(
+        ILogger<AzureEmailDeliveryService> logger,
+        Ace.EmailClient emailClient,
+        IOptions<EmailConfiguration> options)
     {
         _logger = logger;
         _emailClient = emailClient;
+        _options = options;
     }
 
     /// <summary>
@@ -42,12 +49,13 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
         CancellationToken cancellationToken = default)
     {
         var recipients = emailMessage.Recipients.ToString();
-        var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
+        var truncatedSubject = emailMessage.Content.Subject.Truncate(100);
 
         LogSendingEmailAzure(_logger, recipients, truncatedSubject);
 
         try
         {
+            emailMessage = OverrideRecipient(emailMessage);
             Ace.EmailMessage message = ConvertMessage(emailMessage);
 
             var sendOperation = await _emailClient.SendAsync(WaitUntil.Completed, message, cancellationToken).ConfigureAwait(false);
@@ -118,6 +126,30 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
         return message;
     }
 
+    /// <summary>
+    /// Overrides the recipient of the email message if a recipient override is configured.
+    /// </summary>
+    /// <param name="emailMessage">The email message to modify.</param>
+    /// <returns>The modified email message with the overridden recipient.</returns>
+    private EmailMessage OverrideRecipient(EmailMessage emailMessage)
+    {
+        var recipientOverride = _options.Value.RecipientOverride;
+        if (string.IsNullOrWhiteSpace(recipientOverride))
+            return emailMessage;
+
+
+        var originalRecipients = emailMessage.Recipients.ToString();
+        var overrideAddress = new EmailAddress(recipientOverride);
+        var htmlMessage = $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>";
+
+        LogRecipientOverride(_logger, recipientOverride, originalRecipients);
+
+        return emailMessage with
+        {
+            Recipients = new EmailRecipients { To = [overrideAddress] },
+            Content = emailMessage.Content with { HtmlBody = htmlMessage },
+        };
+    }
 
     [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using Azure Communication")]
     static partial void LogSendingEmailAzure(ILogger logger, string recipients, string subject);
@@ -130,4 +162,7 @@ public partial class AzureEmailDeliveryService : IEmailDeliveryService
 
     [LoggerMessage(4, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}")]
     static partial void LogEmailSendExceptionAzure(ILogger logger, string recipients, string subject, string errorMessage, Exception exception);
+
+    [LoggerMessage(5, LogLevel.Information, "Overriding email recipient to '{RecipientOverride}'; Original Recipients: {OriginalRecipients}")]
+    static partial void LogRecipientOverride(ILogger logger, string recipientOverride, string originalRecipients);
 }

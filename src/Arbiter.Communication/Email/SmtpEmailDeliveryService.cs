@@ -26,7 +26,9 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
     /// </summary>
     /// <param name="logger">The logger used for diagnostic and error messages.</param>
     /// <param name="emailOptions">The email configuration options.</param>
-    public SmtpEmailDeliveryService(ILogger<SmtpEmailDeliveryService> logger, IOptions<EmailConfiguration> emailOptions)
+    public SmtpEmailDeliveryService(
+        ILogger<SmtpEmailDeliveryService> logger,
+        IOptions<EmailConfiguration> emailOptions)
     {
         _logger = logger;
         _options = emailOptions;
@@ -54,7 +56,7 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
         var password = emailServer.Password;
 
         var recipients = emailMessage.Recipients.ToString();
-        var truncatedSubject = emailMessage.Content.Subject.Truncate(20);
+        var truncatedSubject = emailMessage.Content.Subject.Truncate(100);
 
         LogSendingEmail(_logger, recipients, truncatedSubject, host);
 
@@ -62,7 +64,9 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
 
         try
         {
+            emailMessage = OverrideRecipient(emailMessage);
             var mimeMessage = ConvertMessage(emailMessage);
+
 
             // make sure there is a from address
             if (mimeMessage.From.Count == 0)
@@ -191,8 +195,32 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
     /// <param name="address">The email address.</param>
     /// <param name="name">The optional display name.</param>
     /// <returns>A <see cref="MailboxAddress"/> instance.</returns>
-    private static MailboxAddress CreateAddress(string address, string? name)
+    private static MailboxAddress CreateAddress(string address, string? name = null)
         => new(name ?? address, address);
+
+    /// <summary>
+    /// Overrides the recipient of the email message if a recipient override is configured.
+    /// </summary>
+    /// <param name="emailMessage">The email message to modify.</param>
+    /// <returns>The modified email message with the overridden recipient.</returns>
+    private EmailMessage OverrideRecipient(EmailMessage emailMessage)
+    {
+        var recipientOverride = _options.Value.RecipientOverride;
+        if (string.IsNullOrWhiteSpace(recipientOverride))
+            return emailMessage;
+
+        var originalRecipients = emailMessage.Recipients.ToString();
+        var overrideAddress = new EmailAddress(recipientOverride);
+        var htmlMessage = $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>";
+
+        LogRecipientOverride(_logger, recipientOverride, originalRecipients);
+
+        return emailMessage with
+        {
+            Recipients = new EmailRecipients { To = [overrideAddress] },
+            Content = emailMessage.Content with { HtmlBody = htmlMessage },
+        };
+    }
 
 
     [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using Host '{SmtpHost}'")]
@@ -206,4 +234,7 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
 
     [LoggerMessage(4, LogLevel.Trace, "SMTP Protocol Log:\n{LogContent}")]
     static partial void LogSmtpProtocol(ILogger logger, string logContent);
+
+    [LoggerMessage(5, LogLevel.Information, "Overriding email recipient to '{RecipientOverride}'; Original Recipients: {OriginalRecipients}")]
+    static partial void LogRecipientOverride(ILogger logger, string recipientOverride, string originalRecipients);
 }

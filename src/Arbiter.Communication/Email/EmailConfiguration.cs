@@ -61,4 +61,9 @@ public class EmailConfiguration
     /// Gets or sets the service key used to authenticate or identify the service.
     /// </summary>
     public string? ServiceKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets the email address to override the recipient list. Used for testing purposes to redirect all emails to a single address.
+    /// </summary>
+    public string? RecipientOverride { get; set; }
 }

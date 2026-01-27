@@ -2,6 +2,7 @@ using Arbiter.Communication.Email;
 using Arbiter.Communication.Extensions;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -15,16 +16,22 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
 {
     private readonly ILogger<SendGridEmailDeliveryService> _logger;
     private readonly ISendGridClient _sendGridClient;
+    private readonly IOptions<EmailConfiguration> _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SendGridEmailDeliveryService"/> class.
     /// </summary>
     /// <param name="logger">The logger used for diagnostic and error messages.</param>
     /// <param name="sendGridClient">The SendGrid client used to send emails.</param>
-    public SendGridEmailDeliveryService(ILogger<SendGridEmailDeliveryService> logger, ISendGridClient sendGridClient)
+    /// <param name="options">The email configuration options.</param>
+    public SendGridEmailDeliveryService(
+        ILogger<SendGridEmailDeliveryService> logger,
+        ISendGridClient sendGridClient,
+        IOptions<EmailConfiguration> options)
     {
         _logger = logger;
         _sendGridClient = sendGridClient;
+        _options = options;
     }
 
     /// <summary>
@@ -47,6 +54,7 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
 
         try
         {
+            emailMessage = OverrideRecipient(emailMessage);
             var message = ConvertMessage(emailMessage);
 
             var response = await _sendGridClient
@@ -174,6 +182,30 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
     private static SendGrid.Helpers.Mail.EmailAddress ConvertEmail(Email.EmailAddress emailAddress)
         => new(emailAddress.Address, emailAddress.DisplayName);
 
+    /// <summary>
+    /// Overrides the recipient of the email message if a recipient override is configured.
+    /// </summary>
+    /// <param name="emailMessage">The email message to modify.</param>
+    /// <returns>The modified email message with the overridden recipient.</returns>
+    private EmailMessage OverrideRecipient(EmailMessage emailMessage)
+    {
+        var recipientOverride = _options.Value.RecipientOverride;
+        if (string.IsNullOrWhiteSpace(recipientOverride))
+            return emailMessage;
+
+        var originalRecipients = emailMessage.Recipients.ToString();
+        var overrideAddress = new Email.EmailAddress(recipientOverride);
+        var htmlMessage = $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>";
+
+        LogRecipientOverride(_logger, recipientOverride, originalRecipients);
+
+        return emailMessage with
+        {
+            Recipients = new EmailRecipients { To = [overrideAddress] },
+            Content = emailMessage.Content with { HtmlBody = htmlMessage },
+        };
+    }
+
 
     [LoggerMessage(1, LogLevel.Debug, "Sending email to '{Recipients}' with subject '{Subject}' using SendGrid")]
     static partial void LogSendingEmailSendGrid(ILogger logger, string recipients, string subject);
@@ -186,4 +218,7 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
 
     [LoggerMessage(4, LogLevel.Error, "Error sending email to '{Recipients}' with subject '{Subject}': {ErrorMessage}")]
     static partial void LogEmailSendExceptionSendGrid(ILogger logger, string recipients, string subject, string errorMessage, Exception exception);
+
+    [LoggerMessage(5, LogLevel.Information, "Overriding email recipient to '{RecipientOverride}'; Original Recipients: {OriginalRecipients}")]
+    static partial void LogRecipientOverride(ILogger logger, string recipientOverride, string originalRecipients);
 }
