@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery.Models;
 using Arbiter.CommandQuery.Queries;
 
 using MessagePack;
@@ -591,6 +592,201 @@ public class MessagePackSerializationTests
         deserialized.Total.Should().BeNull();
         deserialized.Data.Should().BeNull();
         deserialized.ContinuationToken.Should().BeNull();
+    }
+
+    [Test]
+    public void ProblemDetailsBasicRoundTripSerialization()
+    {
+        // Arrange - create a basic problem details
+        var problemDetails = new ProblemDetails
+        {
+            Type = "https://example.com/problems/validation-error",
+            Title = "Validation Error",
+            Status = 400,
+            Detail = "One or more validation errors occurred.",
+            Instance = "/api/entities/123"
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().Be(problemDetails.Type);
+        deserialized.Title.Should().Be(problemDetails.Title);
+        deserialized.Status.Should().Be(problemDetails.Status);
+        deserialized.Detail.Should().Be(problemDetails.Detail);
+        deserialized.Instance.Should().Be(problemDetails.Instance);
+    }
+
+    [Test]
+    public void ProblemDetailsWithErrorsRoundTripSerialization()
+    {
+        // Arrange - create problem details with validation errors
+        var problemDetails = new ProblemDetails
+        {
+            Type = "https://example.com/problems/validation-error",
+            Title = "Validation Error",
+            Status = 400,
+            Detail = "One or more validation errors occurred.",
+            Errors = new Dictionary<string, string[]>
+            {
+                ["Name"] = ["The Name field is required.", "The Name field must be at least 3 characters."],
+                ["Email"] = ["The Email field is not a valid e-mail address."],
+                ["Age"] = ["The Age field must be between 0 and 120."]
+            }
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().Be(problemDetails.Type);
+        deserialized.Title.Should().Be(problemDetails.Title);
+        deserialized.Status.Should().Be(problemDetails.Status);
+        deserialized.Detail.Should().Be(problemDetails.Detail);
+        deserialized.Errors.Should().NotBeNull();
+        deserialized.Errors.Should().HaveCount(3);
+        deserialized.Errors["Name"].Should().HaveCount(2);
+        deserialized.Errors["Name"][0].Should().Be("The Name field is required.");
+        deserialized.Errors["Name"][1].Should().Be("The Name field must be at least 3 characters.");
+        deserialized.Errors["Email"].Should().HaveCount(1);
+        deserialized.Errors["Email"][0].Should().Be("The Email field is not a valid e-mail address.");
+        deserialized.Errors["Age"].Should().HaveCount(1);
+        deserialized.Errors["Age"][0].Should().Be("The Age field must be between 0 and 120.");
+    }
+
+    [Test]
+    public void ProblemDetailsWithExtensionsRoundTripSerialization()
+    {
+        // Arrange - create problem details with extension data
+        var problemDetails = new ProblemDetails
+        {
+            Type = "https://example.com/problems/server-error",
+            Title = "Internal Server Error",
+            Status = 500,
+            Detail = "An unexpected error occurred while processing the request.",
+            Extensions = new Dictionary<string, object?>
+            {
+                ["traceId"] = "0HMVFE0A2S7UT:00000001",
+                ["requestId"] = Guid.Parse("12345678-1234-1234-1234-123456789012"),
+                ["timestamp"] = new DateTime(2024, 1, 15, 10, 30, 0),
+                ["customData"] = new { code = 1001, severity = "high" }
+            }
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().Be(problemDetails.Type);
+        deserialized.Title.Should().Be(problemDetails.Title);
+        deserialized.Status.Should().Be(problemDetails.Status);
+        deserialized.Detail.Should().Be(problemDetails.Detail);
+        deserialized.Extensions.Should().NotBeNull();
+        deserialized.Extensions.Should().HaveCount(4);
+        deserialized.Extensions["traceId"].Should().Be("0HMVFE0A2S7UT:00000001");
+        deserialized.Extensions["requestId"].Should().Be(Guid.Parse("12345678-1234-1234-1234-123456789012"));
+        deserialized.Extensions["timestamp"].Should().Be(new DateTime(2024, 1, 15, 10, 30, 0));
+        deserialized.Extensions["customData"].Should().NotBeNull();
+    }
+
+    [Test]
+    public void ProblemDetailsWithNullPropertiesRoundTripSerialization()
+    {
+        // Arrange - create problem details with null optional properties
+        var problemDetails = new ProblemDetails
+        {
+            Type = null,
+            Title = "Error",
+            Status = null,
+            Detail = null,
+            Instance = null
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().BeNull();
+        deserialized.Title.Should().Be("Error");
+        deserialized.Status.Should().BeNull();
+        deserialized.Detail.Should().BeNull();
+        deserialized.Instance.Should().BeNull();
+    }
+
+    [Test]
+    public void ProblemDetailsCompleteRoundTripSerialization()
+    {
+        // Arrange - create a complete problem details with all properties
+        var problemDetails = new ProblemDetails
+        {
+            Type = "https://example.com/problems/complex-error",
+            Title = "Complex Error",
+            Status = 422,
+            Detail = "The request could not be processed due to multiple issues.",
+            Instance = "/api/orders/456",
+            Errors = new Dictionary<string, string[]>
+            {
+                ["Items"] = ["At least one item is required."],
+                ["ShippingAddress"] = ["Invalid postal code.", "State is required."]
+            },
+            Extensions = new Dictionary<string, object?>
+            {
+                ["correlationId"] = "abc-123-def-456",
+                ["retryable"] = false,
+                ["estimatedResolution"] = "Contact support"
+            }
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().Be(problemDetails.Type);
+        deserialized.Title.Should().Be(problemDetails.Title);
+        deserialized.Status.Should().Be(problemDetails.Status);
+        deserialized.Detail.Should().Be(problemDetails.Detail);
+        deserialized.Instance.Should().Be(problemDetails.Instance);
+        deserialized.Errors.Should().HaveCount(2);
+        deserialized.Errors["Items"].Should().HaveCount(1);
+        deserialized.Errors["ShippingAddress"].Should().HaveCount(2);
+        deserialized.Extensions.Should().HaveCount(3);
+        deserialized.Extensions["correlationId"].Should().Be("abc-123-def-456");
+        deserialized.Extensions["retryable"].Should().Be(false);
+        deserialized.Extensions["estimatedResolution"].Should().Be("Contact support");
+    }
+
+    [Test]
+    public void ProblemDetailsEmptyRoundTripSerialization()
+    {
+        // Arrange - create an empty problem details
+        var problemDetails = new ProblemDetails();
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Type.Should().BeNull();
+        deserialized.Title.Should().BeNull();
+        deserialized.Status.Should().BeNull();
+        deserialized.Detail.Should().BeNull();
+        deserialized.Instance.Should().BeNull();
+        deserialized.Errors.Should().NotBeNull();
+        deserialized.Errors.Should().BeEmpty();
+        deserialized.Extensions.Should().NotBeNull();
+        deserialized.Extensions.Should().BeEmpty();
     }
 
     // Helper class for testing complex type serialization

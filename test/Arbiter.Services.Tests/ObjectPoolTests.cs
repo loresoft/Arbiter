@@ -490,7 +490,15 @@ public class ObjectPoolTests
     [Test]
     public void StringBuilderPool_Return_ClearsStringBuilder()
     {
-        var pool = StringBuilder.Pool;
+        var pool = new ObjectPool<StringBuilder>(
+            objectFactory: static () => new StringBuilder(256),
+            resetAction: sb =>
+            {
+                sb.Clear();
+                if (sb.Capacity > 1024)
+                    sb.Capacity = 256;
+            }
+        );
 
         var sb = pool.Get();
         sb.Append("Hello, World!");

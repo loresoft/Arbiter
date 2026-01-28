@@ -1,3 +1,5 @@
+using Arbiter.CommandQuery.Formatters;
+
 using MessagePack;
 using MessagePack.Resolvers;
 
@@ -21,16 +23,19 @@ public static class MessagePackDefaults
             .WithResolver(
                 CompositeResolver.Create(
                 [
-                    // 0) Uses the Roslyn source generator output produced automatically.
+                    // 0) Custom formatters
+                    CustomFormatterResolver.Instance,
+
+                    // 1) Uses the Roslyn source generator output produced automatically.
                     SourceGeneratedFormatterResolver.Instance,
 
-                    // 1) Attribute-based + built-ins (enums, primitives, etc.)
+                    // 2) Attribute-based + built-ins (enums, primitives, etc.)
                     StandardResolver.Instance,
 
-                    // 2) Typeless (for object-typed or unknown static types)
+                    // 3) Typeless (for object-typed or unknown static types)
                     TypelessObjectResolver.Instance,
 
-                    // 3) Contractless fallback for POCOs without attributes
+                    // 4) Contractless fallback for POCOs without attributes
                     ContractlessStandardResolver.Instance,
                 ])
             )

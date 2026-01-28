@@ -38,50 +38,51 @@ public static class ExceptionExtensions
     public static ProblemDetails ToProblemDetails(this Exception exception)
     {
         var problemDetails = new ProblemDetails();
-        switch (Flatten(exception))
+
+        var workingException = Flatten(exception);
+
+        switch (workingException)
         {
             case System.ComponentModel.DataAnnotations.ValidationException validationException:
+                var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+
+                if (validationException.ValidationResult.ErrorMessage != null)
                 {
-                    var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
-
-                    if (validationException.ValidationResult.ErrorMessage != null)
-                    {
-                        foreach (var memberName in validationException.ValidationResult.MemberNames)
-                            errors[memberName] = [validationException.ValidationResult.ErrorMessage];
-                    }
-
-                    problemDetails.Title = "One or more validation errors occurred.";
-                    problemDetails.Status = (int)HttpStatusCode.BadRequest;
-                    problemDetails.Extensions.Add("errors", errors);
-                    break;
+                    foreach (var memberName in validationException.ValidationResult.MemberNames)
+                        errors[memberName] = [validationException.ValidationResult.ErrorMessage];
                 }
+
+                problemDetails.Title = "One or more validation errors occurred.";
+                problemDetails.Status = (int)HttpStatusCode.BadRequest;
+                problemDetails.Extensions.Add("errors", errors);
+                break;
+
             case DomainException domainException:
-                {
-                    var reasonPhrase = GetReasonPhrase(domainException.StatusCode);
-                    if (reasonPhrase.IsNullOrWhiteSpace())
-                        reasonPhrase = "Internal Server Error";
+                var reasonPhrase = GetReasonPhrase(domainException.StatusCode);
+                if (reasonPhrase.IsNullOrWhiteSpace())
+                    reasonPhrase = "Internal Server Error";
 
-                    problemDetails.Title = reasonPhrase;
-                    problemDetails.Status = domainException.StatusCode;
+                problemDetails.Title = reasonPhrase;
+                problemDetails.Status = domainException.StatusCode;
 
-                    if (domainException.Errors != null)
-                        problemDetails.Extensions.Add("errors", domainException.Errors);
+                if (domainException.Errors != null)
+                    problemDetails.Extensions.Add("errors", domainException.Errors);
 
-                    break;
-                }
+                break;
             default:
-                {
-                    problemDetails.Title = "Internal Server Error.";
-                    problemDetails.Status = 500;
-                    break;
-                }
+                problemDetails.Title = "Internal Server Error.";
+                problemDetails.Status = 500;
+                break;
         }
 
-        if (exception != null)
-        {
-            problemDetails.Detail = exception.Message;
-            problemDetails.Extensions.Add("exception", exception.ToString());
-        }
+        if (workingException == null)
+            return problemDetails;
+
+        var baseException = workingException.GetBaseException();
+
+        problemDetails.Detail = baseException.Message;
+        problemDetails.Extensions.Add("message", workingException.Message);
+        problemDetails.Extensions.Add("exception", workingException.ToString());
 
         return problemDetails;
     }
