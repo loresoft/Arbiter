@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Text;
 
@@ -78,14 +77,21 @@ public partial class RequestLoggingMiddleware
             // capture response details
             var statusCode = context.Response.StatusCode;
 
+            // determine log level based on status code
+            var logLevel = statusCode >= StatusCodes.Status500InternalServerError
+                ? LogLevel.Error
+                : statusCode >= StatusCodes.Status400BadRequest
+                    ? LogLevel.Warning
+                    : _options.LogLevel;
+
             // calculate elapsed time
             var elapsed = Stopwatch.GetElapsedTime(timestamp);
 
             // log the request
             if (string.IsNullOrEmpty(requestBody))
-                LogRequestBasic(_logger, _options.LogLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds);
+                LogRequestBasic(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds);
             else
-                LogRequestBody(_logger, _options.LogLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds, requestBody);
+                LogRequestBody(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds, requestBody);
         }
     }
 
