@@ -298,7 +298,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// await stateEdit.Load(123, force: true);
     /// </code>
     /// </example>
-    public async Task Load(TKey id, bool force = false)
+    public async ValueTask Load(TKey id, bool force = false)
     {
         // don't load if already loaded
         if (!force && Original != null && EqualityComparer<TKey>.Default.Equals(id, Original.Id))
@@ -355,7 +355,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is an empty <see cref="Guid"/></exception>
     /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
     /// <exception cref="InvalidOperationException">Thrown when the mapping between read and update models fails</exception>
-    public async Task LoadKey(Guid key, bool force = false)
+    public async ValueTask LoadKey(Guid key, bool force = false)
     {
         // don't load if already loaded
         if (!force && Original != null && Original is IHaveKey keyed && keyed.Key == key)
@@ -421,7 +421,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// }
     /// </code>
     /// </example>
-    public async Task Save()
+    public async ValueTask Save()
     {
         if (Model is null)
             return;
@@ -482,7 +482,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// }
     /// </code>
     /// </example>
-    public async Task Delete()
+    public async ValueTask Delete()
     {
         if (Model is null || Original is null)
             return;
@@ -504,6 +504,30 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
             IsBusy = false;
             NotifyStateChanged();
         }
+    }
+
+    /// <summary>
+    /// Cancels any unsaved changes and resets the model to its original state.
+    /// </summary>
+    public ValueTask Cancel()
+    {
+        if (Original is null)
+            return ValueTask.CompletedTask;
+        try
+        {
+            IsBusy = true;
+            NotifyStateChanged();
+
+            // reset model to original read model
+            SetModel(Original);
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyStateChanged();
+        }
+
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>

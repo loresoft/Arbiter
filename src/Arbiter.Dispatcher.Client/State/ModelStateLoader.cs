@@ -108,7 +108,7 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// await stateLoader.Load("user123", force: true);
     /// </code>
     /// </example>
-    public async Task Load(TKey id, bool force = false)
+    public async ValueTask Load(TKey id, bool force = false)
     {
         // don't load if already loaded
         if (!force && Model != null && EqualityComparer<TKey>.Default.Equals(id, Model.Id))
@@ -156,7 +156,7 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is an empty <see cref="Guid"/></exception>
     /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
-    public async Task LoadKey(Guid key, bool force = false)
+    public async ValueTask LoadKey(Guid key, bool force = false)
     {
         // don't load if already loaded
         if (!force && Model != null && Model is IHaveKey keyed && keyed.Key == key)

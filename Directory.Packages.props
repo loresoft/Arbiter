@@ -13,7 +13,7 @@
     <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
     <PackageVersion Include="Azure.Communication.Sms" Version="1.0.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Blazilla" Version="2.2.2" />
+    <PackageVersion Include="Blazilla" Version="2.3.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="6.0.16" />
@@ -58,7 +58,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.15.0" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.0.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.35" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.36" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
@@ -69,8 +69,8 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.10.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.10.0" />
-    <PackageVersion Include="TUnit" Version="1.12.139" />
-    <PackageVersion Include="Twilio" Version="7.14.2" />
+    <PackageVersion Include="TUnit" Version="1.13.11" />
+    <PackageVersion Include="Twilio" Version="7.14.3" />
     <PackageVersion Include="Verify.TUnit" Version="31.11.0" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
