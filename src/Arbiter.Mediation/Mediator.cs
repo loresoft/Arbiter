@@ -51,6 +51,7 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
     /// <inheritdoc />
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    [RequiresDynamicCode("This overload uses MakeGenericType which requires dynamic code generation.")]
     public async ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default)
@@ -91,6 +92,7 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
     /// <inheritdoc />
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    [RequiresDynamicCode("This overload uses MakeGenericType which requires dynamic code generation.")]
     public async ValueTask<object?> Send(
         object request,
         CancellationToken cancellationToken = default)

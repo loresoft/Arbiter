@@ -77,6 +77,7 @@ public interface IMediator
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    [RequiresDynamicCode("This overload uses MakeGenericType which requires dynamic code generation.")]
     ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default);
@@ -90,6 +91,7 @@ public interface IMediator
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when <paramref name="request"/> does not implement <see cref="IRequest{TResponse}"/> interface.</exception>
     [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
+    [RequiresDynamicCode("This overload uses MakeGenericType which requires dynamic code generation.")]
     ValueTask<object?> Send(
         object request,
         CancellationToken cancellationToken = default);
