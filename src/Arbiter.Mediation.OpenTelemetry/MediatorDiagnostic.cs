@@ -50,11 +50,6 @@ public class MediatorDiagnostic : IMediatorDiagnostic
     public const string CallerTag = "mediator.caller_member";
 
     /// <summary>
-    /// The tag name for exceptions in diagnostic activities.
-    /// </summary>
-    public const string ExceptionTag = "mediator.exception";
-
-    /// <summary>
     /// The name of the counter for the number of requests sent.
     /// </summary>
     public const string SendCount = "mediator.send.count";
@@ -135,7 +130,7 @@ public class MediatorDiagnostic : IMediatorDiagnostic
             instance.SetStatus(ActivityStatusCode.Error);
             instance.SetTag(CallerTag, memberName);
             if (exception != null)
-                instance.SetTag(ExceptionTag, exception.ToString());
+                instance.AddException(exception);
         }
 
         if (!_errorsCounter.Enabled)

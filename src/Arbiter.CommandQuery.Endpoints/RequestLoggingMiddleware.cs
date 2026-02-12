@@ -78,11 +78,7 @@ public partial class RequestLoggingMiddleware
             var statusCode = context.Response.StatusCode;
 
             // determine log level based on status code
-            var logLevel = statusCode >= StatusCodes.Status500InternalServerError
-                ? LogLevel.Error
-                : statusCode >= StatusCodes.Status400BadRequest
-                    ? LogLevel.Warning
-                    : _options.LogLevel;
+            LogLevel logLevel = ComputeLevel(statusCode);
 
             // calculate elapsed time
             var elapsed = Stopwatch.GetElapsedTime(timestamp);
@@ -93,6 +89,25 @@ public partial class RequestLoggingMiddleware
             else
                 LogRequestBody(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds, requestBody);
         }
+    }
+
+    /// <summary>
+    /// Computes the appropriate log level based on the HTTP status code.
+    /// </summary>
+    /// <param name="statusCode">The HTTP status code to evaluate.</param>
+    /// <returns>The corresponding <see cref="LogLevel"/> for the status code.</returns>
+    private LogLevel ComputeLevel(int statusCode)
+    {
+        if (statusCode >= StatusCodes.Status500InternalServerError)
+            return LogLevel.Error;
+
+        if (statusCode == StatusCodes.Status404NotFound)
+            return LogLevel.Debug;
+
+        if (statusCode >= StatusCodes.Status400BadRequest)
+            return LogLevel.Warning;
+
+        return _options.LogLevel;
     }
 
     /// <summary>
