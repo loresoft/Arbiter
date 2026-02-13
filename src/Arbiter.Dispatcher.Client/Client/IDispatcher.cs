@@ -34,7 +34,6 @@ public interface IDispatcher
     /// <param name="request">The request being sent</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/></returns>
-    [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
     ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default);

@@ -31,7 +31,6 @@ public class ServerDispatcher : IDispatcher
     }
 
     /// <inheritdoc />
-    [RequiresUnreferencedCode("This overload relies on reflection over types that may be removed when trimming.")]
     public ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default)

@@ -48,8 +48,6 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// Initializes a new instance of the <see cref="MapperBase{TSource, TDestination}"/> class.
     /// Creates and compiles the mapping expressions for optimal runtime performance.
     /// </summary>
-    [RequiresUnreferencedCode("Expression compilation requires unreferenced code for AOT scenarios")]
-    [RequiresDynamicCode("Expression compilation requires dynamic code generation")]
     protected MapperBase()
     {
         var (factory, mapper, projection) = CreateMappers();
@@ -187,8 +185,6 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// - Mapper action for updating existing destination instances
     /// - Projection expression for queryable operations
     /// </returns>
-    [RequiresUnreferencedCode("Expression compilation and member access requires unreferenced code for AOT scenarios")]
-    [RequiresDynamicCode("Expression compilation requires dynamic code generation")]
     private (Func<TSource, TDestination>, Action<TSource, TDestination>?, Expression<Func<TSource, TDestination>>) CreateMappers()
     {
         // Get the mapping expression defined by the derived class
@@ -246,7 +242,6 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// Only object initializer syntax is supported (e.g., <c>new Destination { Property = value }</c>).
     /// </remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Lots of comments")]
-    [RequiresUnreferencedCode("Member access and expression manipulation requires unreferenced code for AOT scenarios")]
     private static bool TryExtractAssignments(
         Expression<Func<TSource, TDestination>> mappingExpression,
         ParameterExpression sourceParam,
