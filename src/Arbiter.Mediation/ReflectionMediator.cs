@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
+using Arbiter.Mediation.Infrastructure;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Arbiter.Mediation;
@@ -11,10 +13,8 @@ namespace Arbiter.Mediation;
 /// <param name="serviceProvider">Service provider to resolve handlers and behaviors.</param>
 /// <param name="diagnostic">An optional diagnostic service for logging activities and metrics.</param>
 /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is null</exception>
-public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnostic? diagnostic = null) : IMediator
+public sealed class ReflectionMediator(IServiceProvider serviceProvider, IMediatorDiagnostic? diagnostic = null) : IMediator
 {
-    private static readonly ConcurrentDictionary<Type, IHandler> _handlerCache = new();
-
     private readonly IServiceProvider _serviceProvider = serviceProvider
         ?? throw new ArgumentNullException(nameof(serviceProvider));
 
@@ -30,8 +30,8 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
         try
         {
-            var handler = (IHandler<TResponse>)_handlerCache.GetOrAdd(typeof(TRequest), _
-                => new RequestHandler<TRequest, TResponse>());
+            var handler = (IMediatorHandler<TResponse>)MediatorRegistry.GetOrAdd(typeof(TRequest), _
+                => new MediatorHandler<TRequest, TResponse>());
 
             // create a new scope for each request to make sure handlers are disposed
             var serviceScope = _serviceProvider.CreateAsyncScope();
@@ -65,13 +65,13 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
         try
         {
-            var handler = (IHandler<TResponse>)_handlerCache.GetOrAdd(requestType, _ =>
+            var handler = (IMediatorHandler<TResponse>)MediatorRegistry.GetOrAdd(requestType, _ =>
             {
-                var wrapperType = typeof(RequestHandler<,>).MakeGenericType(requestType, responseType);
+                var wrapperType = typeof(MediatorHandler<,>).MakeGenericType(requestType, responseType);
                 var wrapper = Activator.CreateInstance(wrapperType)
                     ?? throw new InvalidOperationException($"Unable to create instance of {wrapperType}.");
 
-                return (IHandler)wrapper;
+                return (IMediatorHandler)wrapper;
             });
 
             // create a new scope for each request to make sure handlers are disposed
@@ -105,7 +105,7 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
         try
         {
-            var handler = _handlerCache.GetOrAdd(typeKey, requestType =>
+            var handler = MediatorRegistry.GetOrAdd(typeKey, static requestType =>
             {
                 // Get the generic response type
                 var requestInterfaceType = requestType
@@ -121,12 +121,12 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
 
                 var responseType = genericArguments[0];
 
-                var wrapperType = typeof(RequestHandler<,>).MakeGenericType(requestType, responseType);
+                var wrapperType = typeof(MediatorHandler<,>).MakeGenericType(requestType, responseType);
 
                 var wrapper = Activator.CreateInstance(wrapperType)
                     ?? throw new InvalidOperationException($"Unable to create instance of {wrapperType}.");
 
-                return (IHandler)wrapper;
+                return (IMediatorHandler)wrapper;
             });
 
             // create a new scope for each request to make sure handlers are disposed
@@ -176,57 +176,6 @@ public sealed class Mediator(IServiceProvider serviceProvider, IMediatorDiagnost
         {
             diagnostic?.ActivityError(activity, ex, notification);
             throw;
-        }
-    }
-
-
-    private interface IHandler
-    {
-        ValueTask<object?> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken);
-    }
-
-    private interface IHandler<TResponse> : IHandler
-    {
-        ValueTask<TResponse?> Handle(IRequest<TResponse> request, IServiceProvider serviceProvider, CancellationToken cancellationToken);
-    }
-
-    private readonly struct RequestHandler<TRequest, TResponse> : IHandler<TResponse>
-        where TRequest : IRequest<TResponse>
-    {
-        public async ValueTask<object?> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken)
-        {
-            return await Handle((TRequest)request, serviceProvider, cancellationToken).ConfigureAwait(false);
-        }
-
-        public ValueTask<TResponse?> Handle(IRequest<TResponse> request, IServiceProvider serviceProvider, CancellationToken cancellationToken)
-        {
-            var handler = serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
-            var behaviors = serviceProvider.GetServices<IPipelineBehavior<TRequest, TResponse>>().ToArray();
-
-            var pipeline = handler;
-
-            // reverse the behaviors to maintain the order of execution
-            for (var i = behaviors.Length - 1; i >= 0; i--)
-                pipeline = new PipelineBehavior<TRequest, TResponse>(behaviors[i], pipeline);
-
-            return pipeline.Handle((TRequest)request, cancellationToken);
-        }
-    }
-
-    private readonly struct PipelineBehavior<TRequest, TResponse>(
-            IPipelineBehavior<TRequest, TResponse> behavior,
-            IRequestHandler<TRequest, TResponse> next)
-            : IRequestHandler<TRequest, TResponse>
-            where TRequest : IRequest<TResponse>
-    {
-        public readonly ValueTask<TResponse?> Handle(TRequest request, CancellationToken cancellationToken = default)
-        {
-            var child = next;
-
-            return behavior.Handle(
-                request,
-                token => child.Handle(request, token),
-                cancellationToken);
         }
     }
 }

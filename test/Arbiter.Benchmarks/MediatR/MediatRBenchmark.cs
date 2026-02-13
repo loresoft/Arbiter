@@ -35,9 +35,16 @@ public class MediatRBenchmark
     }
 
     [Benchmark]
-    public Task<Pong> SendingRequests()
+    public Task<Pong> SendingRequest()
     {
         return _mediator.Send(_request);
+    }
+
+    [Benchmark]
+    public Task<object?> SendingObject()
+    {
+        var request = (object)_request;
+        return _mediator.Send(request);
     }
 
     [Benchmark]

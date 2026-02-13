@@ -29,7 +29,7 @@ public static class MediatorServiceExtensions
     /// </example>
     public static IServiceCollection AddMediator(this IServiceCollection services, ServiceLifetime serviceLifetime = ServiceLifetime.Singleton)
     {
-        var service = ServiceDescriptor.Describe(typeof(IMediator), typeof(Mediator), serviceLifetime);
+        var service = ServiceDescriptor.Describe(typeof(IMediator), typeof(ReflectionMediator), serviceLifetime);
         services.TryAdd(service);
 
         return services;
