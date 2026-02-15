@@ -100,6 +100,9 @@ public static class Program
             .AddEndpointRoutes();
 
         services
+            .AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
+
+        services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions())
             .AddSingleton(sp => sp.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions);
 

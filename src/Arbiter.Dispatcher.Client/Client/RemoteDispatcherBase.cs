@@ -205,11 +205,13 @@ public abstract class RemoteDispatcherBase : IDispatcher
         if (HybridCache is null || request is not ICacheExpire cacheRequest)
             return;
 
-        var cacheTag = cacheRequest.GetCacheTag();
-        if (string.IsNullOrEmpty(cacheTag))
-            return;
+        var cacheKey = cacheRequest.GetCacheKey();
+        if (!string.IsNullOrEmpty(cacheKey))
+            await HybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
 
-        await HybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
+        var cacheTag = cacheRequest.GetCacheTag();
+        if (!string.IsNullOrEmpty(cacheTag))
+            await HybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

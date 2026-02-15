@@ -247,6 +247,15 @@ public record EntityUpdateCommand<TKey, TUpdateModel, TReadModel>
     public string? FilterName { get; }
 
     /// <summary>
+    /// Gets the cache key associated with the <typeparamref name="TReadModel"/> entity type for cache invalidation.
+    /// </summary>
+    /// <returns>
+    /// The cache key for the entity type, or <see langword="null"/> if no cache key is available.
+    /// </returns>
+    string? ICacheExpire.GetCacheKey()
+        => CacheTagger.GetKey<TReadModel, TKey>(CacheTagger.Buckets.Identifier, Id);
+
+    /// <summary>
     /// Gets the cache tag associated with the <typeparamref name="TReadModel"/> entity type for cache invalidation.
     /// </summary>
     /// <returns>

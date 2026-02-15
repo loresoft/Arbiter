@@ -14,8 +14,9 @@ public static class CacheTagger
     /// </summary>
     /// <typeparam name="TModel">The type of model</typeparam>
     /// <param name="tag">The tag to use for the model</param>
-    public static void SetTag<TModel>(string? tag)
+    public static void SetTag<TModel>(string? tag = null)
     {
+        tag ??= typeof(TModel).FullName;
         _typeTags.TryAdd(typeof(TModel), tag);
     }
 

@@ -47,6 +47,10 @@ public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBa
         if (request is not ICacheExpire cacheRequest)
             return response;
 
+        var cacheKey = cacheRequest.GetCacheKey();
+        if (!string.IsNullOrEmpty(cacheKey))
+            await _hybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+
         var cacheTag = cacheRequest.GetCacheTag();
         if (!string.IsNullOrEmpty(cacheTag))
             await _hybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
