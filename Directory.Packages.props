@@ -22,7 +22,7 @@
     <PackageVersion Include="Fluid.Core" Version="2.31.0" />
     <PackageVersion Include="Injectio" Version="5.1.0" />
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.5.4" />
-    <PackageVersion Include="MailKit" Version="4.14.1" />
+    <PackageVersion Include="MailKit" Version="4.15.0" />
     <PackageVersion Include="MediatR" Version="[12.5.0]" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.299" />
