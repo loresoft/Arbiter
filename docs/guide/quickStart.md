@@ -15,6 +15,8 @@ Mediator pattern and Command Query Responsibility Segregation (CQRS) implementat
 | [Arbiter.CommandQuery.MongoDB](#arbitercommandquerymongodb)                 | [![Arbiter.CommandQuery.MongoDB](https://img.shields.io/nuget/v/Arbiter.CommandQuery.MongoDB.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.MongoDB/)                         | Mongo DB handlers for the base Commands and Queries               |
 | [Arbiter.CommandQuery.Endpoints](#arbitercommandqueryendpoints)             | [![Arbiter.CommandQuery.Endpoints](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Endpoints.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Endpoints/)                   | Minimal API endpoints for base Commands and Queries               |
 | [Arbiter.CommandQuery.Mvc](#arbitercommandquerymvc)                         | [![Arbiter.CommandQuery.Mvc](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Mvc.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Mvc/)                                     | MVC Controllers for base Commands and Queries                     |
+| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)                       | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                                  | Server-side endpoint for Blazor WASM dispatcher requests          |
+| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)                       | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                                  | Client dispatcher for WASM and Server Interactive modes           |
 
 ## Arbiter.Mediation
 
@@ -383,4 +385,152 @@ OR
 
 ```shell
 dotnet add package Arbiter.CommandQuery.Mvc
+```
+
+## Arbiter.Dispatcher.Server
+
+ASP.NET Core endpoint that receives dispatcher requests from Blazor WebAssembly clients and routes them through the mediator pipeline.
+
+### Dispatcher Server Installation
+
+```powershell
+Install-Package Arbiter.Dispatcher.Server
+```
+
+OR
+
+```shell
+dotnet add package Arbiter.Dispatcher.Server
+```
+
+### Dispatcher Server Features
+
+- Single `POST /api/dispatcher/send` endpoint accepting JSON and MessagePack payloads
+- Resolves the request CLR type from the `X-Message-Request-Type` HTTP header
+- Injects the current `ClaimsPrincipal` into any request that implements `IRequestPrincipal`
+- Returns RFC 7807 Problem Details on error
+
+### Dispatcher Server Usage
+
+Register and map the dispatcher endpoint in the Blazor host project:
+
+```csharp
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddInteractiveWebAssemblyComponents();
+
+// Register the server dispatcher for Interactive Server rendering
+builder.Services.AddServerDispatcher();
+
+// Register the DispatcherEndpoint and MessagePack serializer options
+builder.Services.AddDispatcherService();
+
+var app = builder.Build();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies(typeof(Client.Routes).Assembly);
+
+// Map the POST /api/dispatcher/send route and require authorization
+app.MapDispatcherService().RequireAuthorization();
+
+app.Run();
+```
+
+## Arbiter.Dispatcher.Client
+
+Client-side `IDispatcher` abstraction for Blazor components, with implementations for WebAssembly (JSON and MessagePack) and Server Interactive render modes.
+
+### Dispatcher Client Installation
+
+```powershell
+Install-Package Arbiter.Dispatcher.Client
+```
+
+OR
+
+```shell
+dotnet add package Arbiter.Dispatcher.Client
+```
+
+### Dispatcher Client Features
+
+- `IDispatcher` abstraction used by Blazor components — transport is resolved by the DI container
+- `MessagePackDispatcher` and `JsonDispatcher` for WebAssembly: serialize requests and POST to `/api/dispatcher/send`
+- `ServerDispatcher` for Interactive Server: delegates directly to `IMediator` with no HTTP hop
+- `DispatcherDataService` with high-level `Get`, `Page`, `Create`, `Update`, `Save`, `Delete` methods
+- `ModelStateLoader` and `ModelStateEditor` for loading and editing entities in Blazor components
+
+### Dispatcher Client Usage
+
+#### WASM client project
+
+```csharp
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+// Register the MessagePack dispatcher for WebAssembly rendering
+builder.Services
+    .AddMessagePackDispatcher((sp, client) =>
+    {
+        client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+    });
+
+await builder.Build().RunAsync();
+```
+
+#### Send a query from a Blazor component
+
+```csharp
+public class UserDetailPage : ComponentBase
+{
+    [Inject] public required IDispatcher Dispatcher { get; set; }
+
+    private UserReadModel? _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var principal = new ClaimsPrincipal(); // supply from AuthenticationStateProvider
+        var query = new EntityIdentifierQuery<int, UserReadModel>(principal, userId);
+
+        _user = await Dispatcher
+            .Send<EntityIdentifierQuery<int, UserReadModel>, UserReadModel>(
+                query,
+                CancellationToken.None);
+    }
+}
+```
+
+#### Use DispatcherDataService for higher-level access
+
+```csharp
+// Subclass DispatcherDataService to supply the authenticated user
+public class DataService : DispatcherDataService
+{
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
+
+    public DataService(IDispatcher dispatcher, AuthenticationStateProvider authProvider)
+        : base(dispatcher)
+    {
+        _authenticationStateProvider = authProvider;
+    }
+
+    public override async ValueTask<ClaimsPrincipal?> GetUser(
+        CancellationToken cancellationToken = default)
+    {
+        var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        return state?.User;
+    }
+}
+
+// Register the subclass
+builder.Services.AddTransient<IDispatcherDataService, DataService>();
+
+// Use in a component
+var user = await dataService.Get<int, UserReadModel>(userId);
+var pagedResult = await dataService.Page<UserReadModel>(entityQuery);
+var newUser = await dataService.Create<UserCreateModel, UserReadModel>(createModel);
 ```

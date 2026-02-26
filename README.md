@@ -25,6 +25,7 @@ Arbiter is designed for building clean, modular architectures like Vertical Slic
 - [Core Libraries](#core-libraries)
   - [Arbiter.Mediation](#arbitermediation)
   - [Arbiter.CommandQuery](#arbitercommandquery)
+  - [Arbiter.Services](#arbiterservices)
   - [Arbiter.Communication](#arbitercommunication)
 - [Data Providers](#data-providers)
 - [Web Integration](#web-integration)
@@ -96,6 +97,7 @@ public class UserController : ControllerBase
 | :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------- |
 | [Arbiter.Mediation](#arbitermediation)         | [![Arbiter.Mediation](https://img.shields.io/nuget/v/Arbiter.Mediation.svg)](https://www.nuget.org/packages/Arbiter.Mediation/)             | Lightweight and extensible implementation of the Mediator pattern |
 | [Arbiter.CommandQuery](#arbitercommandquery)   | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)    | Base package for Commands, Queries and Behaviors                  |
+| [Arbiter.Services](#arbiterservices)           | [![Arbiter.Services](https://img.shields.io/nuget/v/Arbiter.Services.svg)](https://www.nuget.org/packages/Arbiter.Services/)                | Utility services for CSV, encryption, caching, and tokens         |
 | [Arbiter.Communication](#arbitercommunication) | [![Arbiter.Communication](https://img.shields.io/nuget/v/Arbiter.Communication.svg)](https://www.nuget.org/packages/Arbiter.Communication/) | Message template communication for email and SMS services         |
 
 ### Data Providers Packages
@@ -120,10 +122,10 @@ public class UserController : ControllerBase
 
 ### Blazor Dispatcher Packages
 
-| Library                                                       | Package                                                                                                                                                             | Description                                                                        |
-| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------- |
-| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)         | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)             | ASP.NET Core endpoint that receives dispatcher messages from Blazor WASM clients   |
-| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)         | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)             | Client-side dispatcher for Blazor: JSON/MessagePack (WASM) and ServerDispatcher    |
+| Library                                               | Package                                                                                                                                                 | Description                                                                      |
+| :---------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------- |
+| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver) | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/) | ASP.NET Core endpoint that receives dispatcher messages from Blazor WASM clients |
+| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient) | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/) | Client-side dispatcher for Blazor: JSON/MessagePack (WASM) and ServerDispatcher  |
 
 ### Communication Providers Packages
 
@@ -450,6 +452,24 @@ var query = new EntityPagedQuery<ProductReadModel>(principal, complexEntityQuery
 var result = await mediator.Send(query);
 ```
 
+### Arbiter.Services
+
+Utility library providing common infrastructure services for .NET applications.
+
+#### Services Installation
+
+```bash
+dotnet add package Arbiter.Services
+```
+
+#### Services Features
+
+- **CSV Parsing**: Read and write CSV data with flexible configuration
+- **Encryption**: Symmetric encryption and hashing utilities
+- **Caching**: Helpers for building cache keys and managing cache entries
+- **Token Management**: Secure token generation and validation
+- **URL Building**: Fluent API for constructing URLs with query parameters
+
 ## Data Providers
 
 ### Arbiter.CommandQuery.EntityFramework
@@ -567,10 +587,10 @@ dotnet add package Arbiter.CommandQuery.Mvc
 
 The Dispatcher libraries provide a unified `IDispatcher` abstraction for sending commands and queries from Blazor components, with full support for **Blazor Auto render mode**. Components depend only on `IDispatcher`; the correct transport is wired at startup based on the render environment.
 
-| Render mode | Implementation | Transport |
-| :--- | :--- | :--- |
-| WebAssembly | `MessagePackDispatcher` / `JsonDispatcher` | HTTP POST to `/api/dispatcher/send` |
-| Server Interactive | `ServerDispatcher` | Direct `IMediator` call (in-process) |
+| Render mode        | Implementation                             | Transport                            |
+| :----------------- | :----------------------------------------- | :----------------------------------- |
+| WebAssembly        | `MessagePackDispatcher` / `JsonDispatcher` | HTTP POST to `/api/dispatcher/send`  |
+| Server Interactive | `ServerDispatcher`                         | Direct `IMediator` call (in-process) |
 
 ### Arbiter.Dispatcher.Server
 

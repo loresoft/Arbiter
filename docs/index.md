@@ -14,6 +14,8 @@ Arbiter consists of multiple focused libraries that work together to provide a c
 
 - **Mediation**: Lightweight mediator implementation for decoupled request/response handling
 - **Command Query**: CQRS framework with pre-built commands, queries, and behaviors
+- **Dispatcher**: Blazor-first `IDispatcher` abstraction for sending commands and queries from WASM and Server Interactive components
+- **Services**: Utility library for CSV parsing, encryption, caching, token management, and URL building
 - **Communication**: Message template system for email and SMS services
 
 ### Key Features
@@ -51,6 +53,7 @@ The User Guide provides comprehensive tutorials, examples, and best practices:
 - **[Commands](guide/commands/create.md)** - Command operations for data manipulation
 - **[Handlers](guide/handlers/entityFramework.md)** - Database-specific handler implementations
 - **[Behaviors](guide/behaviors/delete.md)** - Cross-cutting concerns and pipeline behaviors
+- **[Dispatcher](guide/dispatcher/overview.md)** - Blazor Dispatcher for WASM and Server Interactive modes
 - **[Communication](guide/communication/overview.md)** - Message templates and delivery services
 
 ### [API Reference](reference/index.md)
@@ -71,6 +74,9 @@ The API Reference contains detailed documentation for all types, methods, and in
 | [Arbiter.Communication](https://www.nuget.org/packages/Arbiter.Communication/)                               | [![Arbiter.Communication](https://img.shields.io/nuget/v/Arbiter.Communication.svg)](https://www.nuget.org/packages/Arbiter.Communication/)                                              | Message template communication for email and SMS services         |
 | [Arbiter.Communication.Azure](https://www.nuget.org/packages/Arbiter.Communication.Azure/)                   | [![Arbiter.Communication.Azure](https://img.shields.io/nuget/v/Arbiter.Communication.Azure.svg)](https://www.nuget.org/packages/Arbiter.Communication.Azure/)                            | Communication implementation for Azure Communication Services     |
 | [Arbiter.Communication.Twilio](https://www.nuget.org/packages/Arbiter.Communication.Twilio/)                 | [![Arbiter.Communication.Twilio](https://img.shields.io/nuget/v/Arbiter.Communication.Twilio.svg)](https://www.nuget.org/packages/Arbiter.Communication.Twilio/)                         | Communication implementation for SendGrid and Twilio              |
+| [Arbiter.Services](https://www.nuget.org/packages/Arbiter.Services/)                                         | [![Arbiter.Services](https://img.shields.io/nuget/v/Arbiter.Services.svg)](https://www.nuget.org/packages/Arbiter.Services/)                                                             | Utility services for CSV, encryption, caching, and tokens         |
+| [Arbiter.Dispatcher.Server](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                       | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                                  | Server-side endpoint for Blazor WASM dispatcher requests          |
+| [Arbiter.Dispatcher.Client](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                       | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                                  | Client dispatcher for WASM and Server Interactive modes           |
 
 ## Next Steps
 
