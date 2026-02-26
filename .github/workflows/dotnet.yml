@@ -59,20 +59,20 @@ jobs:
           name: packages
           path: "${{env.BUILD_PATH}}"
 
-      # - name: Install docfx
-      #   if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      #   run: dotnet tool update -g docfx
+      - name: Install docfx
+        if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: dotnet tool update -g docfx
 
-      # - name: Create Documentation
-      #   if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      #   run: docfx docs/docfx.json
+      - name: Create Documentation
+        if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: docfx docs/docfx.json
 
-      # - name: Upload Documentation
-      #   if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      #   uses: actions/upload-pages-artifact@v4
-      #   with:
-      #     name: github-pages
-      #     path: "docs/_site/"
+      - name: Upload Documentation
+        if: success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages
+          path: "docs/_site/"
 
   deploy:
     runs-on: ubuntu-latest
