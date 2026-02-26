@@ -16,6 +16,7 @@ Arbiter is designed for building clean, modular architectures like Vertical Slic
 - **Database Agnostic**: Support for Entity Framework Core, MongoDB, and more
 - **Web Ready**: Minimal API endpoints and MVC controller support
 - **Communication**: Integrated email and SMS messaging capabilities
+- **Blazor Ready**: First-class Dispatcher support for Blazor Auto, Server Interactive, and WebAssembly render modes
 
 ## Table of Contents
 
@@ -27,6 +28,7 @@ Arbiter is designed for building clean, modular architectures like Vertical Slic
   - [Arbiter.Communication](#arbitercommunication)
 - [Data Providers](#data-providers)
 - [Web Integration](#web-integration)
+- [Blazor Dispatcher](#blazor-dispatcher)
 - [Documentation](#documentation)
 - [Samples](#samples)
 - [Contributing](#contributing)
@@ -115,6 +117,13 @@ public class UserController : ControllerBase
 | Library                                                           | Package                                                                                                                                                                   | Description                                         |
 | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------- |
 | [Arbiter.Mediation.OpenTelemetry](#arbitermediationopentelemetry) | [![Arbiter.Mediation.OpenTelemetry](https://img.shields.io/nuget/v/Arbiter.Mediation.OpenTelemetry.svg)](https://www.nuget.org/packages/Arbiter.Mediation.OpenTelemetry/) | OpenTelemetry support for Arbiter.Mediation library |
+
+### Blazor Dispatcher Packages
+
+| Library                                                       | Package                                                                                                                                                             | Description                                                                        |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------- |
+| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)         | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)             | ASP.NET Core endpoint that receives dispatcher messages from Blazor WASM clients   |
+| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)         | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)             | Client-side dispatcher for Blazor: JSON/MessagePack (WASM) and ServerDispatcher    |
 
 ### Communication Providers Packages
 
@@ -554,6 +563,119 @@ MVC Controllers for base Commands and Queries with full ASP.NET Core integration
 dotnet add package Arbiter.CommandQuery.Mvc
 ```
 
+## Blazor Dispatcher
+
+The Dispatcher libraries provide a unified `IDispatcher` abstraction for sending commands and queries from Blazor components, with full support for **Blazor Auto render mode**. Components depend only on `IDispatcher`; the correct transport is wired at startup based on the render environment.
+
+| Render mode | Implementation | Transport |
+| :--- | :--- | :--- |
+| WebAssembly | `MessagePackDispatcher` / `JsonDispatcher` | HTTP POST to `/api/dispatcher/send` |
+| Server Interactive | `ServerDispatcher` | Direct `IMediator` call (in-process) |
+
+### Arbiter.Dispatcher.Server
+
+Provides the `DispatcherEndpoint`—a single `POST /api/dispatcher/send` HTTP endpoint that deserializes incoming requests (JSON or MessagePack), resolves the target handler via `IMediator`, and streams the response back to the WASM client.
+
+```bash
+dotnet add package Arbiter.Dispatcher.Server
+```
+
+#### Server Setup
+
+```csharp
+// Program.cs — Blazor host project
+builder.Services.AddDispatcherService();
+
+// ...
+
+app.MapDispatcherService().RequireAuthorization();
+```
+
+### Arbiter.Dispatcher.Client
+
+Provides `IDispatcher` and its implementations, plus `DispatcherDataService`, `ModelStateManager<TModel>`, `ModelStateLoader<TKey, TModel>`, and `ModelStateEditor<TKey, TReadModel, TUpdateModel>` for Blazor component state management.
+
+```bash
+dotnet add package Arbiter.Dispatcher.Client
+```
+
+#### Client Setup — WebAssembly
+
+```csharp
+// Program.cs — WASM client project
+builder.Services
+    .AddMessagePackDispatcher((sp, client) =>
+    {
+        client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+    });
+```
+
+#### Client Setup — Server Interactive
+
+```csharp
+// Program.cs — Blazor host project
+builder.Services.AddServerDispatcher();
+```
+
+#### Client Setup — Blazor Auto render mode
+
+Register both dispatchers so each render environment resolves `IDispatcher` correctly:
+
+```csharp
+// Host project: server-side rendering + serves WASM clients
+builder.Services.AddServerDispatcher();
+builder.Services.AddDispatcherService();
+
+// WASM client project: WebAssembly rendering
+builder.Services
+    .AddMessagePackDispatcher((sp, client) =>
+    {
+        client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+    });
+```
+
+#### Sending commands and queries
+
+Inject `IDispatcher` or the higher-level `IDispatcherDataService` into any component or service:
+
+```csharp
+// Low-level: IDispatcher
+var query = new EntityIdentifierQuery<int, UserReadModel>(principal, userId);
+var user = await dispatcher.Send<EntityIdentifierQuery<int, UserReadModel>, UserReadModel>(
+    query, cancellationToken);
+
+// High-level: IDispatcherDataService
+var user = await dataService.Get<int, UserReadModel>(userId);
+var page = await dataService.Page<UserReadModel>(entityQuery);
+var saved = await dataService.Save<int, UserUpdateModel, UserReadModel>(userId, updateModel);
+```
+
+#### Component state management
+
+`ModelStateEditor` manages the full load–edit–save–delete lifecycle for a Blazor edit form:
+
+```csharp
+@inject ModelStateEditor<int, UserReadModel, UserUpdateModel> Store
+@implements IDisposable
+
+protected override async Task OnInitializedAsync()
+{
+    Store.OnStateChanged += (_, _) => InvokeAsync(StateHasChanged);
+
+    if (IsCreate)
+        Store.New();
+    else
+        await Store.Load(Id);
+}
+
+// Store.IsBusy  — true while a load/save/delete is in progress
+// Store.IsDirty — true when the model has unsaved changes
+// Store.Model   — the editable update model bound to the form
+// Store.Save()  / Store.Delete() / Store.Cancel()
+
+public void Dispose() => Store.OnStateChanged -= HandleStateChanged;
+```
+
 ## Communication
 
 ### Arbiter.Communication
@@ -583,6 +705,10 @@ dotnet add package Arbiter.Communication.Twilio
 - **[Complete Documentation](https://loresoft.github.io/Arbiter/)** - Comprehensive guides and API reference
 - **[Quick Start Guide](https://loresoft.github.io/Arbiter/guide/quickStart.html)** - Get up and running quickly
 - **[Architecture Patterns](https://loresoft.github.io/Arbiter/guide/patterns.html)** - Best practices and patterns
+- **[Blazor Dispatcher Overview](https://loresoft.github.io/Arbiter/guide/dispatcher/overview.html)** - Dispatcher architecture, WASM and Server Interactive setup
+- **[Dispatcher Server](https://loresoft.github.io/Arbiter/guide/dispatcher/server.html)** - Server endpoint configuration, security, and diagnostics
+- **[Dispatcher Client](https://loresoft.github.io/Arbiter/guide/dispatcher/client.html)** - Client registration, sending commands and queries
+- **[State Management](https://loresoft.github.io/Arbiter/guide/dispatcher/state.html)** - ModelStateManager, ModelStateLoader, ModelStateEditor
 
 ## Samples
 

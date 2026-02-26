@@ -67,6 +67,17 @@ items:
       - name: Base Behaviors
         href: behaviors/abstracts.md
 
+  - name: Dispatcher
+    items:
+      - name: Overview
+        href: dispatcher/overview.md
+      - name: Server
+        href: dispatcher/server.md
+      - name: Client
+        href: dispatcher/client.md
+      - name: State Management
+        href: dispatcher/state.md
+
   - name: Communication
     items:
       - name: Communication Overview
