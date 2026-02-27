@@ -70,7 +70,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.10.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.10.0" />
-    <PackageVersion Include="TUnit" Version="1.17.29" />
+    <PackageVersion Include="TUnit" Version="1.17.36" />
     <PackageVersion Include="Twilio" Version="7.14.3" />
     <PackageVersion Include="Verify.TUnit" Version="31.13.2" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
