@@ -163,7 +163,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// For accurate change detection, ensure that the update model type properly implements <see cref="object.GetHashCode"/>.
     /// </para>
     /// </remarks>
-    public bool IsDirty => Model?.GetHashCode() != EditHash;
+    public bool IsDirty => Model != null && Model.GetHashCode() != EditHash;
 
     /// <summary>
     /// Gets a value indicating whether the current model has not been modified since it was last saved or loaded.
@@ -175,7 +175,7 @@ public class ModelStateEditor<TKey, TReadModel, TUpdateModel> : ModelStateManage
     /// This property is the logical inverse of <see cref="IsDirty"/> and provides a convenient way
     /// to check if the model is in a clean (unmodified) state.
     /// </remarks>
-    public bool IsClean => Model?.GetHashCode() == EditHash;
+    public bool IsClean => Model == null || Model.GetHashCode() == EditHash;
 
     /// <summary>
     /// Sets the update model to the specified value and updates the original model and edit hash accordingly.
