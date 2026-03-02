@@ -46,7 +46,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.3.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.3.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.4.0" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.1.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
