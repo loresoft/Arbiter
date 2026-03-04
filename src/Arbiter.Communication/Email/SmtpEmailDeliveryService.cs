@@ -128,7 +128,6 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
     private static MimeMessage ConvertMessage(EmailMessage emailMessage)
     {
         var message = new MimeMessage();
-
         message.Subject = emailMessage.Content.Subject;
         message.From.Add(CreateAddress(emailMessage.Senders.From));
 
@@ -169,9 +168,16 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
         {
             foreach (var attachment in emailMessage.Attachments)
             {
-                ContentType.TryParse(attachment.ContentType, out var contentType);
                 var contentBytes = attachment.Content.ToArray();
 
+                _ = ContentType.TryParse(attachment.ContentType, out var contentType);
+                if (contentType == null)
+                {
+                    var mimeType = MimeTypes.GetMimeType(attachment.Name);
+                    _ = ContentType.TryParse(mimeType, out contentType);
+                }
+
+                contentType ??= new ContentType("application", "octet-stream");
                 builder.Attachments.Add(attachment.Name, contentBytes, contentType);
             }
         }

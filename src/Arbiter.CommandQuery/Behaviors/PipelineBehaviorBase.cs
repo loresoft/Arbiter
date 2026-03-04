@@ -51,16 +51,34 @@ public abstract partial class PipelineBehaviorBase<TRequest, TResponse>
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(next);
 
+        using var activity = MediatorTelemetry.Source.StartActivity(
+            name: $"{MediatorTelemetry.BehaviorOperation} {_typeName}",
+            kind: ActivityKind.Internal);
+
+        activity?.SetTag(MediatorTelemetry.OperationTag, "behavior");
+        activity?.SetTag(MediatorTelemetry.BehaviorTag, _typeName);
+        activity?.SetTag(MediatorTelemetry.RequestTypeTag, typeof(TRequest).FullName);
+
         var startTime = Stopwatch.GetTimestamp();
         try
         {
             LogStart(Logger, _typeName, request);
-            return await Process(request, next, cancellationToken).ConfigureAwait(false);
+
+            var result = await Process(request, next, cancellationToken).ConfigureAwait(false);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            MediatorTelemetry.RecordException(activity, ex);
+            throw;
         }
         finally
         {
-            var elaspsed = Stopwatch.GetElapsedTime(startTime);
-            LogFinish(Logger, _typeName, request, elaspsed.TotalMilliseconds);
+            var elapsed = Stopwatch.GetElapsedTime(startTime);
+            LogFinish(Logger, _typeName, request, elapsed.TotalMilliseconds);
         }
     }
 

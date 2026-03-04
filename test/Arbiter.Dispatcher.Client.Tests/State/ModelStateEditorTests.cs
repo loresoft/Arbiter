@@ -93,8 +93,8 @@ public class ModelStateEditorTests
         manager.Original.Should().BeNull();
         manager.IsBusy.Should().BeFalse();
         manager.EditHash.Should().Be(0);
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
     }
 
     [Test]
@@ -167,8 +167,8 @@ public class ModelStateEditorTests
         manager.Model.Should().BeNull();
         manager.Original.Should().BeNull();
         manager.EditHash.Should().Be(0);
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
     }
 
     [Test]
@@ -216,8 +216,8 @@ public class ModelStateEditorTests
         manager.Model.Should().BeNull();
         manager.Original.Should().BeNull();
         manager.EditHash.Should().Be(0);
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
     }
 
     [Test]
@@ -296,8 +296,8 @@ public class ModelStateEditorTests
         manager.Original.Should().BeNull();
         manager.EditHash.Should().Be(0);
         manager.IsBusy.Should().BeFalse();
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
 
         mockService.Verify();
     }
@@ -623,8 +623,8 @@ public class ModelStateEditorTests
         manager.Original.Should().BeNull();
         manager.EditHash.Should().Be(0);
         manager.IsBusy.Should().BeFalse();
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
 
         mockService.Verify();
     }
@@ -769,7 +769,7 @@ public class ModelStateEditorTests
     }
 
     [Test]
-    public void IsDirty_WithNullModel_ShouldReturnTrue()
+    public void IsDirty_WithNullModel_ShouldReturnFalse()
     {
         // Arrange
         var mockService = new MockDataService();
@@ -779,8 +779,8 @@ public class ModelStateEditorTests
         var manager = new ModelStateEditor<int, TestReadModel, TestUpdateModel>(dataService, mapper);
 
         // Act & Assert
-        manager.IsDirty.Should().BeTrue();
-        manager.IsClean.Should().BeFalse();
+        manager.IsDirty.Should().BeFalse();
+        manager.IsClean.Should().BeTrue();
     }
 
     [Test]

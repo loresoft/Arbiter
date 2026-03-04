@@ -1,6 +1,6 @@
 
 using Arbiter.CommandQuery.Endpoints;
-using Arbiter.Mediation.OpenTelemetry;
+using Arbiter.Mediation;
 
 using AspNetCore.SecurityKey;
 
@@ -49,7 +49,7 @@ public static class Program
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddSqlClientInstrumentation()
-                    .AddMediatorInstrumentation()
+                    .AddMeter(MediatorTelemetry.MeterName)
             )
             .WithTracing(tracing =>
                 tracing
@@ -57,7 +57,7 @@ public static class Program
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
-                    .AddMediatorInstrumentation()
+                    .AddSource(MediatorTelemetry.SourceName)
             );
 
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
@@ -67,8 +67,6 @@ public static class Program
                 .AddOpenTelemetry()
                 .UseOtlpExporter();
         }
-
-        builder.Services.AddMediatorDiagnostics();
     }
 
     private static void ConfigureServices(WebApplicationBuilder builder)

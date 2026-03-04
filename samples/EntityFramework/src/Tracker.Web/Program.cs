@@ -64,8 +64,6 @@ public static class Program
                 .AddOpenTelemetry()
                 .UseOtlpExporter();
         }
-
-        builder.Services.AddMediatorDiagnostics();
     }
 
     private static void ConfigureServices(WebApplicationBuilder builder)

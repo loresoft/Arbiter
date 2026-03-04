@@ -43,11 +43,29 @@ public abstract partial class RequestHandlerBase<TRequest, TResponse> : IRequest
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        using var activity = MediatorTelemetry.Source.StartActivity(
+            name: $"{MediatorTelemetry.HandlerOperation} {_typeName}",
+            kind: ActivityKind.Internal);
+
+        activity?.SetTag(MediatorTelemetry.OperationTag, "handler");
+        activity?.SetTag(MediatorTelemetry.HandlerTag, _typeName);
+        activity?.SetTag(MediatorTelemetry.RequestTypeTag, typeof(TRequest).FullName);
+
         var startTime = Stopwatch.GetTimestamp();
         try
         {
             LogStart(Logger, _typeName, request);
-            return await Process(request, cancellationToken).ConfigureAwait(false);
+
+            var result = await Process(request, cancellationToken).ConfigureAwait(false);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            MediatorTelemetry.RecordException(activity, ex);
+            throw;
         }
         finally
         {
