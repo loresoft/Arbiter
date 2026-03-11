@@ -218,7 +218,7 @@ public class AesEncryptionTests
     }
 
     [Test]
-    public void Decrypt_WithWrongPassword_ThrowsCryptographicException()
+    public void Decrypt_WithWrongPassword_DoesNotReturnOriginalPlainText()
     {
         // Arrange
         var plainText = "Sensitive data";
@@ -226,8 +226,18 @@ public class AesEncryptionTests
         var wrongPassword = "WrongPassword";
         var encrypted = AesEncryption.Encrypt(plainText, correctPassword);
 
-        // Act & Assert
-        Assert.Throws<CryptographicException>(() => AesEncryption.Decrypt(encrypted, wrongPassword));
+        // AES-CBC+PKCS7 is not authenticated: a wrong key usually causes a CryptographicException
+        // due to invalid padding, but ~1/256 times the padding bytes are coincidentally valid and
+        // decryption returns garbage instead of throwing. Both outcomes are acceptable security failures.
+        try
+        {
+            var decrypted = AesEncryption.Decrypt(encrypted, wrongPassword);
+            decrypted.Should().NotBe(plainText);
+        }
+        catch (CryptographicException)
+        {
+            // Expected: invalid PKCS7 padding detected
+        }
     }
 
 
@@ -256,7 +266,7 @@ public class AesEncryptionTests
     }
 
     [Test]
-    public void Decrypt_WithTamperedCipherText_ThrowsCryptographicException()
+    public void Decrypt_WithTamperedCipherText_DoesNotReturnOriginalPlainText()
     {
         // Arrange
         var plainText = "Original message";
@@ -268,8 +278,18 @@ public class AesEncryptionTests
         bytes[bytes.Length - 1] ^= 0xFF; // Flip bits in last byte
         var tamperedEncrypted = Convert.ToBase64String(bytes);
 
-        // Act & Assert
-        Assert.Throws<CryptographicException>(() => AesEncryption.Decrypt(tamperedEncrypted, password));
+        // AES-CBC+PKCS7 is not authenticated: tampering usually causes a CryptographicException
+        // due to invalid padding, but ~1/256 times the corrupted bytes are coincidentally valid padding
+        // and decryption returns garbage instead of throwing. Both outcomes are acceptable security failures.
+        try
+        {
+            var decrypted = AesEncryption.Decrypt(tamperedEncrypted, password);
+            decrypted.Should().NotBe(plainText);
+        }
+        catch (CryptographicException)
+        {
+            // Expected: invalid PKCS7 padding detected
+        }
     }
 
     [Test]
