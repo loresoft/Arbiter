@@ -21,6 +21,7 @@ public static class EndpointRouteExtensions
     {
         services.AddHttpContextAccessor();
         services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
+        services.TryAddSingleton<IPrincipalResolver, PrincipalResolver>();
 
         return services;
     }

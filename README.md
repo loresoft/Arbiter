@@ -114,12 +114,6 @@ public class UserController : ControllerBase
 | [Arbiter.CommandQuery.Endpoints](#arbitercommandqueryendpoints) | [![Arbiter.CommandQuery.Endpoints](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Endpoints.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Endpoints/) | Minimal API endpoints for base Commands and Queries |
 | [Arbiter.CommandQuery.Mvc](#arbitercommandquerymvc)             | [![Arbiter.CommandQuery.Mvc](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Mvc.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Mvc/)                   | MVC Controllers for base Commands and Queries       |
 
-### Observability Packages
-
-| Library                                                           | Package                                                                                                                                                                   | Description                                         |
-| :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------- |
-| [Arbiter.Mediation.OpenTelemetry](#arbitermediationopentelemetry) | [![Arbiter.Mediation.OpenTelemetry](https://img.shields.io/nuget/v/Arbiter.Mediation.OpenTelemetry.svg)](https://www.nuget.org/packages/Arbiter.Mediation.OpenTelemetry/) | OpenTelemetry support for Arbiter.Mediation library |
-
 ### Blazor Dispatcher Packages
 
 | Library                                               | Package                                                                                                                                                 | Description                                                                      |
@@ -254,37 +248,22 @@ public class PingController : ControllerBase
 }
 ```
 
-### Arbiter.Mediation.OpenTelemetry
+**5. OpenTelemetry Integration (Optional)**
 
-Comprehensive observability support for Arbiter.Mediation with OpenTelemetry integration.
-
-#### OpenTelemetry Installation
-
-```bash
-dotnet add package Arbiter.Mediation.OpenTelemetry
-```
-
-#### OpenTelemetry Features
-
-- **Distributed Tracing**: Automatic tracing of all mediator operations
-- **Metrics**: Built-in metrics for request duration, throughput, and errors
-- **Activity Enrichment**: Rich contextual information in traces
-- **Zero Configuration**: Works out of the box with minimal setup
-
-#### Usage
+The mediator provides built-in support for OpenTelemetry tracing and metrics:
 
 ```csharp
-// Register diagnostics
-services.AddMediatorDiagnostics();
+using Arbiter.Mediation;
 
-// Configure OpenTelemetry
 services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
-        .AddMediatorInstrumentation()
+        .AddSource(MediatorTelemetry.SourceName)
+        .AddAspNetCoreInstrumentation()
         .AddConsoleExporter()
     )
     .WithMetrics(metrics => metrics
-        .AddMediatorInstrumentation()
+        .AddMeter(MediatorTelemetry.MeterName)
+        .AddAspNetCoreInstrumentation()
         .AddConsoleExporter()
     );
 ```

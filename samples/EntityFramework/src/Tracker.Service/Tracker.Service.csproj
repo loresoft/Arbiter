@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
-    <ProjectReference Include="..\..\..\..\src\Arbiter.Mediation.OpenTelemetry\Arbiter.Mediation.OpenTelemetry.csproj" />
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />
   </ItemGroup>
 

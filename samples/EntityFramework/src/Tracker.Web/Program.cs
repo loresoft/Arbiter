@@ -1,7 +1,6 @@
 using Arbiter.CommandQuery.Endpoints;
 using Arbiter.Dispatcher.Server;
 using Arbiter.Mediation;
-using Arbiter.Mediation.OpenTelemetry;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.ResponseCompression;

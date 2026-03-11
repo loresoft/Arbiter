@@ -197,19 +197,19 @@ The `DispatcherEndpoint` uses structured logging at the following levels:
 | `Warning` | Failed to deserialize request body |
 | `Error` | Unhandled exception during dispatch |
 
-Enable mediator tracing and metrics via `Arbiter.Mediation.OpenTelemetry` to gain visibility into handler execution times and throughput:
+Enable mediator tracing and metrics using OpenTelemetry to gain visibility into handler execution times and throughput:
 
 ```csharp
-builder.Services.AddMediatorDiagnostics();
+using Arbiter.Mediation;
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
-        .AddMediatorInstrumentation()
+        .AddSource(MediatorTelemetry.SourceName)
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
     )
     .WithMetrics(metrics => metrics
-        .AddMediatorInstrumentation()
+        .AddMeter(MediatorTelemetry.MeterName)
         .AddAspNetCoreInstrumentation()
     );
 ```

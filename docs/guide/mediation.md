@@ -29,7 +29,6 @@ dotnet add package Arbiter.Mediation
 - Notifications (Events) using `INotification` and `INotificationHandler<TNotification>`
 - Pipeline Behaviors, like middleware, using `IPipelineBehavior<TRequest, TResponse>`
 - Dependence Injection based resolution of handlers and behaviors via scoped `IServiceProvider`
-- Supports OpenTelemetry tracing and meters via `Arbiter.Mediation.OpenTelemetry`
 
 ## Mediation Usage
 
