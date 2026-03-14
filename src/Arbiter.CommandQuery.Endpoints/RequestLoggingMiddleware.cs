@@ -59,6 +59,16 @@ public partial class RequestLoggingMiddleware
             return;
         }
 
+        // track user identity in logs and tracing
+        var userName = context.User?.Identity?.Name ?? "anonymous";
+
+        // enrich logs with user information
+        using var scope = _logger.BeginScope("{UserName}", userName);
+
+        // enrich tracing with user information
+        Activity.Current?.SetTag("enduser.name", userName);
+
+
         // start timing
         var timestamp = Stopwatch.GetTimestamp();
 

@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Endpoints;
+using Arbiter.Dispatcher;
 using Arbiter.Dispatcher.Server;
 using Arbiter.Mediation;
 
@@ -87,6 +88,7 @@ public static class Program
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
                     .AddSource(MediatorTelemetry.SourceName)
+                    .AddSource(DispatcherTelemetry.SourceName)
             );
 
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);

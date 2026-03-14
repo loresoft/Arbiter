@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text.Json;
@@ -68,6 +69,7 @@ public partial class DispatcherEndpoint
     /// <param name="user">The claims principal representing the current user. Applied to requests that implement <see cref="IRequestPrincipal"/>.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>An <see cref="IResult"/> containing the mediator response or problem details.</returns>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "<Pending>")]
     private async Task<IResult> Send(
         HttpContext context,
         [FromServices] IMediator mediator,
@@ -80,12 +82,27 @@ public partial class DispatcherEndpoint
         var contentType = httpRequest.ContentType ?? MediaTypeNames.Application.Json;
         var isJson = !contentType.StartsWith(MessagePackDefaults.MessagePackContentType, StringComparison.OrdinalIgnoreCase);
 
+        // Start telemetry activity for the receive operation
+        using var activity = DispatcherTelemetry.Source.StartActivity(
+            name: DispatcherTelemetry.ReceiveOperation,
+            kind: ActivityKind.Internal);
+
+        // Add user information to telemetry if available
+        var userName = user?.Identity?.Name;
+        activity?.SetTag(DispatcherTelemetry.UserNameTag, userName);
+
+        // Log the received request with user information
+        using var scope = _logger.BeginScope("Dispatch received: {UserName}", userName);
+
         try
         {
             // Resolve the request type
             var requestType = ReadTypeHeader(httpRequest, out var message);
             if (requestType is null)
                 return BadRequest(message, isJson);
+
+            // Add request type information to telemetry
+            activity?.SetTag(DispatcherTelemetry.RequestTypeTag, requestType.FullName);
 
             var request = (isJson)
                 ? await ReadJsonBody(context, requestType, cancellationToken).ConfigureAwait(false)
@@ -116,6 +133,8 @@ public partial class DispatcherEndpoint
             if (request is IResponseType responseInstance)
                 responseType = responseInstance.ResponseType;
 
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
             return isJson
                 ? TypedResults.Ok(response)
                 : new MessagePackResult(response, valueType: responseType);
@@ -123,6 +142,8 @@ public partial class DispatcherEndpoint
         catch (Exception ex)
         {
             LogError(_logger, ex, nameof(Send), ex.Message);
+            DispatcherTelemetry.RecordException(activity, ex);
+
             return ExceptionResult(ex, isJson);
         }
     }
