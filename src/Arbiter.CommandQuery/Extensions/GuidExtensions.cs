@@ -1,83 +1,144 @@
-using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace Arbiter.CommandQuery.Extensions;
 
 /// <summary>
-/// Extension methods for Guid to generate sequential UUIDs compatible with SQL Server.
+/// Provides extension methods for converting <see cref="Guid"/> values
+/// between standard .NET byte ordering and SQL Server byte ordering.
 /// </summary>
 public static class GuidExtensions
 {
-    private static long _lastTicks;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static long GetMonotonicTicks()
-    {
-        // Hybrid approach: Use DateTime.UtcNow as base, but ensure monotonic ordering
-        // This survives reboots while being resilient to small clock adjustments
-        long currentTicks = DateTime.UtcNow.Ticks;
-
-        while (true)
-        {
-            long lastTicks = Volatile.Read(ref _lastTicks);
-            long newTicks;
-
-            // Determine the new tick value
-            if (currentTicks > lastTicks)
-            {
-                // Guard against large backward jumps (>1 second)
-                if (lastTicks > 0 && currentTicks < lastTicks - TimeSpan.TicksPerSecond)
-                    newTicks = lastTicks + 1;
-                else
-                    newTicks = currentTicks;
-            }
-            else
-            {
-                // Clock hasn't moved forward, increment from last value
-                newTicks = lastTicks + 1;
-            }
-
-            // Try to atomically update _lastTicks
-            long original = Interlocked.CompareExchange(ref _lastTicks, newTicks, lastTicks);
-
-            // If we successfully updated, return the new value
-            if (original == lastTicks)
-                return newTicks;
-
-            // Another thread updated _lastTicks, retry with new value
-            // The loop will read the updated value and try again
-        }
-    }
-
     extension(Guid)
     {
         /// <summary>
-        /// Generates a new sequential UUID v8 compatible with SQL Server's NewSequentialID pattern.
-        /// The UUID is ordered by timestamp in the first 6 bytes for optimal B-tree insertion.
+        /// Creates a new SQL Server-compatible sequential GUID using UUID version 7.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Guid NewSequentialId()
+        /// <param name="timestamp">
+        /// The timestamp to embed in the UUID. Defaults to <see cref="DateTimeOffset.UtcNow"/> when <see langword="null"/>.
+        /// </param>
+        /// <returns>A new <see cref="Guid"/> reordered for optimal SQL Server index performance.</returns>
+        public static Guid NewSqlGuid(DateTimeOffset? timestamp = null)
+        {
+            timestamp ??= DateTimeOffset.UtcNow;
+
+#if NET9_0_OR_GREATER
+            return Guid.CreateVersion7(timestamp.Value).ToSqlGuid();
+#else
+            return CreateVersion7(timestamp.Value).ToSqlGuid();
+#endif
+        }
+
+#if !NET9_0_OR_GREATER
+        /// <summary>
+        /// Creates a new UUID version 7 using the current UTC time as the timestamp.
+        /// </summary>
+        /// <returns>A new time-ordered <see cref="Guid"/> conforming to RFC 9562 UUID version 7.</returns>
+        public static Guid CreateVersion7()
+            => CreateVersion7(DateTimeOffset.UtcNow);
+
+        /// <summary>
+        /// Creates a new UUID version 7 using the specified <paramref name="timestamp"/>.
+        /// </summary>
+        /// <param name="timestamp">The timestamp to embed as the 48-bit Unix millisecond epoch in the UUID.</param>
+        /// <returns>A new time-ordered <see cref="Guid"/> conforming to RFC 9562 UUID version 7.</returns>
+        public static Guid CreateVersion7(DateTimeOffset timestamp)
+        {
+            var unixMilliseconds = timestamp.ToUnixTimeMilliseconds();
+
+            var timeBytes = BitConverter.GetBytes(unixMilliseconds);
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(timeBytes);
+
+            var uuidBytes = new byte[16];
+            timeBytes[2..8].CopyTo(uuidBytes, 0);
+
+            var randomBytes = uuidBytes.AsSpan().Slice(6);
+
+            RandomNumberGenerator.Fill(randomBytes);
+
+            uuidBytes[6] &= 0x0F;
+            uuidBytes[6] += 0x70;
+
+            return new(uuidBytes, bigEndian: true);
+        }
+#endif
+
+    }
+
+    extension(Guid id)
+    {
+        /// <summary>
+        /// Attempts to extract the UTC timestamp embedded in a UUIDv7 <see cref="Guid"/>.
+        /// Both standard .NET byte ordering and SQL Server byte-ordered representations are handled.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="DateTimeOffset"/> (UTC) extracted from the UUID timestamp, or <see langword="null"/>
+        /// if the <see cref="Guid"/> does not contain a version 7 timestamp.
+        /// </returns>
+        public DateTimeOffset? ToTimestamp()
         {
             Span<byte> bytes = stackalloc byte[16];
+            id.TryWriteBytes(bytes);
 
-            // Get monotonically increasing timestamp
-            long ticks = GetMonotonicTicks();
+            // Standard .NET UUIDv7: version nibble is the high nibble of bytes[7] (Data3 high byte)
+            if ((bytes[7] >> 4) == 7)
+                return ExtractTimestamp(bytes);
 
-            // First 8 bytes: Write timestamp as big-endian (we only use first 6 bytes, but writing 8 is faster)
-            // This ensures sequential ordering in SQL Server
-            BinaryPrimitives.WriteInt64BigEndian(bytes, ticks);
+            // Could be a SQL GUID — normalize byte ordering and retry
+            Span<byte> normalized = stackalloc byte[16];
+            bytes.WriteFromSqlByteOrder(normalized);
 
-            // Generate cryptographically random bytes directly into remaining slots (bytes 6-15)
-            RandomNumberGenerator.Fill(bytes[6..]);
+            if ((normalized[7] >> 4) == 7)
+                return ExtractTimestamp(normalized);
 
-            // Set version to 8 (custom UUID) - bits 48-51 (byte 6, upper nibble)
-            bytes[6] = (byte)((bytes[6] & 0x0F) | 0x80);
-
-            // Set variant to RFC 9562 (10xx) - bits 64-65 (byte 8, upper 2 bits)
-            bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80);
-
-            return new Guid(bytes);
+            return null;
         }
+
+        /// <summary>
+        /// Converts a <see cref="Guid"/> to a SQL Server-compatible byte ordering
+        /// for optimal sequential index performance.
+        /// </summary>
+        /// <returns>A new <see cref="Guid"/> with bytes reordered for SQL Server.</returns>
+        public Guid ToSqlGuid()
+        {
+            Span<byte> src = stackalloc byte[16];
+            id.TryWriteBytes(src);
+
+            Span<byte> dst = stackalloc byte[16];
+            src.WriteToSqlByteOrder(dst);
+
+            return new(dst);
+        }
+
+        /// <summary>
+        /// Converts a SQL Server byte-ordered <see cref="Guid"/> back to standard .NET byte ordering.
+        /// </summary>
+        /// <returns>A new <see cref="Guid"/> with bytes restored to standard .NET order.</returns>
+        public Guid FromSqlGuid()
+        {
+            Span<byte> src = stackalloc byte[16];
+            id.TryWriteBytes(src);
+
+            Span<byte> dst = stackalloc byte[16];
+            src.WriteFromSqlByteOrder(dst);
+
+            return new(dst);
+        }
+
+    }
+
+    // Data1 (LE int32) carries UUID bits 0–31 of the 48-bit timestamp; Data2 (LE int16) carries bits 32–47.
+    // Reversing the little-endian field storage reconstructs the original big-endian Unix millisecond value.
+    private static DateTimeOffset ExtractTimestamp(ReadOnlySpan<byte> bytes)
+    {
+        var unixMs = ((long)bytes[3] << 40)
+                   | ((long)bytes[2] << 32)
+                   | ((long)bytes[1] << 24)
+                   | ((long)bytes[0] << 16)
+                   | ((long)bytes[5] <<  8)
+                   |        bytes[4];
+
+        return DateTimeOffset.FromUnixTimeMilliseconds(unixMs);
     }
 }

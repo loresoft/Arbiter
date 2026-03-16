@@ -5,20 +5,20 @@ using Arbiter.CommandQuery.Extensions;
 
 namespace Arbiter.CommandQuery.Tests.Extensions;
 
-public class GuidExtensionsTests
+public class NewSqlGuidTests
 {
     [Test]
-    public void NewSequentialId_ShouldGenerateValidGuid()
+    public void NewSqlGuid_ShouldGenerateValidGuid()
     {
         // Act
-        var guid = Guid.NewSequentialId();
+        var guid = Guid.NewSqlGuid();
 
         // Assert
         guid.Should().NotBe(Guid.Empty);
     }
 
     [Test]
-    public void NewSequentialId_ShouldGenerateUniqueGuids()
+    public void NewSqlGuid_ShouldGenerateUniqueGuids()
     {
         // Arrange
         const int count = 1000;
@@ -27,7 +27,7 @@ public class GuidExtensionsTests
         // Act
         for (int i = 0; i < count; i++)
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
         }
 
         // Assert
@@ -35,22 +35,23 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldHaveTimestampProgression()
+    public void NewSqlGuid_ShouldHaveTimestampProgression()
     {
         // Arrange - Generate GUIDs with delays to ensure timestamp changes
         var guids = new List<Guid>();
 
         for (int i = 0; i < 10; i++)
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
             Thread.Sleep(5); // Small delay to ensure timestamp changes
         }
 
-        // Assert - The first 8 characters (timestamp portion) should generally increase
+        // Assert - In a SQL GUID the 48-bit timestamp occupies positions 24-35 (Data4[2..7])
+        // stored in big-endian, so lexicographic comparison reflects numeric ordering
         for (int i = 1; i < guids.Count; i++)
         {
-            var timestamp1 = guids[i - 1].ToString().Substring(0, 8);
-            var timestamp2 = guids[i].ToString().Substring(0, 8);
+            var timestamp1 = guids[i - 1].ToString().Substring(24, 12);
+            var timestamp2 = guids[i].ToString().Substring(24, 12);
 
             var comparison = string.Compare(timestamp2, timestamp1, StringComparison.Ordinal);
             comparison.Should().BeGreaterThanOrEqualTo(0,
@@ -59,47 +60,36 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldHaveCorrectVersion()
+    public void NewSqlGuid_ShouldHaveCorrectVersion()
     {
-        // Act - Generate multiple GUIDs to test version consistently
         for (int i = 0; i < 100; i++)
         {
-            var guid = Guid.NewSequentialId();
-            var guidString = guid.ToString();
+            var sqlGuid = Guid.NewSqlGuid();
+            // Restore standard .NET byte ordering; in the standard UUID string format
+            // xxxxxxxx-xxxx-Vxxx-xxxx-xxxxxxxxxxxx the version nibble is at position 14
+            var guidString = sqlGuid.FromSqlGuid().ToString();
 
-            // In the GUID string format xxxxxxxx-xxxx-Vxxx-xxxx-xxxxxxxxxxxx,
-            // the version is at the first digit of the third group (index 14)
-            // But due to GUID's little-endian storage, we need to check position 19
-            // Actually, for version 8 UUID, the version bits are in byte 6 (bits 48-51)
-            // In string format with mixed endianness: position 14-15 shows byte 7, position 16-17 shows byte 6
-            // So the version nibble is at position 16
-            var versionChar = guidString[16];
-
-            // Should be version 8 (upper nibble of byte 6)
-            versionChar.Should().Be('8', $"GUID {guid} should have version 8 at position 16");
+            guidString[14].Should().Be('7', $"GUID {sqlGuid} should embed UUIDv7 version");
         }
     }
 
     [Test]
-    public void NewSequentialId_ShouldHaveCorrectVariant()
+    public void NewSqlGuid_ShouldHaveCorrectVariant()
     {
-        // Act - Generate multiple GUIDs to test variant consistently
         for (int i = 0; i < 100; i++)
         {
-            var guid = Guid.NewSequentialId();
-            var guidString = guid.ToString();
-
-            // Variant is at position 19 in the string format: xxxxxxxx-xxxx-xxxx-Vxxx-xxxxxxxxxxxx
-            // RFC 9562 variant bits are 10xx, which means first hex digit should be 8, 9, a, or b
-            var variantChar = char.ToLower(guidString[19]);
+            var sqlGuid = Guid.NewSqlGuid();
+            // Restore standard .NET byte ordering; in the standard UUID string format
+            // xxxxxxxx-xxxx-xxxx-Vxxx-xxxxxxxxxxxx the variant nibble is at position 19
+            var variantChar = char.ToLower(sqlGuid.FromSqlGuid().ToString()[19]);
             var validVariants = new[] { '8', '9', 'a', 'b' };
 
-            validVariants.Should().Contain(variantChar, $"GUID {guid} should have RFC 9562 variant (found {variantChar})");
+            validVariants.Should().Contain(variantChar, $"GUID {sqlGuid} should have RFC 9562 variant (found {variantChar})");
         }
     }
 
     [Test]
-    public void NewSequentialId_ShouldBeThreadSafe()
+    public void NewSqlGuid_ShouldBeThreadSafe()
     {
         // Arrange
         const int threadCount = 10;
@@ -114,7 +104,7 @@ public class GuidExtensionsTests
             {
                 for (int j = 0; j < guidsPerThread; j++)
                 {
-                    allGuids.Add(Guid.NewSequentialId());
+                    allGuids.Add(Guid.NewSqlGuid());
                 }
             });
             threads.Add(thread);
@@ -132,7 +122,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public async Task NewSequentialId_ShouldBeThreadSafeAsync()
+    public async Task NewSqlGuid_ShouldBeThreadSafeAsync()
     {
         // Arrange
         const int taskCount = 10;
@@ -145,7 +135,7 @@ public class GuidExtensionsTests
             {
                 for (int i = 0; i < guidsPerTask; i++)
                 {
-                    allGuids.Add(Guid.NewSequentialId());
+                    allGuids.Add(Guid.NewSqlGuid());
                 }
             }))
             .ToArray();
@@ -158,7 +148,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldBeMonotonicWithDelay()
+    public void NewSqlGuid_ShouldBeMonotonicWithDelay()
     {
         // Arrange
         const int count = 20;
@@ -167,15 +157,15 @@ public class GuidExtensionsTests
         // Act - Generate with delays to ensure time progression
         for (int i = 0; i < count; i++)
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
             Thread.Sleep(2);
         }
 
-        // Assert - Check first 8 characters (timestamp) increase or stay same
+        // Assert - In a SQL GUID, positions 24-35 hold the timestamp in big-endian
         for (int i = 1; i < guids.Count; i++)
         {
-            var timestamp1 = guids[i - 1].ToString().Substring(0, 8);
-            var timestamp2 = guids[i].ToString().Substring(0, 8);
+            var timestamp1 = guids[i - 1].ToString().Substring(24, 12);
+            var timestamp2 = guids[i].ToString().Substring(24, 12);
 
             var comparison = string.Compare(timestamp2, timestamp1, StringComparison.Ordinal);
             comparison.Should().BeGreaterThanOrEqualTo(0);
@@ -183,7 +173,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_TimestampShouldBeSimilarForRapidGeneration()
+    public void NewSqlGuid_TimestampShouldBeSimilarForRapidGeneration()
     {
         // Arrange
         const int count = 100;
@@ -192,11 +182,12 @@ public class GuidExtensionsTests
         // Act - Generate GUIDs as fast as possible
         for (int i = 0; i < count; i++)
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
         }
 
-        // Assert - Most GUIDs should share the same timestamp prefix (first few characters)
-        var timestamps = guids.Select(g => g.ToString().Substring(0, 8)).ToList();
+        // Assert - In a SQL GUID, positions 24-35 hold the timestamp; most should share
+        // the same value when generated rapidly within the same millisecond
+        var timestamps = guids.Select(g => g.ToString().Substring(24, 12)).ToList();
         var uniqueTimestamps = timestamps.Distinct().Count();
 
         // Should have relatively few unique timestamps for rapid generation
@@ -205,16 +196,15 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldHaveConsistentTimestampPrefixForRapidGeneration()
+    public void NewSqlGuid_ShouldHaveConsistentTimestampPrefixForRapidGeneration()
     {
         // Arrange & Act - Generate many GUIDs rapidly
         var guids = Enumerable.Range(0, 1000)
-            .Select(_ => Guid.NewSequentialId())
+            .Select(_ => Guid.NewSqlGuid())
             .ToList();
 
-        // Assert - Most GUIDs should share the same first few characters (timestamp portion)
-        // Group by first 8 characters (timestamp prefix)
-        var timestampGroups = guids.GroupBy(g => g.ToString().Substring(0, 8)).ToList();
+        // Assert - In a SQL GUID, positions 24-35 hold the 48-bit timestamp in big-endian
+        var timestampGroups = guids.GroupBy(g => g.ToString().Substring(24, 12)).ToList();
 
         // Should have relatively few timestamp groups for rapid generation
         timestampGroups.Count.Should().BeLessThan(100,
@@ -223,11 +213,11 @@ public class GuidExtensionsTests
         // The largest group should contain a significant portion of GUIDs
         var largestGroup = timestampGroups.Max(g => g.Count());
         largestGroup.Should().BeGreaterThan(100,
-            "Many GUIDs should share the same timestamp prefix when generated rapidly");
+            "Many GUIDs should share the same timestamp when generated rapidly");
     }
 
     [Test]
-    public void NewSequentialId_ShouldProduceDistinctRandomPortions()
+    public void NewSqlGuid_ShouldProduceDistinctRandomPortions()
     {
         // Arrange
         const int count = 1000;
@@ -236,7 +226,7 @@ public class GuidExtensionsTests
         // Act
         for (int i = 0; i < count; i++)
         {
-            var guid = Guid.NewSequentialId();
+            var guid = Guid.NewSqlGuid();
             var bytes = guid.ToByteArray();
 
             // Extract random portion (bytes 6-15)
@@ -250,7 +240,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_PerformanceBenchmark()
+    public void NewSqlGuid_PerformanceBenchmark()
     {
         // Arrange
         const int iterations = 10000;
@@ -259,7 +249,7 @@ public class GuidExtensionsTests
         // Act
         for (int i = 0; i < iterations; i++)
         {
-            _ = Guid.NewSequentialId();
+            _ = Guid.NewSqlGuid();
         }
 
         stopwatch.Stop();
@@ -272,7 +262,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldNotCollideUnderHighLoad()
+    public void NewSqlGuid_ShouldNotCollideUnderHighLoad()
     {
         // Arrange
         const int totalGuids = 10000;
@@ -282,7 +272,7 @@ public class GuidExtensionsTests
         // Act
         Parallel.For(0, totalGuids, parallelOptions, _ =>
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
         });
 
         // Assert
@@ -291,7 +281,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldHaveNonZeroRandomBytes()
+    public void NewSqlGuid_ShouldHaveNonZeroRandomBytes()
     {
         // Arrange
         const int count = 100;
@@ -299,7 +289,7 @@ public class GuidExtensionsTests
         // Act & Assert
         for (int i = 0; i < count; i++)
         {
-            var guid = Guid.NewSequentialId();
+            var guid = Guid.NewSqlGuid();
             var bytes = guid.ToByteArray();
 
             // Random portion is bytes 6-15 (10 bytes total)
@@ -312,10 +302,10 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_FormattingShouldMatchStandardGuidFormat()
+    public void NewSqlGuid_FormattingShouldMatchStandardGuidFormat()
     {
         // Act
-        var guid = Guid.NewSequentialId();
+        var guid = Guid.NewSqlGuid();
         var guidString = guid.ToString();
 
         // Assert - Should match standard GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -327,7 +317,7 @@ public class GuidExtensionsTests
     }
 
     [Test]
-    public void NewSequentialId_ShouldProduceDifferentGuidsEachTime()
+    public void NewSqlGuid_ShouldProduceDifferentGuidsEachTime()
     {
         // Arrange
         const int iterations = 1000;
@@ -336,11 +326,53 @@ public class GuidExtensionsTests
         // Act
         for (int i = 0; i < iterations; i++)
         {
-            guids.Add(Guid.NewSequentialId());
+            guids.Add(Guid.NewSqlGuid());
         }
 
         // Assert - All should be unique
         var distinctCount = guids.Distinct().Count();
         distinctCount.Should().Be(iterations, "Every generated GUID should be unique");
+    }
+
+    [Test]
+    public void NewSqlGuid_WithExplicitTimestamp_ShouldNotBeEmpty()
+    {
+        // Arrange
+        var timestamp = DateTimeOffset.UtcNow;
+
+        // Act
+        var guid = Guid.NewSqlGuid(timestamp);
+
+        // Assert
+        guid.Should().NotBe(Guid.Empty);
+    }
+
+    [Test]
+    public void NewSqlGuid_WithSameTimestamp_ShouldGenerateUniqueGuids()
+    {
+        // Arrange
+        var timestamp = DateTimeOffset.UtcNow;
+
+        // Act
+        var guid1 = Guid.NewSqlGuid(timestamp);
+        var guid2 = Guid.NewSqlGuid(timestamp);
+
+        // Assert
+        guid1.Should().NotBe(guid2);
+    }
+
+    [Test]
+    public void NewSqlGuid_WithConsecutiveTimestamps_ShouldPreserveChronologicalOrder()
+    {
+        // Arrange - use an offset large enough to change the timestamp high bits
+        var t1 = DateTimeOffset.UnixEpoch.AddMilliseconds(1_000_000);
+        var t2 = t1.AddHours(1);
+
+        // Act - convert back to standard .NET byte ordering so Guid.CompareTo reflects timestamp order
+        var guid1 = Guid.NewSqlGuid(t1).FromSqlGuid();
+        var guid2 = Guid.NewSqlGuid(t2).FromSqlGuid();
+
+        // Assert
+        guid1.CompareTo(guid2).Should().BeLessThan(0);
     }
 }
