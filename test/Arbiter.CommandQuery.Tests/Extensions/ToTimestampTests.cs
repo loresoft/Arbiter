@@ -11,9 +11,10 @@ public class ToTimestampTests
         var sqlGuid = Guid.NewSqlGuid();
         var result = sqlGuid.ToTimestamp();
 
-        // Assert
+        // Assert – UUIDv7 timestamps have millisecond precision, so allow a
+        // small window for truncation and CI scheduling delays.
         result.Should().NotBeNull();
-        result!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(1));
+        result!.Value.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Test]

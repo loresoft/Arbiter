@@ -81,15 +81,15 @@ public static class GuidExtensions
             Span<byte> bytes = stackalloc byte[16];
             id.TryWriteBytes(bytes);
 
-            // Standard .NET UUIDv7: version nibble is the high nibble of bytes[7] (Data3 high byte)
-            if ((bytes[7] >> 4) == 7)
+            // Standard .NET UUIDv7: version nibble (bytes[7] high) and RFC 9562 variant (bytes[8] top 2 bits)
+            if ((bytes[7] >> 4) == 7 && (bytes[8] >> 6) == 2)
                 return ExtractTimestamp(bytes);
 
             // Could be a SQL GUID — normalize byte ordering and retry
             Span<byte> normalized = stackalloc byte[16];
             bytes.WriteFromSqlByteOrder(normalized);
 
-            if ((normalized[7] >> 4) == 7)
+            if ((normalized[7] >> 4) == 7 && (normalized[8] >> 6) == 2)
                 return ExtractTimestamp(normalized);
 
             return null;
