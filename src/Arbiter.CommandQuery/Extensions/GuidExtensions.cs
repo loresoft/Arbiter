@@ -53,7 +53,7 @@ public static class GuidExtensions
             var uuidBytes = new byte[16];
             timeBytes[2..8].CopyTo(uuidBytes, 0);
 
-            var randomBytes = uuidBytes.AsSpan().Slice(6);
+            var randomBytes = uuidBytes.AsSpan()[6..];
 
             RandomNumberGenerator.Fill(randomBytes);
 
@@ -136,8 +136,8 @@ public static class GuidExtensions
                    | ((long)bytes[2] << 32)
                    | ((long)bytes[1] << 24)
                    | ((long)bytes[0] << 16)
-                   | ((long)bytes[5] <<  8)
-                   |        bytes[4];
+                   | ((long)bytes[5] << 8)
+                   | bytes[4];
 
         return DateTimeOffset.FromUnixTimeMilliseconds(unixMs);
     }

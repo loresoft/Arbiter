@@ -21,7 +21,7 @@
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="Fluid.Core" Version="2.31.0" />
     <PackageVersion Include="Injectio" Version="5.1.0" />
-    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.6.12" />
+    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.7.0" />
     <PackageVersion Include="MailKit" Version="4.15.1" />
     <PackageVersion Include="MediatR" Version="[12.5.0]" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
@@ -46,7 +46,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.4.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.6.0" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.1.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
@@ -59,7 +59,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.15.1" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.1.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.13.11" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.13.13" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
@@ -74,5 +74,12 @@
     <PackageVersion Include="Twilio" Version="7.14.3" />
     <PackageVersion Include="Verify.TUnit" Version="31.13.5" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
+  </ItemGroup>
+  <!-- TFM-specific overrides -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageVersion Update="Microsoft.EntityFrameworkCore" Version="9.0.14" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageVersion Update="Microsoft.EntityFrameworkCore" Version="9.0.14" />
   </ItemGroup>
 </Project>
