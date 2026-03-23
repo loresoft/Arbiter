@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
@@ -11,6 +13,7 @@ namespace Arbiter.CommandQuery.Models;
 /// <seealso cref="EntityIdentifierModel{TKey}" />
 /// <seealso cref="ITrackCreated" />
 /// <seealso cref="ITrackUpdated" />
+[MessagePackObject(true)]
 public class EntityCreateModel<TKey> : EntityIdentifierModel<TKey>, ITrackCreated, ITrackUpdated
 {
     /// <inheritdoc />

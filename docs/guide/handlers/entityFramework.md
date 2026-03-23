@@ -5,18 +5,7 @@ description: Comprehensive CQRS implementation for Entity Framework Core with bu
 
 # Entity Framework Core Handlers
 
-The Entity Framework Core handlers pr#### Update Entity (Version 2.0 - with built-in upsert)
-
-```csharp
-var updateModel = new ProductUpdateModel 
-{ 
-    Name = "Gaming Laptop", 
-    Price = 1299.99m 
-};
-
-var command = new EntityUpdateCommand<int, ProductUpdateModel, ProductReadModel>(principal, productId, updateModel);
-var product = await mediator.Send(command); // Will create if not found, update if exists
-```rehensive CQRS (Command Query Responsibility Segregation) implementation for Entity Framework Core, enabling you to perform standardized CRUD operations with built-in support for caching, auditing, validation, and security.
+The Entity Framework Core handlers provide a comprehensive CQRS (Command Query Responsibility Segregation) implementation for Entity Framework Core, enabling you to perform standardized CRUD operations with built-in support for caching, auditing, validation, and security.
 
 ## Overview
 

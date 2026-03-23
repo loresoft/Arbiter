@@ -1,6 +1,6 @@
 
 using Arbiter.CommandQuery.Endpoints;
-using Arbiter.Mediation.OpenTelemetry;
+using Arbiter.Mediation;
 
 using AspNetCore.SecurityKey;
 
@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using Scalar.AspNetCore;
@@ -21,35 +22,65 @@ namespace Tracker.Service;
 
 public static class Program
 {
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        try
+        {
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-        ConfigureLogging(builder);
-        ConfigureServices(builder);
+            ConfigureLogging(builder);
+            ConfigureServices(builder);
 
-        var app = builder.Build();
-        ConfigureMiddleware(app);
+            var app = builder.Build();
+            ConfigureMiddleware(app);
 
-        app.Run();
+            app.Run();
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Host terminated unexpectedly: {ex.Message}");
+            Console.Error.WriteLine(ex.ToString());
+            return 1;
+        }
     }
 
     private static void ConfigureLogging(WebApplicationBuilder builder)
     {
+        // Per-category filters
+        builder.Logging
+            .AddFilter("Microsoft", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
+
         builder.Logging.AddOpenTelemetry(logging =>
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
         });
 
-        builder.Services.AddOpenTelemetry()
+        var otelBuilder = builder.Services.AddOpenTelemetry();
+
+        otelBuilder
+            .ConfigureResource(resource => resource
+                .AddService(
+                    serviceName: builder.Environment.ApplicationName,
+                    serviceVersion: ThisAssembly.FileVersion
+                )
+                .AddAttributes([
+                    new KeyValuePair<string, object>("deployment.environment", builder.Environment.EnvironmentName)
+                ])
+            );
+
+        otelBuilder
             .WithMetrics(metrics =>
                 metrics
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddSqlClientInstrumentation()
-                    .AddMediatorInstrumentation()
+                    .AddMeter(MediatorTelemetry.MeterName)
             )
             .WithTracing(tracing =>
                 tracing
@@ -57,18 +88,12 @@ public static class Program
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
-                    .AddMediatorInstrumentation()
+                    .AddSource(MediatorTelemetry.SourceName)
             );
 
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
         if (useOtlpExporter)
-        {
-            builder.Services
-                .AddOpenTelemetry()
-                .UseOtlpExporter();
-        }
-
-        builder.Services.AddMediatorDiagnostics();
+            otelBuilder.UseOtlpExporter();
     }
 
     private static void ConfigureServices(WebApplicationBuilder builder)
@@ -98,6 +123,9 @@ public static class Program
 
         services
             .AddEndpointRoutes();
+
+        services
+            .AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions())

@@ -1,12 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// An identifiers base model<see langword="class"/>
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
+[MessagePackObject(true)]
 public class EntityIdentifiersModel<TKey>
 {
     /// <summary>

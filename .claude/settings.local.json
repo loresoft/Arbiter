@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(git restore:*)",
+      "Bash(dotnet test:*)",
+      "Bash(Select-String -Pattern \"\\(error|warning|Build succeeded|Build FAILED\\)\")",
+      "Bash(Select-Object -Last 30)",
+      "Read(//d/Projects/github/Arbiter/**)"
+    ]
+  }
+}

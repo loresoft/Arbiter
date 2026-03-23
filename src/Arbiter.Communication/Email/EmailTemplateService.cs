@@ -12,7 +12,7 @@ namespace Arbiter.Communication.Email;
 /// <remarks>
 /// This service supports loading templates from embedded resources, applying model data, and sending emails using the configured delivery service.
 /// </remarks>
-public class EmailTemplateService : IEmailTemplateService
+public partial class EmailTemplateService : IEmailTemplateService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailTemplateService"/> class.
@@ -86,7 +86,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             if (!TemplateService.TryGetTemplate<EmailTemplate>(templateName, out var emailTemplate))
             {
-                Logger.LogError("Could not find email template: {TemplateName}", templateName);
+                LogTemplateNotFound(Logger, templateName);
                 return EmailResult.Fail($"Could not find template '{templateName}'");
             }
 
@@ -94,7 +94,7 @@ public class EmailTemplateService : IEmailTemplateService
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error sending email: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(Send), ex.Message);
             throw;
         }
     }
@@ -136,7 +136,7 @@ public class EmailTemplateService : IEmailTemplateService
 
             if (localSenders.From.Address.IsNullOrWhiteSpace())
             {
-                Logger.LogError("From address is not configured in EmailOptions.");
+                LogFromAddressNotConfigured(Logger);
                 return EmailResult.Fail("From address is not configured.");
             }
 
@@ -147,8 +147,17 @@ public class EmailTemplateService : IEmailTemplateService
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error Sending Email: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(Send), ex.Message);
             throw;
         }
     }
+
+    [LoggerMessage(LogLevel.Error, "Could not find email template: {templateName}")]
+    private static partial void LogTemplateNotFound(ILogger logger, string templateName);
+
+    [LoggerMessage(LogLevel.Error, "From address is not configured in EmailOptions.")]
+    private static partial void LogFromAddressNotConfigured(ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "Error {methodName}: {errorMessage}")]
+    private static partial void LogError(ILogger logger, Exception exception, string methodName, string errorMessage);
 }

@@ -25,7 +25,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// This class extends <see cref="EntityQueryEndpointBase{TKey, TListModel, TReadModel}"/> to provide endpoints for entity command operations.
 /// It is intended for use in applications to standardize CRUD API patterns.
 /// </remarks>
-public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TCreateModel, TUpdateModel>
+public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TCreateModel, TUpdateModel>
     : EntityQueryEndpointBase<TKey, TListModel, TReadModel>
 {
     /// <summary>
@@ -119,7 +119,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error GetUpdateQuery: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(GetUpdateQuery), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -151,7 +151,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error CreateCommand: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(CreateCommand), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -185,7 +185,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error UpdateCommand: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(UpdateCommand), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -219,7 +219,7 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error PatchCommand: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(PatchCommand), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -251,11 +251,13 @@ public abstract class EntityCommandEndpointBase<TKey, TListModel, TReadModel, TC
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error DeleteCommand: {ErrorMessage}", ex.Message);
+            LogError(Logger, ex, nameof(DeleteCommand), ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
     }
 
+    [LoggerMessage(LogLevel.Error, "Error {methodName}: {errorMessage}")]
+    private static partial void LogError(ILogger logger, Exception exception, string methodName, string errorMessage);
 }

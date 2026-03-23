@@ -1,10 +1,13 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// A machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
 /// </summary>
+[MessagePackObject(true)]
 public class ProblemDetails
 {
     /// <summary>

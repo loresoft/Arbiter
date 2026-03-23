@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
@@ -31,7 +33,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"User Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal
+public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal, IResponseType
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
@@ -45,6 +47,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
         ActivatedBy = principal?.Identity?.Name ?? "system";
     }
 
+
     /// <summary>
     /// Gets the <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </summary>
@@ -52,6 +55,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// The <see cref="ClaimsPrincipal"/> representing the user executing the command.
     /// </value>
     [JsonIgnore]
+    [IgnoreMember]
     public ClaimsPrincipal? Principal { get; private set; }
 
     /// <summary>
@@ -61,6 +65,7 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// The timestamp indicating when this command was activated.
     /// </value>
     [JsonIgnore]
+    [IgnoreMember]
     public DateTimeOffset Activated { get; private set; }
 
     /// <summary>
@@ -75,7 +80,9 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     /// </remarks>
     /// <see cref="ClaimsIdentity.Name"/>
     [JsonIgnore]
+    [IgnoreMember]
     public string? ActivatedBy { get; private set; }
+
 
     /// <summary>
     /// Applies the specified <see cref="ClaimsPrincipal"/> to the command.
@@ -87,4 +94,9 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
         Activated = DateTimeOffset.UtcNow;
         ActivatedBy = principal?.Identity?.Name ?? "system";
     }
+
+    /// <summary>
+    /// Gets the type of the response returned by the command.
+    /// </summary>
+    Type IResponseType.ResponseType => typeof(TResponse);
 }

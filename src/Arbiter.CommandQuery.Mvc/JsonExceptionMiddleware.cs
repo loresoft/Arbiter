@@ -20,7 +20,7 @@ namespace Arbiter.CommandQuery.Mvc;
 /// This middleware captures unhandled exceptions during the request pipeline execution and formats the error response
 /// as a JSON object, including details such as the error message, stack trace (in development), and trace ID.
 /// </remarks>
-public class JsonExceptionMiddleware
+public partial class JsonExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger _logger;
@@ -61,11 +61,11 @@ public class JsonExceptionMiddleware
         }
         catch (Exception middlewareError)
         {
-            _logger.LogError(middlewareError, "An unhandled exception has occurred while executing the request.");
+            LogUnhandledException(_logger, middlewareError);
 
             if (context.Response.HasStarted)
             {
-                _logger.LogWarning("The response has already started, the error page middleware will not be executed.");
+                LogResponseAlreadyStarted(_logger);
                 throw;
             }
 
@@ -82,7 +82,7 @@ public class JsonExceptionMiddleware
             }
             catch (Exception handlerError)
             {
-                _logger.LogError(handlerError, "An exception was thrown attempting to execute the error handler.");
+                LogErrorHandlerException(_logger, handlerError);
             }
 
             throw; // Re-throw the original exception if it couldn't be handled
@@ -140,4 +140,13 @@ public class JsonExceptionMiddleware
     {
         return httpContext.RequestServices?.GetService<IOptions<JsonOptions>>()?.Value?.JsonSerializerOptions ?? new JsonSerializerOptions();
     }
+
+    [LoggerMessage(LogLevel.Error, "An unhandled exception has occurred while executing the request.")]
+    private static partial void LogUnhandledException(ILogger logger, Exception exception);
+
+    [LoggerMessage(LogLevel.Warning, "The response has already started, the error page middleware will not be executed.")]
+    private static partial void LogResponseAlreadyStarted(ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "An exception was thrown attempting to execute the error handler.")]
+    private static partial void LogErrorHandlerException(ILogger logger, Exception exception);
 }

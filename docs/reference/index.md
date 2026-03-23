@@ -16,7 +16,6 @@ This API reference provides comprehensive documentation for the Arbiter library 
 ### Core Libraries
 
 - **Arbiter.Mediation** - Lightweight mediator pattern implementation with request/response handling, notifications, and pipeline behaviors
-- **Arbiter.Mediation.OpenTelemetry** - OpenTelemetry tracing and metrics support for mediation operations
 
 ### Command Query Libraries
 

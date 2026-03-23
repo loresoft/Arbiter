@@ -52,5 +52,5 @@ public class DatabaseInitializer(ILogger<DatabaseInitializer> logger, IConfigura
         => logger.LogInformation(format, args);
 
     public void LogWarning(string format, params object[] args)
-        => logger.LogInformation(format, args);
+        => logger.LogWarning(format, args);
 }

@@ -7,7 +7,7 @@ using Tracker.WebService.Domain.Models;
 
 namespace Tracker.WebService.Domain.Handlers;
 
-public class TaskChangedNotificationHandler : INotificationHandler<EntityChangeNotification<TaskReadModel>>
+public partial class TaskChangedNotificationHandler : INotificationHandler<EntityChangeNotification<TaskReadModel>>
 {
     private readonly ILogger<TaskChangedNotificationHandler> _logger;
 
@@ -18,8 +18,11 @@ public class TaskChangedNotificationHandler : INotificationHandler<EntityChangeN
 
     public ValueTask Handle(EntityChangeNotification<TaskReadModel> notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Task Changed: {id} {operation}", notification.Model?.Id, notification.Operation);
+        LogTaskChanged(_logger, notification.Model?.Id, notification.Operation);
 
         return ValueTask.CompletedTask;
     }
+
+    [LoggerMessage(LogLevel.Information, "Task Changed: {id} {operation}")]
+    private static partial void LogTaskChanged(ILogger logger, string? id, EntityChangeOperation operation);
 }

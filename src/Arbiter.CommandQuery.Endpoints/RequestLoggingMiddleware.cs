@@ -1,6 +1,7 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Text;
+
+using Arbiter.Services;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ public partial class RequestLoggingMiddleware
     private readonly ILogger<RequestLoggingMiddleware> _logger;
     private readonly RequestLoggingOptions _options;
     private readonly ReadOnlyMemory<char>[] _allowedMimeTypes;
+    private readonly List<GlobMatcher> _ignorePathMatchers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequestLoggingMiddleware"/> class.
@@ -38,6 +40,9 @@ public partial class RequestLoggingMiddleware
 
         // Pre-process MIME types into ReadOnlyMemory<char> for zero-allocation span comparisons
         _allowedMimeTypes = [.. _options.RequestBodyMimeTypes.Select(static t => t.AsMemory())];
+
+        // Pre-process ignore paths into GlobMatchers for efficient matching
+        _ignorePathMatchers = [.. _options.IgnorePaths?.Select(path => new GlobMatcher(path)) ?? []];
     }
 
     /// <summary>
@@ -47,12 +52,28 @@ public partial class RequestLoggingMiddleware
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
+        var requestPath = context.Request.Path.Value;
+        if (_ignorePathMatchers.Exists(m => m.IsMatch(requestPath)))
+        {
+            await _next(context).ConfigureAwait(false);
+            return;
+        }
+
+        // track user identity in logs and tracing
+        var userName = context.User?.Identity?.Name ?? "anonymous";
+
+        // enrich logs with user information
+        using var scope = _logger.BeginScope("{UserName}", userName);
+
+        // enrich tracing with user information
+        Activity.Current?.SetTag("enduser.name", userName);
+
+
         // start timing
         var timestamp = Stopwatch.GetTimestamp();
 
         // capture request details
         var requestMethod = context.Request.Method;
-        var requestPath = context.Request.Path.Value;
 
         // capture request body if configured
         var requestBody = await ReadBody(context.Request).ConfigureAwait(false);
@@ -66,15 +87,37 @@ public partial class RequestLoggingMiddleware
             // capture response details
             var statusCode = context.Response.StatusCode;
 
+            // determine log level based on status code
+            LogLevel logLevel = ComputeLevel(statusCode);
+
             // calculate elapsed time
             var elapsed = Stopwatch.GetElapsedTime(timestamp);
 
             // log the request
             if (string.IsNullOrEmpty(requestBody))
-                LogRequestBasic(_logger, _options.LogLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds);
+                LogRequestBasic(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds);
             else
-                LogRequestBody(_logger, _options.LogLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds, requestBody);
+                LogRequestBody(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds, requestBody);
         }
+    }
+
+    /// <summary>
+    /// Computes the appropriate log level based on the HTTP status code.
+    /// </summary>
+    /// <param name="statusCode">The HTTP status code to evaluate.</param>
+    /// <returns>The corresponding <see cref="LogLevel"/> for the status code.</returns>
+    private LogLevel ComputeLevel(int statusCode)
+    {
+        if (statusCode >= StatusCodes.Status500InternalServerError)
+            return LogLevel.Error;
+
+        if (statusCode == StatusCodes.Status404NotFound)
+            return LogLevel.Debug;
+
+        if (statusCode >= StatusCodes.Status400BadRequest)
+            return LogLevel.Warning;
+
+        return _options.LogLevel;
     }
 
     /// <summary>

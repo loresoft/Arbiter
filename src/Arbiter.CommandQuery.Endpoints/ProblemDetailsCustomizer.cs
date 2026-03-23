@@ -99,7 +99,7 @@ public static class ProblemDetailsCustomizer
     public static ProblemDetails ToProblemDetails(this Exception exception)
     {
         var problemDetails = new ProblemDetails();
-        switch (exception)
+        switch (exception.Flatten())
         {
             case System.ComponentModel.DataAnnotations.ValidationException validationException:
             {
@@ -116,7 +116,7 @@ public static class ProblemDetailsCustomizer
                 problemDetails.Extensions.Add("errors", errors);
                 break;
             }
-            case Arbiter.CommandQuery.DomainException domainException:
+            case DomainException domainException:
             {
                 var reasonPhrase = ReasonPhrases.GetReasonPhrase(domainException.StatusCode);
                 if (reasonPhrase.IsNullOrWhiteSpace())

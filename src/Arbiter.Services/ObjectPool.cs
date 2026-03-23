@@ -107,22 +107,15 @@ public class ObjectPool<T> where T : class
     /// to the pool and will be eligible for garbage collection. A value of 0 (default) uses a default maximum
     /// of <c>Environment.ProcessorCount * 2</c>, which provides a good balance for most scenarios.
     /// </param>
-    /// <param name="initialCapacity">
-    /// The number of objects to create and add to the pool during initialization. This can improve performance
-    /// by avoiding allocation during initial usage at the cost of increased startup time and memory usage.
-    /// Default is 0 (no pre-allocation).
-    /// </param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="objectFactory"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxSize"/> or <paramref name="initialCapacity"/> is negative.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxSize"/> is negative.</exception>
     public ObjectPool(
         Func<T> objectFactory,
         Action<T>? resetAction = null,
-        int maxSize = 0,
-        int initialCapacity = 0)
+        int maxSize = 0)
     {
         ArgumentNullException.ThrowIfNull(objectFactory);
         ArgumentOutOfRangeException.ThrowIfNegative(maxSize);
-        ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
 
         _objectFactory = objectFactory;
         _resetAction = resetAction;
@@ -132,15 +125,6 @@ public class ObjectPool<T> where T : class
         // Set default max size if unlimited
         if (_maxSize == 0)
             _maxSize = Environment.ProcessorCount * 2;
-
-        if (initialCapacity <= 0)
-            return;
-
-        // pre-allocate objects
-        for (int i = 0; i < initialCapacity; i++)
-        {
-            _objects.Enqueue(objectFactory());
-        }
     }
 
     /// <summary>
@@ -315,6 +299,54 @@ public class ObjectPool<T> where T : class
             Interlocked.Decrement(ref _count);
         else
             _objects.Enqueue(item);
+    }
+
+    /// <summary>
+    /// Executes a function with a pooled object and automatically returns it to the pool.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result returned by the function.</typeparam>
+    /// <param name="factory">
+    /// A function that accepts a pooled object and returns a result. The function is executed with an object
+    /// retrieved from the pool, which is automatically returned after execution completes.
+    /// </param>
+    /// <returns>
+    /// The result returned by the provided function after executing with the pooled object.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="factory"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// This method provides a convenient way to use pooled objects without manual Get/Return calls or using statements.
+    /// It handles all object lifecycle management automatically, including returning the object to the pool even if
+    /// the function throws an exception.
+    /// </remarks>
+    /// <example>
+    /// <para><strong>Simple usage with StringBuilder</strong></para>
+    /// <code>
+    /// // Execute and get result in one call
+    /// string result = StringBuilder.Pool.Use(sb =>
+    /// {
+    ///     sb.Append("Hello, ");
+    ///     sb.Append("World!");
+    ///     return sb.ToString();
+    /// });
+    /// // StringBuilder is automatically returned to pool
+    /// </code>
+    /// </example>
+    public TResult Use<TResult>(Func<T, TResult> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        // Get an object from the pool
+        var pooled = Get();
+        try
+        {
+            // Execute the provided function with the pooled instance
+            return factory(pooled);
+        }
+        finally
+        {
+            // Ensure the object is returned to the pool
+            Return(pooled);
+        }
     }
 
     /// <summary>

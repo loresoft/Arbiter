@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Dispatcher.Client\Arbiter.Dispatcher.Client.csproj" />
     <ProjectReference Include="..\Tracker.Shared\Tracker.Shared.csproj" />
   </ItemGroup>
 

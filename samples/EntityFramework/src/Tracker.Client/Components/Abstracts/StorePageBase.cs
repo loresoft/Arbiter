@@ -1,5 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.State;
+using Arbiter.Dispatcher.State;
 
 using LoreSoft.Blazor.Controls;
 

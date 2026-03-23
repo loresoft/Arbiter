@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.Extensions.Caching.Hybrid;
@@ -53,13 +55,32 @@ public class HybridCacheQueryBehavior<TRequest, TResponse> : PipelineBehaviorBas
             LocalCacheExpiration = cacheRequest.SlidingExpiration(),
         };
 
-        return await _hybridCache
+        // Track whether the factory was invoked to determine cache hit vs miss
+        var factoryInvoked = false;
+
+        var result = await _hybridCache
             .GetOrCreateAsync(
                 key: cacheKey,
-                factory: async token => await next(token).ConfigureAwait(false),
+                factory: async token =>
+                {
+                    factoryInvoked = true;
+                    return await next(token).ConfigureAwait(false);
+                },
                 options: cacheOptions,
                 tags: string.IsNullOrEmpty(cacheTag) ? null : [cacheTag],
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
+
+        // Record cache hit or miss as an event on the current (behavior) span
+        var cacheEventName = factoryInvoked ? "cache.miss" : "cache.hit";
+
+        Activity.Current?.AddEvent(
+            new ActivityEvent(
+                name: cacheEventName,
+                tags: new ActivityTagsCollection { ["cache.key"] = cacheKey }
+            )
+        );
+
+        return result;
     }
 }

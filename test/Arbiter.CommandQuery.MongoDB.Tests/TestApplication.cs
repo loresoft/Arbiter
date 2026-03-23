@@ -15,7 +15,7 @@ namespace Arbiter.CommandQuery.MongoDB.Tests;
 
 public class TestApplication : TestHostApplication, IAsyncInitializer
 {
-    private readonly MongoDbContainer _mongoDbContainer = new MongoDbBuilder()
+    private readonly MongoDbContainer _mongoDbContainer = new MongoDbBuilder("mongo:latest")
         .WithUsername(string.Empty)
         .WithPassword(string.Empty)
         .Build();

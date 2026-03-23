@@ -3,7 +3,7 @@ namespace Arbiter.CommandQuery.Extensions;
 /// <summary>
 /// Extension methods for <see cref="T:System.Collection.IEnumerable{T}"/>
 /// </summary>
-public static partial class EnumerableExtensions
+public static class EnumerableExtensions
 {
     /// <summary>
     /// Converts an IEnumerable of values to a delimited string.

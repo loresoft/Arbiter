@@ -1,5 +1,7 @@
-using Arbiter.CommandQuery.Dispatcher;
+
+
 using Arbiter.CommandQuery.EntityFramework.Tests.Domain.Models;
+using Arbiter.Dispatcher;
 
 using Microsoft.Extensions.DependencyInjection;
 

@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.Memory" />
     <ProjectReference Include="..\Arbiter.Communication\Arbiter.Communication.csproj" />
   </ItemGroup>
 

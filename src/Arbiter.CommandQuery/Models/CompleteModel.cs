@@ -1,10 +1,13 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.CommandQuery.Models;
 
 /// <summary>
 /// Operation complete result model
 /// </summary>
+[MessagePackObject(true)]
 public class CompleteModel
 {
     /// <summary>

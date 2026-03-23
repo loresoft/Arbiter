@@ -6,11 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>7c9c8f9c-0584-4deb-b51d-d30eef94f31a</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <TrimMode>partial</TrimMode>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
-    <ProjectReference Include="..\..\..\..\src\Arbiter.Mediation.OpenTelemetry\Arbiter.Mediation.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Dispatcher.Server\Arbiter.Dispatcher.Server.csproj" />
     <ProjectReference Include="..\Tracker.Client\Tracker.Client.csproj" />
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />
     <ProjectReference Include="..\Tracker.Shared\Tracker.Shared.csproj" />

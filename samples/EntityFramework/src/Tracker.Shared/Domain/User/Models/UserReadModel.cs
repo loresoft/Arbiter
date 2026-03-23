@@ -4,9 +4,12 @@ using System.Xml.Linq;
 
 using Arbiter.CommandQuery.Definitions;
 
+using MessagePack;
+
 namespace Tracker.Domain.Models;
 
 [Equatable]
+[MessagePackObject(true)]
 public partial class UserReadModel
     : EntityReadModel, ISupportSearch
 {

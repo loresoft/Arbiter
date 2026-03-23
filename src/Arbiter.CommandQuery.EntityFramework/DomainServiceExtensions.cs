@@ -47,6 +47,7 @@ public static class DomainServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        CacheTagger.SetTag<TEntity>();
         CacheTagger.SetTag<TReadModel, TEntity>();
 
         // standard queries
@@ -183,6 +184,7 @@ public static class DomainServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        CacheTagger.SetTag<TEntity>();
         CacheTagger.SetTag<TReadModel, TEntity>();
         CacheTagger.SetTag<TCreateModel, TEntity>();
 
@@ -231,6 +233,7 @@ public static class DomainServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        CacheTagger.SetTag<TEntity>();
         CacheTagger.SetTag<TReadModel, TEntity>();
         CacheTagger.SetTag<TUpdateModel, TEntity>();
 
@@ -324,6 +327,7 @@ public static class DomainServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        CacheTagger.SetTag<TEntity>();
         CacheTagger.SetTag<TReadModel, TEntity>();
 
         services.AddEntityDeleteCommand<TKey, TReadModel, EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>>();
