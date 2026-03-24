@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -29,6 +29,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Mapping.Generators\Arbiter.Mapping.Generators.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Arbiter.Mapping\Arbiter.Mapping.csproj" />
     <ProjectReference Include="..\..\src\Arbiter.Mediation\Arbiter.Mediation.csproj" />
   </ItemGroup>
 

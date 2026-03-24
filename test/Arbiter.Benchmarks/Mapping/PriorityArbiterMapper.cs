@@ -1,10 +1,12 @@
 using System.Linq.Expressions;
 
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 namespace Arbiter.Benchmarks.Mapping;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 public class PriorityArbiterMapper : MapperBase<Priority, PriorityReadModel>
+#pragma warning restore CS0618 // Type or member is obsolete
 {
     protected override Expression<Func<Priority, PriorityReadModel>> CreateMapping()
     {

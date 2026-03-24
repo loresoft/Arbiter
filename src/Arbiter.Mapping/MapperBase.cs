@@ -1,9 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-using Arbiter.CommandQuery.Definitions;
-
-namespace Arbiter.CommandQuery.Mapping;
+namespace Arbiter.Mapping;
 
 /// <summary>
 /// Provides a base implementation for mapping from <typeparamref name="TSource"/> to <typeparamref name="TDestination"/>.
@@ -18,7 +16,7 @@ namespace Arbiter.CommandQuery.Mapping;
 /// <example>
 /// Here's an example implementation for mapping from a User entity to a UserDto:
 /// <code>
-/// public class UserMapper : MapperBase&lt;User, UserDto&gt;
+/// public class UserMapper : MapperProfile&lt;User, UserDto&gt;
 /// {
 ///     protected override Expression&lt;Func&lt;User, UserDto&gt;&gt; CreateMapping()
 ///     {
@@ -38,6 +36,7 @@ namespace Arbiter.CommandQuery.Mapping;
 /// }
 /// </code>
 /// </example>
+[Obsolete("This class is deprecated. Please use the new MapperProfile<TSource, TDestination> class with the [GenerateMapper] attribute instead.")]
 public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDestination>
 {
     private readonly Action<TSource, TDestination>? _compiledMapper;
@@ -153,7 +152,7 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// <example>
     /// Here's an example implementation for mapping from a User entity to a UserDto:
     /// <code>
-    /// public class UserMapper : MapperBase&lt;User, UserDto&gt;
+    /// public class UserMapper : Mapper&lt;User, UserDto&gt;
     /// {
     ///     protected override Expression&lt;Func&lt;User, UserDto&gt;&gt; CreateMapping()
     ///     {
@@ -239,7 +238,7 @@ public abstract class MapperBase<TSource, TDestination> : IMapper<TSource, TDest
     /// </returns>
     /// <remarks>
     /// This method handles <see cref="MemberInitExpression"/> (object initializer syntax) to extract property assignments.
-    /// Only object initializer syntax is supported (e.g., <c>new Destination { Property = value }</c>).
+    /// Only object initializer syntax is supported (e.g., <c>new DestinationExpression { Property = value }</c>).
     /// </remarks>
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "Lots of comments")]
     private static bool TryExtractAssignments(

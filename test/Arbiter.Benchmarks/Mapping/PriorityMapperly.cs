@@ -1,8 +1,8 @@
-#pragma warning disable RMG012 // Source member was not found for target member
+#pragma warning disable RMG012 // SourceExpression member was not found for target member
 
 using System.Diagnostics.CodeAnalysis;
 
-using Arbiter.CommandQuery.Definitions;
+using Arbiter.Mapping;
 
 using Riok.Mapperly.Abstractions;
 

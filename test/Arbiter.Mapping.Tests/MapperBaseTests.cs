@@ -1,11 +1,12 @@
+#pragma warning disable CS0618 // Type or member is obsolete
+
 using System.Linq.Expressions;
 
-using Arbiter.CommandQuery.Mapping;
 using Arbiter.CommandQuery.Tests.Models;
 
 using PersonEntity = Arbiter.CommandQuery.Tests.Models.Person;
 
-namespace Arbiter.CommandQuery.Tests.Mapping;
+namespace Arbiter.Mapping.Tests;
 
 public class MapperBaseTests
 {
@@ -269,7 +270,7 @@ public class MapperBaseTests
     }
 
     [Test]
-    public void Map_PersonToExistingRecordUsingRecordMapper_ThrowsException()
+    public void Map_PersonToExistingRecord_UpdatesProperties()
     {
         // Arrange
         var person = new PersonEntity
@@ -286,22 +287,29 @@ public class MapperBaseTests
             }
         };
 
-        var existingRecord = new PersonRecord(
-            999,
-            "Old",
-            "Record",
-            "old@record.com",
-            "Old Record",
-            99,
-            "Old Department",
-            99
-        );
+        var existingRecord = new PersonRecord
+        {
+            Id = 999,
+            FirstName = "Old",
+            LastName = "Record",
+            Email = "old@record.com",
+            FullName = "Old Record",
+            Age = 99,
+            DepartmentName = "Old Department",
+            AddressCount = 99
+        };
 
-        // Act & Assert
-        // Records are immutable, so trying to map to an existing record instance should fail
-        // The mapper will try to assign to read-only properties which will throw an exception
-        var action = () => _recordMapper.Map(person, existingRecord);
-        action.Should().Throw<InvalidOperationException>("because record properties are read-only and cannot be modified");
+        // Act
+        _recordMapper.Map(person, existingRecord);
+
+        // Assert
+        existingRecord.Id.Should().Be(8);
+        existingRecord.FirstName.Should().Be("Record");
+        existingRecord.LastName.Should().Be("Test");
+        existingRecord.Email.Should().Be("record@test.com");
+        existingRecord.FullName.Should().Be("Record Test");
+        existingRecord.DepartmentName.Should().Be("TestDept");
+        existingRecord.AddressCount.Should().Be(1);
     }
 
     [Test]
@@ -528,15 +536,15 @@ internal sealed class PersonToPersonRecordMapper : MapperBase<PersonEntity, Pers
     protected override Expression<Func<PersonEntity, PersonRecord>> CreateMapping()
     {
         return person => new PersonRecord
-        (
-            person.Id,
-            person.FirstName,
-            person.LastName,
-            person.Email,
-            person.FirstName + " " + person.LastName,
-            DateTime.Now.Year - person.BirthDate.Year,
-            person.Department != null ? person.Department.Name : null,
-            person.Addresses.Count()
-        );
+        {
+            Id = person.Id,
+            FirstName = person.FirstName,
+            LastName = person.LastName,
+            Email = person.Email,
+            FullName = person.FirstName + " " + person.LastName,
+            Age = DateTime.Now.Year - person.BirthDate.Year,
+            DepartmentName = person.Department != null ? person.Department.Name : null,
+            AddressCount = person.Addresses.Count()
+        };
     }
 }

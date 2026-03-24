@@ -23,6 +23,8 @@ public partial class PriorityReadModel
 
     #endregion
 
+    public int TaskCount { get; set; }
+
     public override string ToString()
         => Name;
 

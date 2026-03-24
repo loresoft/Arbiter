@@ -87,27 +87,19 @@ script:
       parameters:
         keyType: int
 
-    - templatePath: '..\..\..\..\templates\EntityMapping.csx'
+    - templatePath: '..\..\..\..\templates\MapperProfile.csx'
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '{Project.Directory}\Domain\{Entity.Name}\Mapping'
-      merge: true
       parameters:
         excludeDomain: true
-        readMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy,RowVersion'
-        createMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy'
-        updateMapping: 'Updated,UpdatedBy,RowVersion'
 
-    - templatePath: '..\..\..\..\templates\EntityMapping.csx'
+    - templatePath: '..\..\..\..\templates\MapperProfile.csx'
       fileName: '{Entity.Name}Mapper.cs'
       namespace: '{Project.Namespace}.Domain.Mapping'
       directory: '..\{Project.Namespace}.Shared\Domain\{Entity.Name}\Mapping'
-      merge: true
       parameters:
         excludeEntity: true
-        readMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy,RowVersion'
-        createMapping: 'Id,Created,CreatedBy,Updated,UpdatedBy'
-        updateMapping: 'Updated,UpdatedBy,RowVersion'
 
     - templatePath: '..\..\..\..\templates\EntityEndpoint.csx'
       fileName: '{Entity.Name}Endpoint.cs'

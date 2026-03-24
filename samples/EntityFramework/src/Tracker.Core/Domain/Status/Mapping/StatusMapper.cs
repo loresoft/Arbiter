@@ -1,109 +1,55 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 using Entities = Tracker.Data.Entities;
 using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Entities.Status, Models.StatusReadModel>>]
-internal sealed class StatusToStatusReadModelMapper
-    : MapperBase<Entities.Status, Models.StatusReadModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class StatusToStatusReadModelMapper
+    : MapperProfile<Entities.Status, Models.StatusReadModel>
 {
-    protected override Expression<Func<Entities.Status, Models.StatusReadModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Status, Models.StatusReadModel> mapping)
     {
-        return source => new Models.StatusReadModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        mapping
+            .Property(dest => dest.TaskCount)
+            .From(src => src.Tasks.Count);
     }
 }
 
-[RegisterSingleton<IMapper<Entities.Status, Models.StatusUpdateModel>>]
-internal sealed class StatusToStatusUpdateModelMapper
-    : MapperBase<Entities.Status, Models.StatusUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class StatusToStatusUpdateModelMapper
+    : MapperProfile<Entities.Status, Models.StatusUpdateModel>
 {
-    protected override Expression<Func<Entities.Status, Models.StatusUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Status, Models.StatusUpdateModel> mapping)
     {
-        return source => new Models.StatusUpdateModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.StatusCreateModel, Entities.Status>>]
-internal sealed class StatusCreateModelToStatusMapper
-    : MapperBase<Models.StatusCreateModel, Entities.Status>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class StatusCreateModelToStatusMapper
+    : MapperProfile<Models.StatusCreateModel, Entities.Status>
 {
-    protected override Expression<Func<Models.StatusCreateModel, Entities.Status>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.StatusCreateModel, Entities.Status> mapping)
     {
-        return source => new Entities.Status
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.StatusUpdateModel, Entities.Status>>]
-internal sealed class StatusUpdateModelToStatusMapper
-    : MapperBase<Models.StatusUpdateModel, Entities.Status>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class StatusUpdateModelToStatusMapper
+    : MapperProfile<Models.StatusUpdateModel, Entities.Status>
 {
-    protected override Expression<Func<Models.StatusUpdateModel, Entities.Status>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.StatusUpdateModel, Entities.Status> mapping)
     {
-        return source => new Entities.Status
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 

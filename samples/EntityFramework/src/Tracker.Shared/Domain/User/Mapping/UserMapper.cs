@@ -1,78 +1,41 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Models.UserReadModel, Models.UserCreateModel>>]
-internal sealed class UserReadModelToUserCreateModelMapper
-    : MapperBase<Models.UserReadModel, Models.UserCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class UserReadModelToUserCreateModelMapper
+    : MapperProfile<Models.UserReadModel, Models.UserCreateModel>
 {
-    protected override Expression<Func<Models.UserReadModel, Models.UserCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.UserReadModel, Models.UserCreateModel> mapping)
     {
-        return source => new Models.UserCreateModel
-        {
-            #region Generated Mappings
-            DisplayName = source.DisplayName,
-            EmailAddress = source.EmailAddress,
-            IsDeleted = source.IsDeleted,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.UserReadModel, Models.UserUpdateModel>>]
-internal sealed class UserReadModelToUserUpdateModelMapper
-    : MapperBase<Models.UserReadModel, Models.UserUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class UserReadModelToUserUpdateModelMapper
+    : MapperProfile<Models.UserReadModel, Models.UserUpdateModel>
 {
-    protected override Expression<Func<Models.UserReadModel, Models.UserUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.UserReadModel, Models.UserUpdateModel> mapping)
     {
-        return source => new Models.UserUpdateModel
-        {
-            #region Generated Mappings
-            DisplayName = source.DisplayName,
-            EmailAddress = source.EmailAddress,
-            IsDeleted = source.IsDeleted,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.UserUpdateModel, Models.UserCreateModel>>]
-internal sealed class UserUpdateModelToUserCreateModelMapper
-    : MapperBase<Models.UserUpdateModel, Models.UserCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class UserUpdateModelToUserCreateModelMapper
+    : MapperProfile<Models.UserUpdateModel, Models.UserCreateModel>
 {
-    protected override Expression<Func<Models.UserUpdateModel, Models.UserCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.UserUpdateModel, Models.UserCreateModel> mapping)
     {
-        return source => new Models.UserCreateModel
-        {
-            #region Generated Mappings
-            DisplayName = source.DisplayName,
-            EmailAddress = source.EmailAddress,
-            IsDeleted = source.IsDeleted,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 

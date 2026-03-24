@@ -13,6 +13,7 @@ public class MappingBenchmark
     private PriorityArbiterMapper _priorityArbiterMapper = null!;
     private PriorityMapperly _priorityMapperly = null!;
     private PriorityManualMapper _priorityManualMapper = null!;
+    private PriorityArbiterGenerator _priorityArbiterGenerator = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -22,6 +23,7 @@ public class MappingBenchmark
 
         _priorityAutoMapper = new PriorityAutoMapper(mapper);
         _priorityArbiterMapper = new PriorityArbiterMapper();
+        _priorityArbiterGenerator = new PriorityArbiterGenerator();
         _priorityMapperly = new PriorityMapperly();
         _priorityManualMapper = new PriorityManualMapper();
 
@@ -56,6 +58,12 @@ public class MappingBenchmark
     }
 
     [Benchmark]
+    public PriorityReadModel? PriorityArbiterGenerator_SingleMap()
+    {
+        return _priorityArbiterGenerator.Map(_priorities[0]);
+    }
+
+    [Benchmark]
     public PriorityReadModel? PriorityMapperly_SingleMap()
     {
         return _priorityMapperly.Map(_priorities[0]);
@@ -80,6 +88,14 @@ public class MappingBenchmark
     {
         var destinations = new PriorityReadModel();
         _priorityArbiterMapper.Map(_priorities[0], destinations);
+        return destinations;
+    }
+
+    [Benchmark]
+    public PriorityReadModel PriorityArbiterGenerator_MapToExisting()
+    {
+        var destinations = new PriorityReadModel();
+        _priorityArbiterGenerator.Map(_priorities[0], destinations);
         return destinations;
     }
 
@@ -109,6 +125,12 @@ public class MappingBenchmark
     public PriorityReadModel[] PriorityArbiterMapper_ProjectTo()
     {
         return _priorityArbiterMapper.ProjectTo(_priorities.AsQueryable()).ToArray();
+    }
+
+    [Benchmark]
+    public PriorityReadModel[] PriorityArbiterGenerator_ProjectTo()
+    {
+        return _priorityArbiterGenerator.ProjectTo(_priorities.AsQueryable()).ToArray();
     }
 
     [Benchmark]

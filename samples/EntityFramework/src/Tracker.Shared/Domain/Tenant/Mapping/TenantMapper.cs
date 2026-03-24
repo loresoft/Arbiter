@@ -1,75 +1,41 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantCreateModel>>]
-internal sealed class TenantReadModelToTenantCreateModelMapper
-    : MapperBase<Models.TenantReadModel, Models.TenantCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TenantReadModelToTenantCreateModelMapper
+    : MapperProfile<Models.TenantReadModel, Models.TenantCreateModel>
 {
-    protected override Expression<Func<Models.TenantReadModel, Models.TenantCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TenantReadModel, Models.TenantCreateModel> mapping)
     {
-        return source => new Models.TenantCreateModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.TenantReadModel, Models.TenantUpdateModel>>]
-internal sealed class TenantReadModelToTenantUpdateModelMapper
-    : MapperBase<Models.TenantReadModel, Models.TenantUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TenantReadModelToTenantUpdateModelMapper
+    : MapperProfile<Models.TenantReadModel, Models.TenantUpdateModel>
 {
-    protected override Expression<Func<Models.TenantReadModel, Models.TenantUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TenantReadModel, Models.TenantUpdateModel> mapping)
     {
-        return source => new Models.TenantUpdateModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.TenantUpdateModel, Models.TenantCreateModel>>]
-internal sealed class TenantUpdateModelToTenantCreateModelMapper
-    : MapperBase<Models.TenantUpdateModel, Models.TenantCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TenantUpdateModelToTenantCreateModelMapper
+    : MapperProfile<Models.TenantUpdateModel, Models.TenantCreateModel>
 {
-    protected override Expression<Func<Models.TenantUpdateModel, Models.TenantCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TenantUpdateModel, Models.TenantCreateModel> mapping)
     {
-        return source => new Models.TenantCreateModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 

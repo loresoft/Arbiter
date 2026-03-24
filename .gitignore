@@ -401,10 +401,10 @@ FodyWeavers.xsd
 
 # Custom
 /artifacts
-/*.txt
+*.received.txt
 *.GhostDoc.xml
 *.csv
-*.txt
 *.clef
+*.log
 _site
 /.idea

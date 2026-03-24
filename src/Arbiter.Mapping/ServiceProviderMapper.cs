@@ -1,10 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Arbiter.CommandQuery.Definitions;
-
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arbiter.CommandQuery.Mapping;
+namespace Arbiter.Mapping;
 
 /// <summary>
 /// Provides a default implementation of <see cref="IMapper"/> that resolves mapping services using an <see cref="IServiceProvider"/>.

@@ -1,6 +1,6 @@
-using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
 using Arbiter.CommandQuery.Handlers;
+using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

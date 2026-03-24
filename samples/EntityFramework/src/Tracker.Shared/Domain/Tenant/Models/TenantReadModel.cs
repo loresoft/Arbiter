@@ -19,6 +19,10 @@ public partial class TenantReadModel
 
     #endregion
 
+    public int TaskCount { get; set; }
+
+    public List<string>? Tasks { get; set; }
+
     public override string ToString()
         => Name;
 

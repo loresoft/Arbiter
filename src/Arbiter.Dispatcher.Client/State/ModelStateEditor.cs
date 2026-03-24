@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Dispatcher.Client;
+using Arbiter.Mapping;
 
 namespace Arbiter.Dispatcher.State;
 

@@ -25,6 +25,7 @@ Arbiter is designed for building clean, modular architectures like Vertical Slic
 - [Core Libraries](#core-libraries)
   - [Arbiter.Mediation](#arbitermediation)
   - [Arbiter.CommandQuery](#arbitercommandquery)
+  - [Arbiter.Mapping](#arbitermapping)
   - [Arbiter.Services](#arbiterservices)
   - [Arbiter.Communication](#arbitercommunication)
 - [Data Providers](#data-providers)
@@ -97,6 +98,7 @@ public class UserController : ControllerBase
 | :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------- |
 | [Arbiter.Mediation](#arbitermediation)         | [![Arbiter.Mediation](https://img.shields.io/nuget/v/Arbiter.Mediation.svg)](https://www.nuget.org/packages/Arbiter.Mediation/)             | Lightweight and extensible implementation of the Mediator pattern |
 | [Arbiter.CommandQuery](#arbitercommandquery)   | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)    | Base package for Commands, Queries and Behaviors                  |
+| [Arbiter.Mapping](#arbitermapping)             | [![Arbiter.Mapping](https://img.shields.io/nuget/v/Arbiter.Mapping.svg)](https://www.nuget.org/packages/Arbiter.Mapping/)                   | Source-generated, compile-time object mapping                     |
 | [Arbiter.Services](#arbiterservices)           | [![Arbiter.Services](https://img.shields.io/nuget/v/Arbiter.Services.svg)](https://www.nuget.org/packages/Arbiter.Services/)                | Utility services for CSV, encryption, caching, and tokens         |
 | [Arbiter.Communication](#arbitercommunication) | [![Arbiter.Communication](https://img.shields.io/nuget/v/Arbiter.Communication.svg)](https://www.nuget.org/packages/Arbiter.Communication/) | Message template communication for email and SMS services         |
 
@@ -278,7 +280,7 @@ A comprehensive Command Query Responsibility Segregation (CQRS) framework built 
 - **Pre-built Operations**: Common CRUD operations out of the box
 - **Generic Handlers**: Reusable handlers for typical data operations
 - **Smart Behaviors**: Hybrid caching, auditing, validation, and soft delete support
-- **Auto Mapping**: Built-in view model to data model mapping
+- **Source-Generated Mapping**: Compile-time object mapping via `Arbiter.Mapping` with `[GenerateMapper]` attribute
 - **Enhanced Querying**: Powerful filter, sort, and pagination support with type-safe operators
 - **Multi-tenancy Ready**: Built-in tenant isolation support
 - **Unified Query System**: Single `EntityQuery` class handles both paged and non-paged scenarios
@@ -431,6 +433,64 @@ var query = new EntityPagedQuery<ProductReadModel>(principal, complexEntityQuery
 var result = await mediator.Send(query);
 ```
 
+### Arbiter.Mapping
+
+Source-generated, compile-time object mapping with support for custom property expressions and `IQueryable` projection.
+
+#### Mapping Installation
+
+```bash
+dotnet add package Arbiter.Mapping
+```
+
+#### Mapping Features
+
+- **Source-Generated**: Roslyn incremental source generator emits mapping code at build time
+- **Zero Reflection**: No runtime reflection or expression compilation
+- **AOT Compatible**: Fully compatible with Native AOT
+- **Auto Property Matching**: Automatically maps properties with matching names and compatible types
+- **Custom Expressions**: Configure custom property mappings via `ConfigureMapping`
+- **Query Projection**: Built-in `ProjectTo` support for Entity Framework and other query providers
+- **Record Support**: Supports mapping to records, `init` properties, and primary constructors
+
+#### Basic Usage
+
+**1. Define a Mapper**
+
+```csharp
+[GenerateMapper]
+public partial class UserToUserDtoMapper : MapperProfile<User, UserDto>
+{
+    protected override void ConfigureMapping(MappingBuilder<User, UserDto> mapping)
+    {
+        mapping.Property(d => d.FullName).From(s => s.FirstName + " " + s.LastName);
+        mapping.Property(d => d.Age).From(s => DateTime.Now.Year - s.BirthDate.Year);
+        mapping.Property(d => d.DepartmentName).From(s => s.Department!.Name);
+        mapping.Property(d => d.AddressCount).From(s => s.Addresses.Count());
+    }
+}
+```
+
+**2. Register the Mapper**
+
+```csharp
+services.AddSingleton<IMapper<User, UserDto>, UserToUserDtoMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
+```
+
+**3. Use the Mapper**
+
+```csharp
+public class UserService
+{
+    private readonly IMapper<User, UserDto> _userMapper;
+
+    public UserService(IMapper<User, UserDto> userMapper) => _userMapper = userMapper;
+
+    public UserDto GetUserDto(User user) => _userMapper.Map(user);
+}
+```
+
 ### Arbiter.Services
 
 Utility library providing common infrastructure services for .NET applications.
@@ -480,9 +540,11 @@ services.AddDbContext<TrackerContext>(options =>
 // Register Command Query services
 services.AddCommandQuery();
 
-// Register mappers and validators
-services.AddSingleton<IMapper, MyMapper>();
-services.AddSingleton<IValidator, MyValidator>();
+// Register source-generated mappers
+services.AddSingleton<IMapper<Product, ProductReadModel>, ProductToReadModelMapper>();
+services.AddSingleton<IMapper<ProductCreateModel, Product>, ProductCreateModelToProductMapper>();
+services.AddSingleton<IMapper<ProductUpdateModel, Product>, ProductUpdateModelToProductMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
 
 // Register Entity Framework handlers for each entity
 services.AddEntityQueries<TrackerContext, Product, int, ProductReadModel>();
@@ -504,9 +566,11 @@ dotnet add package Arbiter.CommandQuery.MongoDB
 services.AddMongoRepository("Tracker");
 services.AddCommandQuery();
 
-// Register mappers and validators
-services.AddSingleton<IMapper, MyMapper>();
-services.AddSingleton<IValidator, MyValidator>();
+// Register source-generated mappers
+services.AddSingleton<IMapper<Product, ProductReadModel>, ProductToReadModelMapper>();
+services.AddSingleton<IMapper<ProductCreateModel, Product>, ProductCreateModelToProductMapper>();
+services.AddSingleton<IMapper<ProductUpdateModel, Product>, ProductUpdateModelToProductMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
 
 // Register MongoDB handlers for each entity
 services.AddEntityQueries<IMongoEntityRepository<Product>, Product, string, ProductReadModel>();

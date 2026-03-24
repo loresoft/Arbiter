@@ -1,109 +1,55 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 using Entities = Tracker.Data.Entities;
 using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityReadModel>>]
-internal sealed class PriorityToPriorityReadModelMapper
-    : MapperBase<Entities.Priority, Models.PriorityReadModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityToPriorityReadModelMapper
+    : MapperProfile<Entities.Priority, Models.PriorityReadModel>
 {
-    protected override Expression<Func<Entities.Priority, Models.PriorityReadModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Priority, Models.PriorityReadModel> mapping)
     {
-        return source => new Models.PriorityReadModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        mapping
+            .Property(dest => dest.TaskCount)
+            .From(src => src.Tasks.Count(t => !t.IsDeleted));
     }
 }
 
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityUpdateModel>>]
-internal sealed class PriorityToPriorityUpdateModelMapper
-    : MapperBase<Entities.Priority, Models.PriorityUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityToPriorityUpdateModelMapper
+    : MapperProfile<Entities.Priority, Models.PriorityUpdateModel>
 {
-    protected override Expression<Func<Entities.Priority, Models.PriorityUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Priority, Models.PriorityUpdateModel> mapping)
     {
-        return source => new Models.PriorityUpdateModel
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityCreateModel, Entities.Priority>>]
-internal sealed class PriorityCreateModelToPriorityMapper
-    : MapperBase<Models.PriorityCreateModel, Entities.Priority>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityCreateModelToPriorityMapper
+    : MapperProfile<Models.PriorityCreateModel, Entities.Priority>
 {
-    protected override Expression<Func<Models.PriorityCreateModel, Entities.Priority>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.PriorityCreateModel, Entities.Priority> mapping)
     {
-        return source => new Entities.Priority
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Entities.Priority>>]
-internal sealed class PriorityUpdateModelToPriorityMapper
-    : MapperBase<Models.PriorityUpdateModel, Entities.Priority>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityUpdateModelToPriorityMapper
+    : MapperProfile<Models.PriorityUpdateModel, Entities.Priority>
 {
-    protected override Expression<Func<Models.PriorityUpdateModel, Entities.Priority>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.PriorityUpdateModel, Entities.Priority> mapping)
     {
-        return source => new Entities.Priority
-        {
-            #region Generated Mappings
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 

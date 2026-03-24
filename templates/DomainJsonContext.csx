@@ -65,38 +65,34 @@ private void GenerateClass()
             }
         }
         CodeBuilder.AppendLine($"// '{entity.EntityClass}' Models, Commands and Queries");
+        CodeBuilder.AppendLine($"[JsonSerializable(typeof({readModel}))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifierQuery<int, {readModel}>))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifiersQuery<int, {readModel}>))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityPagedQuery<{readModel}>))]");
-
-        CodeBuilder.AppendLine($"[JsonSerializable(typeof({readModel}))]");
-        CodeBuilder.AppendLine($"[JsonSerializable(typeof(IReadOnlyCollection<{readModel}>))]");
+        CodeBuilder.AppendLine($"[JsonSerializable(typeof(IReadOnlyList<{readModel}>))]");
         CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityPagedResult<{readModel}>))]");
 
         if (!string.IsNullOrEmpty(createModel))
         {
-            CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityCreateCommand<{createModel}, {readModel}>))]");
-
             CodeBuilder.AppendLine($"[JsonSerializable(typeof({createModel}))]");
+            CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityCreateCommand<{createModel}, {readModel}>))]");
         }
 
         if (!string.IsNullOrEmpty(updateModel))
         {
+            CodeBuilder.AppendLine($"[JsonSerializable(typeof({updateModel}))]");
             CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifierQuery<int, {updateModel}>))]");
-            CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityIdentifiersQuery<int, {updateModel}>))]");
-
             CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityUpdateCommand<int, {updateModel}, {readModel}>))]");
-            CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityUpsertCommand<int, {updateModel}, {readModel}>))]");
             CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityPatchCommand<int, {readModel}>))]");
             CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityDeleteCommand<int, {readModel}>))]");
-
-            CodeBuilder.AppendLine($"[JsonSerializable(typeof({updateModel}))]");
         }
     }
 
     // query types
     CodeBuilder.AppendLine("// Common Models, Commands and Queries");
     CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityQuery))]");
+    CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntityFilter))]");
+    CodeBuilder.AppendLine($"[JsonSerializable(typeof(EntitySort))]");
 
     CodeBuilder.AppendLine("#endregion");
     CodeBuilder.AppendLine("// Manual Declarations");

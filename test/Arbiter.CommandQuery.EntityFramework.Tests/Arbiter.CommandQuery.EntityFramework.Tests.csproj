@@ -33,6 +33,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Arbiter.CommandQuery.EntityFramework\Arbiter.CommandQuery.EntityFramework.csproj" />
     <ProjectReference Include="..\..\src\Arbiter.Dispatcher.Client\Arbiter.Dispatcher.Client.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Mapping.Generators\Arbiter.Mapping.Generators.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Arbiter.Mapping\Arbiter.Mapping.csproj" />
   </ItemGroup>
 
   <ItemGroup>

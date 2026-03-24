@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Arbiter.Mapping\Arbiter.Mapping.csproj" />
     <ProjectReference Include="..\Arbiter.Mediation\Arbiter.Mediation.csproj" />
     <ProjectReference Include="..\Arbiter.Services\Arbiter.Services.csproj" />
   </ItemGroup>

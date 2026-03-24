@@ -5,6 +5,10 @@
     <RootNamespace>Tracker</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
@@ -14,7 +18,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery\Arbiter.CommandQuery.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Mapping.Generators\Arbiter.Mapping.Generators.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
-
 
 </Project>
