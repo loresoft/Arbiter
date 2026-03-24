@@ -1,10 +1,10 @@
 using System.Linq.Dynamic.Core;
 
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
+using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

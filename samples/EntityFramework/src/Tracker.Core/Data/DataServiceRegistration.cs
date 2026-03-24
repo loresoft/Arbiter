@@ -20,6 +20,8 @@ public static class DataServiceRegistration
                     providerOptions => providerOptions
                         .EnableRetryOnFailure()
                         .CommandTimeout(300)
+                        .UseParameterizedCollectionMode(ParameterTranslationMode.MultipleParameters)
+                        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
                 );
             }
         );

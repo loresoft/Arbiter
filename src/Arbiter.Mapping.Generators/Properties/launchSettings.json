@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Arbiter.Mapping.Generators": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent"
+    }
+  }
+}

@@ -1,3 +1,5 @@
+#nullable enable
+
 public string WriteCode()
 {
     if (Entity.Models.Count == 0)
@@ -28,11 +30,22 @@ public string WriteCode()
         }
     }
 
-    if (updateModel == null)
-        return string.Empty;
-
     TemplateOptions.Parameters.TryGetValue("excludeDomain", out var excludeDomain);
     TemplateOptions.Parameters.TryGetValue("excludeEntity", out var excludeEntity);
+
+    var hasReadModel = readModel != null;
+    var hasCreateModel = createModel != null;
+    var hasUpdateModel = updateModel != null;
+    var includeEntity = string.IsNullOrEmpty(excludeEntity);
+    var includeDomain = string.IsNullOrEmpty(excludeDomain);
+
+    // skip if no models are defined
+    if (!hasReadModel && !hasCreateModel && !hasUpdateModel)
+        return string.Empty;
+
+    // skip readonly for domain mapping
+    if (includeDomain && !includeEntity && !hasCreateModel && !hasUpdateModel)
+        return string.Empty;
 
     TemplateOptions.Parameters.TryGetValue("readMapping", out var readMapping);
     var readProperties = readMapping?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
@@ -66,17 +79,29 @@ public string WriteCode()
 
     if (string.IsNullOrEmpty(excludeDomain))
     {
-        GenerateClass(readModel, createModel, readProperties.Intersect(createProperties).ToArray());
-        GenerateClass(readModel, updateModel, readProperties.Intersect(updateProperties).ToArray());
-        GenerateClass(updateModel, createModel, updateProperties.Intersect(createProperties).ToArray());
+        if (hasReadModel && hasCreateModel)
+            GenerateClass(readModel, createModel, readProperties.Intersect(createProperties).ToArray());
+
+        if (hasReadModel && hasUpdateModel)
+            GenerateClass(readModel, updateModel, readProperties.Intersect(updateProperties).ToArray());
+
+        if (hasCreateModel && hasUpdateModel)
+            GenerateClass(updateModel, createModel, updateProperties.Intersect(createProperties).ToArray());
     }
 
     if (string.IsNullOrEmpty(excludeEntity))
     {
-        GenerateClass(Entity, readModel, readProperties);
-        GenerateClass(Entity, updateModel, readProperties.Intersect(updateProperties).ToArray());
-        GenerateClass(createModel, Entity, createProperties.Intersect(readProperties).ToArray());
-        GenerateClass(updateModel, Entity, updateProperties.Intersect(readProperties).ToArray());
+        if (hasReadModel)
+            GenerateClass(Entity, readModel, readProperties);
+
+        if (hasUpdateModel)
+            GenerateClass(Entity, updateModel, readProperties.Intersect(updateProperties).ToArray());
+
+        if (hasCreateModel)
+            GenerateClass(createModel, Entity, createProperties.Intersect(readProperties).ToArray());
+
+        if (hasUpdateModel)
+            GenerateClass(updateModel, Entity, updateProperties.Intersect(readProperties).ToArray());
     }
 
     return CodeBuilder.ToString();

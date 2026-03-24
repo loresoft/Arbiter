@@ -1,9 +1,9 @@
 using System.Linq.Dynamic.Core;
 
 using Arbiter.CommandQuery.Commands;
-using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
+using Arbiter.Mapping;
 
 using Microsoft.Extensions.Logging;
 

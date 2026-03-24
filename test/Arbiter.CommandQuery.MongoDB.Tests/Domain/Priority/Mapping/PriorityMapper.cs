@@ -1,147 +1,94 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.MongoDB.Tests.Domain.Models;
+using Arbiter.Mapping;
 
 using Entities = Arbiter.CommandQuery.MongoDB.Tests.Data.Entities;
 
 namespace Arbiter.CommandQuery.MongoDB.Tests.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Models.PriorityReadModel, Models.PriorityCreateModel>>]
-internal sealed class PriorityReadModelToPriorityCreateModelMapper
-    : CommandQuery.Mapping.MapperBase<Models.PriorityReadModel, Models.PriorityCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityReadModelToPriorityCreateModelMapper
+    : MapperProfile<Models.PriorityReadModel, Models.PriorityCreateModel>
 {
-    protected override Expression<Func<Models.PriorityReadModel, Models.PriorityCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<PriorityReadModel, PriorityCreateModel> mapping)
     {
-        return source => new Models.PriorityCreateModel
-        {
-            Id = source.Id,
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityReadModel, Models.PriorityUpdateModel>>]
-internal sealed class PriorityReadModelToPriorityUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.PriorityReadModel, Models.PriorityUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityReadModelToPriorityUpdateModelMapper
+    : MapperProfile<Models.PriorityReadModel, Models.PriorityUpdateModel>
 {
-    protected override Expression<Func<Models.PriorityReadModel, Models.PriorityUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<PriorityReadModel, PriorityUpdateModel> mapping)
     {
-        return source => new Models.PriorityUpdateModel
-        {
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Models.PriorityCreateModel>>]
-internal sealed class PriorityUpdateModelToPriorityCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.PriorityUpdateModel, Models.PriorityCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityUpdateModelToPriorityCreateModelMapper
+    : MapperProfile<Models.PriorityUpdateModel, Models.PriorityCreateModel>
 {
-    protected override Expression<Func<Models.PriorityUpdateModel, Models.PriorityCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<PriorityUpdateModel, PriorityCreateModel> mapping)
     {
-        return source => new Models.PriorityCreateModel
-        {
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityReadModel>>]
-internal sealed class PriorityToPriorityReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityReadModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityToPriorityReadModelMapper
+    : MapperProfile<Entities.Priority, Models.PriorityReadModel>
+
 {
-    protected override Expression<Func<Entities.Priority, Models.PriorityReadModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Priority, PriorityReadModel> mapping)
     {
-        return source => new Models.PriorityReadModel
-        {
-            Id = source.Id,
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Entities.Priority, Models.PriorityUpdateModel>>]
-internal sealed class PriorityToPriorityUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Priority, Models.PriorityUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityToPriorityUpdateModelMapper
+    : MapperProfile<Entities.Priority, Models.PriorityUpdateModel>
 {
-    protected override Expression<Func<Entities.Priority, Models.PriorityUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Priority, PriorityUpdateModel> mapping)
     {
-        return source => new Models.PriorityUpdateModel
-        {
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityCreateModel, Entities.Priority>>]
-internal sealed class PriorityCreateModelToPriorityMapper : CommandQuery.Mapping.MapperBase<Models.PriorityCreateModel, Entities.Priority>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityCreateModelToPriorityMapper
+    : MapperProfile<Models.PriorityCreateModel, Entities.Priority>
 {
-    protected override Expression<Func<Models.PriorityCreateModel, Entities.Priority>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<PriorityCreateModel, Entities.Priority> mapping)
     {
-        return source => new Entities.Priority
-        {
-            Id = source.Id,
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 
-[RegisterSingleton<IMapper<Models.PriorityUpdateModel, Entities.Priority>>]
-internal sealed class PriorityUpdateModelToPriorityMapper : CommandQuery.Mapping.MapperBase<Models.PriorityUpdateModel, Entities.Priority>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class PriorityUpdateModelToPriorityMapper
+    : MapperProfile<Models.PriorityUpdateModel, Entities.Priority>
 {
-    protected override Expression<Func<Models.PriorityUpdateModel, Entities.Priority>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<PriorityUpdateModel, Entities.Priority> mapping)
     {
-        return source => new Entities.Priority
-        {
-            Key = source.Key,
-            Name = source.Name,
-            Description = source.Description,
-            DisplayOrder = source.DisplayOrder,
-            IsActive = source.IsActive,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here, if needed
+        // mapping.Property(p => p.Id).From(p => p.Id);
     }
 }
 

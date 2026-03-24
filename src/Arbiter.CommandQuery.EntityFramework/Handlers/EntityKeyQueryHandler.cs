@@ -3,6 +3,7 @@ using System.Security.Principal;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -1,99 +1,41 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
-
-using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Mapping;
+using Arbiter.Mapping;
 
 using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
-internal sealed class TaskReadModelToTaskCreateModelMapper
-    : MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskReadModelToTaskCreateModelMapper
+    : MapperProfile<Models.TaskReadModel, Models.TaskCreateModel>
 {
-    protected override Expression<Func<Models.TaskReadModel, Models.TaskCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TaskReadModel, Models.TaskCreateModel> mapping)
     {
-        return source => new Models.TaskCreateModel
-        {
-            #region Generated Mappings
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            IsDeleted = source.IsDeleted,
-            TenantId = source.TenantId,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            AssignedId = source.AssignedId,
-            #endregion
-
-            // Manual Mappings
-            Id = source.Id,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
-internal sealed class TaskReadModelToTaskUpdateModelMapper
-    : MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskReadModelToTaskUpdateModelMapper
+    : MapperProfile<Models.TaskReadModel, Models.TaskUpdateModel>
 {
-    protected override Expression<Func<Models.TaskReadModel, Models.TaskUpdateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TaskReadModel, Models.TaskUpdateModel> mapping)
     {
-        return source => new Models.TaskUpdateModel
-        {
-            #region Generated Mappings
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            IsDeleted = source.IsDeleted,
-            TenantId = source.TenantId,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            AssignedId = source.AssignedId,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-        };
+        // custom mapping here
     }
 }
 
-[RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
-internal sealed class TaskUpdateModelToTaskCreateModelMapper
-    : MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskUpdateModelToTaskCreateModelMapper
+    : MapperProfile<Models.TaskUpdateModel, Models.TaskCreateModel>
 {
-    protected override Expression<Func<Models.TaskUpdateModel, Models.TaskCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Models.TaskUpdateModel, Models.TaskCreateModel> mapping)
     {
-        return source => new Models.TaskCreateModel
-        {
-            #region Generated Mappings
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            IsDeleted = source.IsDeleted,
-            TenantId = source.TenantId,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            AssignedId = source.AssignedId,
-            #endregion
-
-            // Manual Mappings
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-        };
+        // custom mapping here
     }
 }
 

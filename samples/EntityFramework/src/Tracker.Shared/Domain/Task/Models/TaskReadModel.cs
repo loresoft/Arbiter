@@ -35,10 +35,10 @@ public partial class TaskReadModel
     #endregion
 
     [Column("Tenant.Name")]
-    public string? TenantName { get; set; }
+    public string TenantName { get; set; } = null!;
 
     [Column("Status.Name")]
-    public string? StatusName { get; set; }
+    public string StatusName { get; set; } = null!;
 
     [Column("Priority.Name")]
     public string? PriorityName { get; set; }

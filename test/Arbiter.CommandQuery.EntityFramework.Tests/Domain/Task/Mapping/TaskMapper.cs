@@ -1,186 +1,60 @@
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 
-using System.Linq.Expressions;
+using Arbiter.Mapping;
 
 using Entities = Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities;
 
 namespace Arbiter.CommandQuery.EntityFramework.Tests.Domain.Mapping;
 
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskCreateModel>>]
-internal sealed class TaskReadModelToTaskCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskCreateModel>
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskReadModelToTaskCreateModelMapper
+    : MapperProfile<Models.TaskReadModel, Models.TaskCreateModel>;
+
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskReadModelToTaskUpdateModelMapper
+    : MapperProfile<Models.TaskReadModel, Models.TaskUpdateModel>;
+
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskUpdateModelToTaskCreateModelMapper
+    : MapperProfile<Models.TaskUpdateModel, Models.TaskCreateModel>;
+
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskToTaskReadModelMapper
+    : MapperProfile<Entities.Task, Models.TaskReadModel>
 {
-    protected override Expression<Func<Models.TaskReadModel, Models.TaskCreateModel>> CreateMapping()
+    protected override void ConfigureMapping(MappingBuilder<Entities.Task, Models.TaskReadModel> mapping)
     {
-        return source => new Models.TaskCreateModel
-        {
-            Id = source.Id,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
+        mapping
+            .Property(dest => dest.StatusName)
+            .From(src => src.Status.Name);
+        mapping
+            .Property(dest => dest.PriorityName)
+            .From(src => src.Priority!.Name);
+        mapping
+            .Property(dest => dest.AssignedName)
+            .From(src => src.AssignedUser!.EmailAddress);
+        mapping
+            .Property(dest => dest.TenantName)
+            .From(src => src.Tenant.Name);
     }
 }
 
-[RegisterSingleton<IMapper<Models.TaskReadModel, Models.TaskUpdateModel>>]
-internal sealed class TaskReadModelToTaskUpdateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskReadModel, Models.TaskUpdateModel>
-{
-    protected override Expression<Func<Models.TaskReadModel, Models.TaskUpdateModel>> CreateMapping()
-    {
-        return source => new Models.TaskUpdateModel
-        {
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion
-        };
-    }
-}
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskToTaskUpdateModelMapper
+    : MapperProfile<Entities.Task, Models.TaskUpdateModel>;
 
-[RegisterSingleton<IMapper<Models.TaskUpdateModel, Models.TaskCreateModel>>]
-internal sealed class TaskUpdateModelToTaskCreateModelMapper : CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Models.TaskCreateModel>
-{
-    protected override Expression<Func<Models.TaskUpdateModel, Models.TaskCreateModel>> CreateMapping()
-    {
-        return source => new Models.TaskCreateModel
-        {
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
-    }
-}
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskCreateModelToTaskMapper
+    : MapperProfile<Models.TaskCreateModel, Entities.Task>;
 
-[RegisterSingleton<IMapper<Entities.Task, Models.TaskReadModel>>]
-internal sealed class TaskToTaskReadModelMapper : CommandQuery.Mapping.MapperBase<Entities.Task, Models.TaskReadModel>
-{
-    protected override Expression<Func<Entities.Task, Models.TaskReadModel>> CreateMapping()
-    {
-        return source => new Models.TaskReadModel
-        {
-            Id = source.Id,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion,
-            StatusName = source.Status.Name,
-            PriorityName = source.Priority != null ? source.Priority.Name : null,
-            AssignedName = source.AssignedUser != null ? source.AssignedUser.EmailAddress : null,
-            TenantName = source.Tenant.Name
-        };
-    }
-}
-
-[RegisterSingleton<IMapper<Entities.Task, Models.TaskUpdateModel>>]
-internal sealed class TaskToTaskUpdateModelMapper : CommandQuery.Mapping.MapperBase<Entities.Task, Models.TaskUpdateModel>
-{
-    protected override Expression<Func<Entities.Task, Models.TaskUpdateModel>> CreateMapping()
-    {
-        return source => new Models.TaskUpdateModel
-        {
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion
-        };
-    }
-}
-
-[RegisterSingleton<IMapper<Models.TaskCreateModel, Entities.Task>>]
-internal sealed class TaskCreateModelToTaskMapper : CommandQuery.Mapping.MapperBase<Models.TaskCreateModel, Entities.Task>
-{
-    protected override Expression<Func<Models.TaskCreateModel, Entities.Task>> CreateMapping()
-    {
-        return source => new Entities.Task
-        {
-            Id = source.Id,
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Created = source.Created,
-            CreatedBy = source.CreatedBy,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy
-        };
-    }
-}
-
-[RegisterSingleton<IMapper<Models.TaskUpdateModel, Entities.Task>>]
-internal sealed class TaskUpdateModelToTaskMapper : CommandQuery.Mapping.MapperBase<Models.TaskUpdateModel, Entities.Task>
-{
-    protected override Expression<Func<Models.TaskUpdateModel, Entities.Task>> CreateMapping()
-    {
-        return source => new Entities.Task
-        {
-            StatusId = source.StatusId,
-            PriorityId = source.PriorityId,
-            Title = source.Title,
-            Description = source.Description,
-            StartDate = source.StartDate,
-            DueDate = source.DueDate,
-            CompleteDate = source.CompleteDate,
-            AssignedId = source.AssignedId,
-            TenantId = source.TenantId,
-            IsDeleted = source.IsDeleted,
-            Updated = source.Updated,
-            UpdatedBy = source.UpdatedBy,
-            RowVersion = source.RowVersion
-        };
-    }
-}
+[GenerateMapper]
+[RegisterSingleton]
+internal sealed partial class TaskUpdateModelToTaskMapper
+    : MapperProfile<Models.TaskUpdateModel, Entities.Task>;
 

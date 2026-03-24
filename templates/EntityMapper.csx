@@ -1,3 +1,5 @@
+#nullable enable
+
 public string WriteCode()
 {
     if (Entity.Models.Count == 0)

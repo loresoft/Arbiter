@@ -14,6 +14,7 @@ Mediator pattern and Command Query Responsibility Segregation (CQRS) implementat
 | [Arbiter.CommandQuery.MongoDB](#arbitercommandquerymongodb)                 | [![Arbiter.CommandQuery.MongoDB](https://img.shields.io/nuget/v/Arbiter.CommandQuery.MongoDB.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.MongoDB/)                         | Mongo DB handlers for the base Commands and Queries               |
 | [Arbiter.CommandQuery.Endpoints](#arbitercommandqueryendpoints)             | [![Arbiter.CommandQuery.Endpoints](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Endpoints.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Endpoints/)                   | Minimal API endpoints for base Commands and Queries               |
 | [Arbiter.CommandQuery.Mvc](#arbitercommandquerymvc)                         | [![Arbiter.CommandQuery.Mvc](https://img.shields.io/nuget/v/Arbiter.CommandQuery.Mvc.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.Mvc/)                                     | MVC Controllers for base Commands and Queries                     |
+| [Arbiter.Mapping](#arbitermapping)                                          | [![Arbiter.Mapping](https://img.shields.io/nuget/v/Arbiter.Mapping.svg)](https://www.nuget.org/packages/Arbiter.Mapping/)                                                                | Source-generated, compile-time object mapping                     |
 | [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)                       | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                                  | Server-side endpoint for Blazor WASM dispatcher requests          |
 | [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)                       | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                                  | Client dispatcher for WASM and Server Interactive modes           |
 
@@ -172,7 +173,7 @@ dotnet add package Arbiter.CommandQuery
 - Base commands and queries for common CRUD operations
 - Generics base handlers for implementing common CRUD operations
 - Common behaviors for audit, caching, soft delete, multi-tenant
-- View model to data modal mapping
+- Source-generated view model to data model mapping via `Arbiter.Mapping`
 - Entity Framework Core handlers for common CRUD operations
 - MongoDB handlers for common CRUD operations
 
@@ -230,6 +231,69 @@ var command = new EntityUpdateCommand<int, ProductUpdateModel, ProductReadModel>
 var result = await mediator.Send(command);
 ```
 
+## Arbiter.Mapping
+
+Source-generated, compile-time object mapping with support for custom property expressions and `IQueryable` projection.
+
+### Mapping Installation
+
+The Arbiter Mapping library is available on nuget.org via package name `Arbiter.Mapping`.
+
+```powershell
+Install-Package Arbiter.Mapping
+```
+
+OR
+
+```shell
+dotnet add package Arbiter.Mapping
+```
+
+### Mapping Features
+
+- Source-generated mapping implementations via `[GenerateMapper]` attribute and `MapperProfile<TSource, TDestination>`
+- Automatic property matching by name and type
+- Custom property mapping with `ConfigureMapping` and `MappingBuilder` fluent API
+- `IQueryable` projection support for Entity Framework and other query providers
+- Zero runtime reflection — fully AOT compatible
+- Support for records, `init` properties, and primary constructors
+
+### Define a Mapper
+
+Create a partial class that inherits from `MapperProfile<TSource, TDestination>` and apply the `[GenerateMapper]` attribute:
+
+```csharp
+[GenerateMapper]
+public partial class ProductToReadModelMapper : MapperProfile<Product, ProductReadModel>
+{
+    protected override void ConfigureMapping(MappingBuilder<Product, ProductReadModel> mapping)
+    {
+        mapping.Property(d => d.CategoryName).From(s => s.Category!.Name);
+        mapping.Property(d => d.OrderCount).From(s => s.Orders.Count());
+    }
+}
+```
+
+### Register Mappers
+
+```csharp
+services.AddSingleton<IMapper<Product, ProductReadModel>, ProductToReadModelMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
+```
+
+### Use the Mapper
+
+```csharp
+public class ProductService
+{
+    private readonly IMapper<Product, ProductReadModel> _mapper;
+
+    public ProductService(IMapper<Product, ProductReadModel> mapper) => _mapper = mapper;
+
+    public ProductReadModel GetProduct(Product product) => _mapper.Map(product);
+}
+```
+
 ## Arbiter.CommandQuery.EntityFramework
 
 Entity Framework Core handlers for the base Commands and Queries
@@ -259,8 +323,11 @@ services.AddDbContext<TrackerContext>(options =>
 // Register Command Query services
 services.AddCommandQuery();
 
-// Implement and register IMapper
-services.AddSingleton<IMapper, MyMapper>();
+// Register source-generated mappers
+services.AddSingleton<IMapper<Product, ProductReadModel>, ProductToReadModelMapper>();
+services.AddSingleton<IMapper<ProductCreateModel, Product>, ProductCreateModelToProductMapper>();
+services.AddSingleton<IMapper<ProductUpdateModel, Product>, ProductUpdateModelToProductMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
 
 // Implement and register IValidator
 services.AddSingleton<IValidator, MyValidator>();
@@ -297,8 +364,11 @@ services.AddMongoRepository("Tracker");
 // Register Command Query services
 services.AddCommandQuery();
 
-// Implement and register IMapper
-services.AddSingleton<IMapper, MyMapper>();
+// Register source-generated mappers
+services.AddSingleton<IMapper<Product, ProductReadModel>, ProductToReadModelMapper>();
+services.AddSingleton<IMapper<ProductCreateModel, Product>, ProductCreateModelToProductMapper>();
+services.AddSingleton<IMapper<ProductUpdateModel, Product>, ProductUpdateModelToProductMapper>();
+services.AddSingleton<IMapper, ServiceProviderMapper>();
 
 // Implement and register IValidator
 services.AddSingleton<IValidator, MyValidator>();

@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Dispatcher.State;
+using Arbiter.Mapping;
 
 using Rocks;
 

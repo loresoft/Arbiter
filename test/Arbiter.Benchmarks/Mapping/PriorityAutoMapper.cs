@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Arbiter.CommandQuery.Definitions;
+using Arbiter.Mapping;
 
 namespace Arbiter.Benchmarks.Mapping;
 

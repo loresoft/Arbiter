@@ -3,6 +3,7 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.Mapping;
 using Arbiter.Mediation;
 
 using Microsoft.EntityFrameworkCore;

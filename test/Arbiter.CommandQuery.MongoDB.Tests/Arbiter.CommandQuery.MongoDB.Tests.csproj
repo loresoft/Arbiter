@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Domain\UserLogin\Mapping\**" />
+    <EmbeddedResource Remove="Domain\UserLogin\Mapping\**" />
+    <None Remove="Domain\UserLogin\Mapping\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
     <PackageReference Include="FluentValidation" />
@@ -20,6 +26,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Arbiter.CommandQuery.MongoDB\Arbiter.CommandQuery.MongoDB.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Mapping.Generators\Arbiter.Mapping.Generators.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -31,10 +41,6 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Domain\UserLogin\Mapping\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Handlers;
+using Arbiter.Mapping;
 
 using Microsoft.Extensions.Logging;
 
