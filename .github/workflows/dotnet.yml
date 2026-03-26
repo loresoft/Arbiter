@@ -122,7 +122,7 @@ jobs:
     steps:
       - name: Deploy Documentation
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
