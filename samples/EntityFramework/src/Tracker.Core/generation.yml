@@ -47,19 +47,19 @@ model:
     generate: true
     name: '{Entity.Name}ReadModel'
     baseClass: 'EntityReadModel'
-    attributes: '[Equatable]'
+    attributes: '[Equatable, MessagePackObject(true)]'
     document: false
   create:
     generate: true
     name: '{Entity.Name}CreateModel'
     baseClass: 'EntityCreateModel'
-    attributes: '[Equatable]'
+    attributes: '[Equatable, MessagePackObject(true)]'
     document: false
   update:
     generate: true
     name: '{Entity.Name}UpdateModel'
     baseClass: EntityUpdateModel
-    attributes: '[Equatable]'
+    attributes: '[Equatable, MessagePackObject(true)]'
     document: false
   mapper:
     generate: false

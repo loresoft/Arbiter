@@ -441,4 +441,58 @@ public class MapperWriterTests
             .UseDirectory("Snapshots")
             .ScrubLinesContaining("[GeneratedCode");
     }
+
+    [Test]
+    public async Task GenerateSourceExpressionWithShortParameterName()
+    {
+        var mapperClass = new MapperClass
+        {
+            FullyQualified = "global::TestApp.Mappers.OrderSummaryMapper",
+            EntityNamespace = "TestApp.Mappers",
+            EntityName = "OrderSummaryMapper",
+            OutputFile = "TestApp.Mappers.OrderSummaryMapper.g.cs",
+            SourceClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.Order",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "Order"
+            },
+            DestinationClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.OrderSummary",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "OrderSummary"
+            },
+            Properties = new EquatableArray<PropertyMapping>([
+                new PropertyMapping
+                {
+                    DestinationName = "Id",
+                    SourcePath = new EquatableArray<string>(["Id"]),
+                    SourceSegmentNullable = new EquatableArray<bool>([false])
+                },
+                new PropertyMapping
+                {
+                    DestinationName = "ItemCount",
+                    SourceExpression = "s.Items.Count()",
+                    SourceExpressionParameter = "s",
+                    SourcePath = new EquatableArray<string>([]),
+                    SourceSegmentNullable = new EquatableArray<bool>([])
+                },
+                new PropertyMapping
+                {
+                    DestinationName = "Summary",
+                    SourceExpression = "s.Description + \" (\" + s.Status + \")\"",
+                    SourceExpressionParameter = "s",
+                    SourcePath = new EquatableArray<string>([]),
+                    SourceSegmentNullable = new EquatableArray<bool>([])
+                }
+            ])
+        };
+
+        var output = MapperWriter.Generate(mapperClass);
+
+        await Verify(output)
+            .UseDirectory("Snapshots")
+            .ScrubLinesContaining("[GeneratedCode");
+    }
 }

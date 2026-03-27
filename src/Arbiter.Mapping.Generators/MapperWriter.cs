@@ -1,5 +1,7 @@
 #pragma warning disable MA0051 // Method is too long
 
+using System.Text;
+
 using Arbiter.Mapping.Generators.Infrastructure;
 using Arbiter.Mapping.Generators.Models;
 
@@ -551,13 +553,58 @@ public static class MapperWriter
         if (!string.IsNullOrEmpty(sourceParam)
             && !string.Equals(sourceParam, parameterName, StringComparison.Ordinal))
         {
-            expression = expression.Replace(
-                sourceParam + ".",
-                parameterName + ".");
+            expression = ReplaceParameterAccess(expression, sourceParam, parameterName);
         }
 
         builder.Append(expression);
     }
+
+    /// <summary>
+    /// Replaces occurrences of <paramref name="oldParameter"/> followed by <c>.</c> with
+    /// <paramref name="newParameter"/> followed by <c>.</c>, but only when the match
+    /// appears at a word boundary (not preceded by a letter, digit, or underscore).
+    /// This prevents false matches inside property names (e.g. <c>Items.</c> matching <c>s.</c>).
+    /// </summary>
+    private static string ReplaceParameterAccess(string expression, string oldParameter, string newParameter)
+    {
+        var oldAccess = oldParameter + ".";
+        var newAccess = newParameter + ".";
+
+        var index = expression.IndexOf(oldAccess, StringComparison.Ordinal);
+        if (index < 0)
+            return expression;
+
+        var result = new StringBuilder(expression.Length + ((newAccess.Length - oldAccess.Length) * 2));
+        var start = 0;
+
+        while (index >= 0)
+        {
+            var isWordBoundary = index == 0 || !IsIdentifierChar(expression[index - 1]);
+
+            if (isWordBoundary)
+            {
+                result.Append(expression, start, index - start);
+                result.Append(newAccess);
+                start = index + oldAccess.Length;
+            }
+            else
+            {
+                result.Append(expression, start, index + 1 - start);
+                start = index + 1;
+            }
+
+            index = expression.IndexOf(oldAccess, start, StringComparison.Ordinal);
+        }
+
+        result.Append(expression, start, expression.Length - start);
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Determines whether the character is a valid C# identifier character.
+    /// </summary>
+    private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c == '_';
 
     /// <summary>
     /// Emits nested ternary null checks for expression tree contexts where the
