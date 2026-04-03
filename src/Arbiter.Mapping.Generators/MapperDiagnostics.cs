@@ -52,6 +52,21 @@ internal static class MapperDiagnostics
                      "All other statements are silently ignored and may break the generation pipeline cache.");
 
     /// <summary>
+    /// ARB0004: An auto-matched property has incompatible types between source and destination.
+    /// The generated assignment will not compile.
+    /// </summary>
+    public static readonly DiagnosticDescriptor PropertyTypeMismatch = new(
+        id: "ARB0004",
+        title: "Mapped property type mismatch",
+        messageFormat: "Property '{0}' cannot be auto-mapped: source type '{1}' is not implicitly convertible to destination type '{2}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "An auto-matched property (matched by name) has incompatible types between source and destination. " +
+                     "The generated code will produce a compile error. Use mapping.Property(d => d.Prop).From(...) to provide " +
+                     "an explicit conversion, or .Ignore() to skip the property.");
+
+    /// <summary>
     /// ARB0005: The same destination property is mapped more than once in ConfigureMapping.
     /// Only the last mapping will take effect.
     /// </summary>

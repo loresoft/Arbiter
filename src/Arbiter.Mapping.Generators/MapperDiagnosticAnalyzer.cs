@@ -19,6 +19,7 @@ namespace Arbiter.Mapping.Generators;
 ///   <item>The mapper class is declared <c>partial</c> (ARB0001).</item>
 ///   <item>The mapper class inherits from <c>MapperProfile&lt;TSource, TDestination&gt;</c> (ARB0002).</item>
 ///   <item>The <c>ConfigureMapping</c> body contains only recognized mapping calls (ARB0003).</item>
+///   <item>Auto-matched properties have compatible types between source and destination (ARB0004).</item>
 ///   <item>The same destination property is not mapped more than once (ARB0005).</item>
 ///   <item>Invocations follow the <c>mapping.Property(...).From/Value/Ignore()</c> pattern (ARB0006).</item>
 /// </list>
@@ -32,6 +33,7 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             MapperDiagnostics.ClassMustBePartial,
             MapperDiagnostics.ClassMustInheritMapperProfile,
             MapperDiagnostics.InvalidStatementInConfigureMapping,
+            MapperDiagnostics.PropertyTypeMismatch,
             MapperDiagnostics.DuplicateDestinationMapping,
             MapperDiagnostics.InvalidMappingCallPattern);
 
@@ -156,7 +158,8 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Validates all ConfigureMapping method bodies across partial declarations.
+    /// Validates all ConfigureMapping method bodies across partial declarations and
+    /// checks auto-matched properties for type compatibility.
     /// </summary>
     private static void ValidateConfigureMappingMethods(
         SymbolAnalysisContext context,
@@ -164,6 +167,8 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol sourceType,
         INamedTypeSymbol destinationType)
     {
+        var customMappedProperties = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -186,9 +191,12 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
                 // Get the mapping parameter name for validation
                 var mappingParameterName = GetMappingParameterName(method);
 
-                ValidateMethodBody(context, method.Body, mappingParameterName);
+                ValidateMethodBody(context, method.Body, mappingParameterName, customMappedProperties);
             }
         }
+
+        // ARB0004: check auto-matched properties for type compatibility
+        ValidateAutoMatchedPropertyTypes(context, typeSymbol, sourceType, destinationType, customMappedProperties);
     }
 
     /// <summary>
@@ -203,12 +211,14 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Validates each statement in the ConfigureMapping method body.
+    /// Validates each statement in the ConfigureMapping method body and collects
+    /// the names of destination properties that have explicit custom mappings.
     /// </summary>
     private static void ValidateMethodBody(
         SymbolAnalysisContext context,
         BlockSyntax body,
-        string? mappingParameterName)
+        string? mappingParameterName,
+        HashSet<string> customMappedProperties)
     {
         var seenDestinations = new Dictionary<string, Location>(StringComparer.Ordinal);
 
@@ -269,10 +279,12 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            // Extract destination property name for duplicate check
+            // Extract destination property name for duplicate check and custom mapping tracking
             var destName = GetDestinationPropertyName(propertyInvocation);
             if (destName == null)
                 continue;
+
+            customMappedProperties.Add(destName);
 
             // ARB0005: duplicate destination mapping
             var destLocation = propertyInvocation.GetLocation();
@@ -337,6 +349,138 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             return memberAccess.Name.Identifier.Text;
 
         return null;
+    }
+
+    /// <summary>
+    /// Checks auto-matched properties (matched by name, not explicitly configured) for type
+    /// compatibility between source and destination. Reports ARB0004 when an implicit conversion
+    /// does not exist, which would cause the generated assignment to fail to compile.
+    /// </summary>
+    private static void ValidateAutoMatchedPropertyTypes(
+        SymbolAnalysisContext context,
+        INamedTypeSymbol typeSymbol,
+        INamedTypeSymbol sourceType,
+        INamedTypeSymbol destinationType,
+        HashSet<string> customMappedProperties)
+    {
+        var sourceProperties = GetReadableProperties(sourceType);
+        var destinationProperties = GetSettableProperties(destinationType);
+
+        foreach (var destProp in destinationProperties)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            // Skip properties with explicit custom mappings (From/Value/Ignore)
+            if (customMappedProperties.Contains(destProp.Name))
+                continue;
+
+            // Find auto-matched source property by name (case-insensitive, matching generator behavior)
+            if (!sourceProperties.TryGetValue(destProp.Name, out var sourceProp))
+                continue;
+
+            // Check if source type can be implicitly converted to destination type
+            var sourceTypeSymbol = sourceProp.Type;
+            var destTypeSymbol = destProp.Type;
+
+            // Skip if types are the same
+            if (SymbolEqualityComparer.Default.Equals(sourceTypeSymbol, destTypeSymbol))
+                continue;
+
+            // Handle nullable-to-nullable and nullable-to-non-nullable of the same underlying type
+            var sourceUnderlying = GetUnderlyingType(sourceTypeSymbol);
+            var destUnderlying = GetUnderlyingType(destTypeSymbol);
+
+            if (SymbolEqualityComparer.Default.Equals(sourceUnderlying, destUnderlying))
+                continue;
+
+            var conversion = context.Compilation.ClassifyConversion(sourceTypeSymbol, destTypeSymbol);
+            if (!conversion.Exists || conversion.IsExplicit)
+            {
+                // Report on the class declaration where the mapper is defined
+                foreach (var location in typeSymbol.Locations)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        MapperDiagnostics.PropertyTypeMismatch,
+                        location,
+                        destProp.Name,
+                        sourceTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                        destTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the underlying type, unwrapping <see cref="Nullable{T}"/> if present.
+    /// </summary>
+    private static ITypeSymbol GetUnderlyingType(ITypeSymbol type)
+    {
+        if (type is INamedTypeSymbol namedType
+            && namedType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+            && namedType.TypeArguments.Length == 1)
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        return type;
+    }
+
+    /// <summary>
+    /// Collects all readable instance properties from the type and its base types,
+    /// keyed by name (case-insensitive) to match the generator's auto-matching behavior.
+    /// </summary>
+    private static Dictionary<string, IPropertySymbol> GetReadableProperties(INamedTypeSymbol type)
+    {
+        var properties = new Dictionary<string, IPropertySymbol>(StringComparer.OrdinalIgnoreCase);
+        var current = type;
+
+        while (current != null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers())
+            {
+                if (member is IPropertySymbol prop
+                    && !prop.IsStatic
+                    && !prop.IsIndexer
+                    && prop.GetMethod != null
+                    && !properties.ContainsKey(prop.Name))
+                {
+                    properties[prop.Name] = prop;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        return properties;
+    }
+
+    /// <summary>
+    /// Collects all settable instance properties from the type and its base types.
+    /// </summary>
+    private static List<IPropertySymbol> GetSettableProperties(INamedTypeSymbol type)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var properties = new List<IPropertySymbol>();
+        var current = type;
+
+        while (current != null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers())
+            {
+                if (member is IPropertySymbol prop
+                    && !prop.IsStatic
+                    && !prop.IsIndexer
+                    && prop.SetMethod != null
+                    && seen.Add(prop.Name))
+                {
+                    properties.Add(prop);
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        return properties;
     }
 
     /// <summary>
