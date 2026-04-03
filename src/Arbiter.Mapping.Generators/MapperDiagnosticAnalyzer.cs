@@ -19,10 +19,8 @@ namespace Arbiter.Mapping.Generators;
 ///   <item>The mapper class is declared <c>partial</c> (ARB0001).</item>
 ///   <item>The mapper class inherits from <c>MapperProfile&lt;TSource, TDestination&gt;</c> (ARB0002).</item>
 ///   <item>The <c>ConfigureMapping</c> body contains only recognized mapping calls (ARB0003).</item>
-///   <item>Destination properties referenced in <c>Property()</c> exist on the destination type (ARB0004).</item>
 ///   <item>The same destination property is not mapped more than once (ARB0005).</item>
 ///   <item>Invocations follow the <c>mapping.Property(...).From/Value/Ignore()</c> pattern (ARB0006).</item>
-///   <item>Source properties referenced in simple <c>From()</c> paths exist on the source type (ARB0007).</item>
 /// </list>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -34,10 +32,8 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             MapperDiagnostics.ClassMustBePartial,
             MapperDiagnostics.ClassMustInheritMapperProfile,
             MapperDiagnostics.InvalidStatementInConfigureMapping,
-            MapperDiagnostics.DestinationPropertyNotFound,
             MapperDiagnostics.DuplicateDestinationMapping,
-            MapperDiagnostics.InvalidMappingCallPattern,
-            MapperDiagnostics.SourcePropertyNotFound);
+            MapperDiagnostics.InvalidMappingCallPattern);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -168,9 +164,6 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol sourceType,
         INamedTypeSymbol destinationType)
     {
-        var destinationPropertyNames = GetPropertyNames(destinationType);
-        var sourcePropertyNames = GetPropertyNames(sourceType);
-
         foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -193,14 +186,7 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
                 // Get the mapping parameter name for validation
                 var mappingParameterName = GetMappingParameterName(method);
 
-                ValidateMethodBody(
-                    context,
-                    method.Body,
-                    mappingParameterName,
-                    sourceType,
-                    destinationType,
-                    sourcePropertyNames,
-                    destinationPropertyNames);
+                ValidateMethodBody(context, method.Body, mappingParameterName);
             }
         }
     }
@@ -222,11 +208,7 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
     private static void ValidateMethodBody(
         SymbolAnalysisContext context,
         BlockSyntax body,
-        string? mappingParameterName,
-        INamedTypeSymbol sourceType,
-        INamedTypeSymbol destinationType,
-        HashSet<string> sourcePropertyNames,
-        HashSet<string> destinationPropertyNames)
+        string? mappingParameterName)
     {
         var seenDestinations = new Dictionary<string, Location>(StringComparer.Ordinal);
 
@@ -287,25 +269,14 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            // Extract and validate destination property name
+            // Extract destination property name for duplicate check
             var destName = GetDestinationPropertyName(propertyInvocation);
             if (destName == null)
                 continue;
 
-            var destLocation = propertyInvocation.GetLocation();
-
-            // ARB0004: destination property must exist
-            if (!destinationPropertyNames.Contains(destName))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    MapperDiagnostics.DestinationPropertyNotFound,
-                    destLocation,
-                    destName,
-                    destinationType.Name));
-            }
-
             // ARB0005: duplicate destination mapping
-            if (seenDestinations.TryGetValue(destName, out var previousLocation))
+            var destLocation = propertyInvocation.GetLocation();
+            if (seenDestinations.TryGetValue(destName, out _))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     MapperDiagnostics.DuplicateDestinationMapping,
@@ -314,12 +285,6 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             }
 
             seenDestinations[destName] = destLocation;
-
-            // ARB0007: validate source property exists for simple From() paths
-            if (string.Equals(methodName, MapperConstants.FromMethodName, StringComparison.Ordinal))
-            {
-                ValidateSourceProperty(context, outerInvocation, sourceType, sourcePropertyNames);
-            }
         }
     }
 
@@ -372,122 +337,6 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             return memberAccess.Name.Identifier.Text;
 
         return null;
-    }
-
-    /// <summary>
-    /// Validates that the source property in a From() call exists on the source type.
-    /// Only checks simple property path expressions (e.g. p =&gt; p.Name or p =&gt; p.Department.Name).
-    /// Complex expressions (method calls, arithmetic, etc.) are skipped.
-    /// </summary>
-    private static void ValidateSourceProperty(
-        SymbolAnalysisContext context,
-        InvocationExpressionSyntax fromInvocation,
-        INamedTypeSymbol sourceType,
-        HashSet<string> sourcePropertyNames)
-    {
-        if (fromInvocation.ArgumentList.Arguments.Count != 1)
-            return;
-
-        var argument = fromInvocation.ArgumentList.Arguments[0].Expression;
-
-        // Extract lambda parameter name and body
-        string parameterName;
-        ExpressionSyntax lambdaBody;
-
-        if (argument is SimpleLambdaExpressionSyntax simpleLambda
-            && simpleLambda.Body is ExpressionSyntax simpleBody)
-        {
-            parameterName = simpleLambda.Parameter.Identifier.Text;
-            lambdaBody = simpleBody;
-        }
-        else if (argument is ParenthesizedLambdaExpressionSyntax parenLambda
-            && parenLambda.ParameterList.Parameters.Count > 0
-            && parenLambda.Body is ExpressionSyntax parenBody)
-        {
-            parameterName = parenLambda.ParameterList.Parameters[0].Identifier.Text;
-            lambdaBody = parenBody;
-        }
-        else
-        {
-            return;
-        }
-
-        // Try to decompose into a simple property path
-        var path = new List<string>();
-        var expression = lambdaBody;
-
-        while (expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            path.Insert(0, memberAccess.Name.Identifier.Text);
-            expression = memberAccess.Expression;
-
-            // Unwrap null-forgiving operator
-            if (expression is PostfixUnaryExpressionSyntax postfix)
-                expression = postfix.Operand;
-        }
-
-        // Only validate simple property paths (not complex expressions)
-        if (expression is not IdentifierNameSyntax identifier
-            || !string.Equals(identifier.Identifier.Text, parameterName, StringComparison.Ordinal)
-            || path.Count == 0)
-        {
-            return;
-        }
-
-        // Validate the first segment exists on the source type
-        var firstSegment = path[0];
-        if (!sourcePropertyNames.Contains(firstSegment))
-        {
-            context.ReportDiagnostic(Diagnostic.Create(
-                MapperDiagnostics.SourcePropertyNotFound,
-                fromInvocation.ArgumentList.GetLocation(),
-                firstSegment,
-                sourceType.Name));
-            return;
-        }
-
-        // Validate subsequent path segments by walking the type chain
-        if (path.Count > 1)
-        {
-            ValidateNestedSourcePath(context, fromInvocation, sourceType, path);
-        }
-    }
-
-    /// <summary>
-    /// Validates nested property paths (e.g. p.Department.Name) by walking the type chain.
-    /// </summary>
-    private static void ValidateNestedSourcePath(
-        SymbolAnalysisContext context,
-        InvocationExpressionSyntax fromInvocation,
-        INamedTypeSymbol sourceType,
-        List<string> path)
-    {
-        var currentType = sourceType;
-
-        for (var i = 0; i < path.Count; i++)
-        {
-            var segment = path[i];
-            var property = FindProperty(currentType, segment);
-
-            if (property == null)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    MapperDiagnostics.SourcePropertyNotFound,
-                    fromInvocation.ArgumentList.GetLocation(),
-                    segment,
-                    currentType.Name));
-                return;
-            }
-
-            // Move to the next type in the chain for navigation properties
-            if (i < path.Count - 1)
-            {
-                if (property.Type is INamedTypeSymbol namedType)
-                    currentType = namedType;
-                else
-                    return; // Can't resolve further, skip remaining validation
-            }
-        }
     }
 
     /// <summary>
@@ -555,54 +404,4 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    /// <summary>
-    /// Collects all instance property names from the type and its base types (case-insensitive).
-    /// </summary>
-    private static HashSet<string> GetPropertyNames(INamedTypeSymbol type)
-    {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var current = type;
-
-        while (current != null && current.SpecialType != SpecialType.System_Object)
-        {
-            foreach (var member in current.GetMembers())
-            {
-                if (member is IPropertySymbol prop
-                    && !prop.IsStatic
-                    && !prop.IsIndexer)
-                {
-                    names.Add(prop.Name);
-                }
-            }
-
-            current = current.BaseType;
-        }
-
-        return names;
-    }
-
-    /// <summary>
-    /// Finds an instance property by name in the type or its base types.
-    /// </summary>
-    private static IPropertySymbol? FindProperty(INamedTypeSymbol type, string name)
-    {
-        var current = type;
-
-        while (current != null && current.SpecialType != SpecialType.System_Object)
-        {
-            foreach (var member in current.GetMembers())
-            {
-                if (member is IPropertySymbol prop
-                    && !prop.IsStatic
-                    && string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return prop;
-                }
-            }
-
-            current = current.BaseType;
-        }
-
-        return null;
-    }
 }

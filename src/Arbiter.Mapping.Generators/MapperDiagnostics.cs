@@ -52,19 +52,6 @@ internal static class MapperDiagnostics
                      "All other statements are silently ignored and may break the generation pipeline cache.");
 
     /// <summary>
-    /// ARB0004: The destination property referenced in a Property() call does not exist
-    /// on the destination type.
-    /// </summary>
-    public static readonly DiagnosticDescriptor DestinationPropertyNotFound = new(
-        id: "ARB0004",
-        title: "Destination property not found",
-        messageFormat: "Destination property '{0}' does not exist on type '{1}'",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        description: "The property referenced in a mapping.Property() call does not exist on the destination type and will be silently ignored.");
-
-    /// <summary>
     /// ARB0005: The same destination property is mapped more than once in ConfigureMapping.
     /// Only the last mapping will take effect.
     /// </summary>
@@ -91,16 +78,4 @@ internal static class MapperDiagnostics
         description: "Calls inside ConfigureMapping must follow the pattern mapping.Property(d => d.Prop).From(...), .Value(...), or .Ignore(). " +
                      "Other call patterns are not recognized by the source generator.");
 
-    /// <summary>
-    /// ARB0007: The source property referenced in a From() call using a simple property path
-    /// does not exist on the source type.
-    /// </summary>
-    public static readonly DiagnosticDescriptor SourcePropertyNotFound = new(
-        id: "ARB0007",
-        title: "Source property not found",
-        messageFormat: "Source property '{0}' does not exist on type '{1}'",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        description: "The property referenced in a From() call does not exist on the source type.");
 }
