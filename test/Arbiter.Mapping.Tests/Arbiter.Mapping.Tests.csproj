@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Rocks" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="Verify.TUnit" />
