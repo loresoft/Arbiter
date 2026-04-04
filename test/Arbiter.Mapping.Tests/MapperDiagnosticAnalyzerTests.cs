@@ -684,7 +684,7 @@ public class MapperDiagnosticAnalyzerTests
     // Helper
     // ───────────────────────────────────────────────────────────────
 
-    private static async Task<ImmutableArray<Diagnostic>> RunAnalyzerAsync(string source)
+    private static async Task<List<Diagnostic>> RunAnalyzerAsync(string source)
     {
         var syntaxTrees = new[]
         {
@@ -715,6 +715,6 @@ public class MapperDiagnosticAnalyzerTests
         // Return only diagnostics from our analyzer (ARB*)
         return allDiagnostics
             .Where(d => d.Id.StartsWith("ARB", StringComparison.Ordinal))
-            .ToImmutableArray();
+            .ToList();
     }
 }

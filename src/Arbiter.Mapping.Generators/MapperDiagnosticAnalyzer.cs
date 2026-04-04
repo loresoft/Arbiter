@@ -1,3 +1,5 @@
+#pragma warning disable MA0051 // Method is too long
+
 using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
