@@ -529,37 +529,23 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
     /// </summary>
     private static string GetStatementDescription(StatementSyntax statement)
     {
-        switch (statement)
+        return statement switch
         {
-            case LocalDeclarationStatementSyntax:
-                return "variable declaration";
-            case IfStatementSyntax:
-                return "if statement";
-            case ForStatementSyntax:
-                return "for loop";
-            case ForEachStatementSyntax:
-                return "foreach loop";
-            case WhileStatementSyntax:
-                return "while loop";
-            case DoStatementSyntax:
-                return "do-while loop";
-            case SwitchStatementSyntax:
-                return "switch statement";
-            case ReturnStatementSyntax:
-                return "return statement";
-            case ThrowStatementSyntax:
-                return "throw statement";
-            case TryStatementSyntax:
-                return "try statement";
-            case LockStatementSyntax:
-                return "lock statement";
-            case UsingStatementSyntax:
-                return "using statement";
-            case ExpressionStatementSyntax expr:
-                return expr.Expression.ToString();
-            default:
-                return statement.Kind().ToString();
-        }
+            LocalDeclarationStatementSyntax => "variable declaration",
+            IfStatementSyntax => "if statement",
+            ForStatementSyntax => "for loop",
+            ForEachStatementSyntax => "foreach loop",
+            WhileStatementSyntax => "while loop",
+            DoStatementSyntax => "do-while loop",
+            SwitchStatementSyntax => "switch statement",
+            ReturnStatementSyntax => "return statement",
+            ThrowStatementSyntax => "throw statement",
+            TryStatementSyntax => "try statement",
+            LockStatementSyntax => "lock statement",
+            UsingStatementSyntax => "using statement",
+            ExpressionStatementSyntax expr => expr.Expression.ToString(),
+            _ => statement.Kind().ToString(),
+        };
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ namespace Arbiter.Mapping.Generators;
 /// </summary>
 internal static class MapperDiagnostics
 {
-    private const string Category = "Arbiter.Mapping";
+    private const string Category = "Usage";
 
     /// <summary>
     /// ARB0001: A class with [GenerateMapper] must be declared partial so the source generator
