@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Arbiter.Mapping.Tests;
 
-public class MapperDiagnosticAnalyzerTests
+public class MapperAnalyzerTests
 {
     /// <summary>
     /// Minimal stubs for Arbiter.Mapping types needed by the analyzer.
@@ -706,7 +706,7 @@ public class MapperDiagnosticAnalyzerTests
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 .WithNullableContextOptions(NullableContextOptions.Enable));
 
-        var analyzer = new MapperDiagnosticAnalyzer();
+        var analyzer = new MapperAnalyzer();
         var compilationWithAnalyzers = compilation.WithAnalyzers(
             ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 

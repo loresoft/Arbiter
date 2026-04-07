@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 namespace Arbiter.Mapping.Generators;
 
 /// <summary>
-/// Diagnostic descriptors reported by <see cref="MapperDiagnosticAnalyzer"/> to validate
+/// Diagnostic descriptors reported by <see cref="MapperAnalyzer"/> to validate
 /// mapper classes annotated with <c>[GenerateMapper]</c>.
 /// </summary>
 internal static class MapperDiagnostics

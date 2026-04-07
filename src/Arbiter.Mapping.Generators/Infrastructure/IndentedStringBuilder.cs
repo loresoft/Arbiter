@@ -248,7 +248,7 @@ internal class IndentedStringBuilder
         _indentPending = false;
     }
 
-    private sealed class Indenter : IDisposable
+    private readonly struct Indenter : IDisposable
     {
         private readonly IndentedStringBuilder _stringBuilder;
 
@@ -263,7 +263,7 @@ internal class IndentedStringBuilder
             => _stringBuilder.DecrementIndent();
     }
 
-    private sealed class IndentSuspender : IDisposable
+    private readonly struct IndentSuspender : IDisposable
     {
         private readonly IndentedStringBuilder _stringBuilder;
         private readonly byte _indent;

@@ -27,7 +27,7 @@ namespace Arbiter.Mapping.Generators;
 /// </list>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
+public sealed class MapperAnalyzer : DiagnosticAnalyzer
 {
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
@@ -228,69 +228,32 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            // ARB0003: must be an expression statement
-            if (statement is not ExpressionStatementSyntax expressionStatement)
-            {
-                ReportInvalidStatement(context, statement);
-                continue;
-            }
+            var kind = ClassifyMappingStatement(
+                statement,
+                mappingParameterName,
+                out var propertyInvocation,
+                out var outerInvocation);
 
-            // Must be an invocation expression
-            if (expressionStatement.Expression is not InvocationExpressionSyntax outerInvocation)
+            switch (kind)
             {
-                ReportInvalidStatement(context, statement);
-                continue;
-            }
-
-            // Must be a member access (e.g. .From(), .Value(), .Ignore())
-            if (outerInvocation.Expression is not MemberAccessExpressionSyntax outerMemberAccess)
-            {
-                ReportInvalidStatement(context, statement);
-                continue;
-            }
-
-            var methodName = outerMemberAccess.Name.Identifier.Text;
-
-            // Validate the method name is From, Value, or Ignore
-            if (!IsRecognizedMappingMethod(methodName))
-            {
-                // ARB0006: unrecognized method call
-                context.ReportDiagnostic(Diagnostic.Create(
-                    MapperDiagnostics.InvalidMappingCallPattern,
-                    outerInvocation.GetLocation(),
-                    outerInvocation.ToString()));
-                continue;
-            }
-
-            // The receiver should be the Property(...) invocation
-            if (outerMemberAccess.Expression is not InvocationExpressionSyntax propertyInvocation)
-            {
-                // ARB0006: not chained off Property()
-                context.ReportDiagnostic(Diagnostic.Create(
-                    MapperDiagnostics.InvalidMappingCallPattern,
-                    outerInvocation.GetLocation(),
-                    outerInvocation.ToString()));
-                continue;
-            }
-
-            // Validate that Property() is called on the mapping parameter
-            if (!IsPropertyCallOnMappingParameter(propertyInvocation, mappingParameterName))
-            {
-                // ARB0003: not a recognized mapping call
-                ReportInvalidStatement(context, statement);
-                continue;
+                case MappingStatementKind.InvalidStatement:
+                    ReportInvalidStatement(context, statement);
+                    continue;
+                case MappingStatementKind.InvalidPattern:
+                    ReportInvalidMappingPattern(context, outerInvocation!);
+                    continue;
             }
 
             // Extract destination property name for duplicate check and custom mapping tracking
-            var destName = GetDestinationPropertyName(propertyInvocation);
+            var destName = GetDestinationPropertyName(propertyInvocation!);
             if (destName == null)
                 continue;
 
             customMappedProperties.Add(destName);
 
             // ARB0005: duplicate destination mapping
-            var destLocation = propertyInvocation.GetLocation();
-            if (seenDestinations.TryGetValue(destName, out _))
+            var destLocation = propertyInvocation!.GetLocation();
+            if (seenDestinations.ContainsKey(destName))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     MapperDiagnostics.DuplicateDestinationMapping,
@@ -300,6 +263,56 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
 
             seenDestinations[destName] = destLocation;
         }
+    }
+
+    /// <summary>
+    /// Classifies a statement as a valid mapping call, a non-mapping statement, or
+    /// a malformed mapping pattern. Returns the parsed invocations for valid calls.
+    /// </summary>
+    private static MappingStatementKind ClassifyMappingStatement(
+        StatementSyntax statement,
+        string? mappingParameterName,
+        out InvocationExpressionSyntax? propertyInvocation,
+        out InvocationExpressionSyntax? outerInvocation)
+    {
+        propertyInvocation = null;
+        outerInvocation = null;
+
+        // Must be an expression statement containing an invocation with member access
+        if (statement is not ExpressionStatementSyntax expressionStatement
+            || expressionStatement.Expression is not InvocationExpressionSyntax invocation
+            || invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return MappingStatementKind.InvalidStatement;
+        }
+
+        outerInvocation = invocation;
+        var methodName = memberAccess.Name.Identifier.Text;
+
+        // Check if the terminal method is recognized (From, Value, Ignore)
+        if (!IsRecognizedMappingMethod(methodName))
+        {
+            // If the receiver is mapping.Property(...), it's a malformed pattern (ARB0006);
+            // otherwise it's not a mapping call at all (ARB0003)
+            if (memberAccess.Expression is InvocationExpressionSyntax possiblePropertyCall
+                && IsPropertyCallOnMappingParameter(possiblePropertyCall, mappingParameterName))
+            {
+                return MappingStatementKind.InvalidPattern;
+            }
+
+            return MappingStatementKind.InvalidStatement;
+        }
+
+        // The receiver should be the Property(...) invocation
+        if (memberAccess.Expression is not InvocationExpressionSyntax propInvocation)
+            return MappingStatementKind.InvalidPattern;
+
+        // Validate that Property() is called on the mapping parameter
+        if (!IsPropertyCallOnMappingParameter(propInvocation, mappingParameterName))
+            return MappingStatementKind.InvalidStatement;
+
+        propertyInvocation = propInvocation;
+        return MappingStatementKind.Valid;
     }
 
     /// <summary>
@@ -401,12 +414,14 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
                 // Report on the class declaration where the mapper is defined
                 foreach (var location in typeSymbol.Locations)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostic diagnostic = Diagnostic.Create(
                         MapperDiagnostics.PropertyTypeMismatch,
                         location,
                         destProp.Name,
                         sourceTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                        destTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
+                        destTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
+                    );
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
         }
@@ -486,6 +501,17 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
+    /// Reports ARB0006 for a statement that follows the mapping chain but uses an unrecognized method.
+    /// </summary>
+    private static void ReportInvalidMappingPattern(SymbolAnalysisContext context, InvocationExpressionSyntax invocation)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(
+            MapperDiagnostics.InvalidMappingCallPattern,
+            invocation.GetLocation(),
+            invocation.ToString()));
+    }
+
+    /// <summary>
     /// Reports ARB0003 for a statement that is not a recognized mapping call.
     /// </summary>
     private static void ReportInvalidStatement(SymbolAnalysisContext context, StatementSyntax statement)
@@ -548,6 +574,21 @@ public sealed class MapperDiagnosticAnalyzer : DiagnosticAnalyzer
             return parenLambda.Body as ExpressionSyntax;
 
         return null;
+    }
+
+    /// <summary>
+    /// Classification result for a statement within <c>ConfigureMapping</c>.
+    /// </summary>
+    private enum MappingStatementKind
+    {
+        /// <summary>The statement is a valid <c>mapping.Property(...).From/Value/Ignore(...)</c> call.</summary>
+        Valid,
+
+        /// <summary>The statement is not a mapping call at all (ARB0003).</summary>
+        InvalidStatement,
+
+        /// <summary>The statement follows the mapping chain but uses an unrecognized method (ARB0006).</summary>
+        InvalidPattern,
     }
 
 }
