@@ -549,4 +549,54 @@ public class MapperWriterTests
             .UseDirectory("Snapshots")
             .ScrubLinesContaining("[GeneratedCode");
     }
+
+    [Test]
+    public async Task GenerateGenericDestinationMapping()
+    {
+        var mapperClass = new MapperClass
+        {
+            FullyQualified = "global::TestApp.Mappers.PersonResultMapper",
+            EntityNamespace = "TestApp.Mappers",
+            EntityName = "PersonResultMapper",
+            OutputFile = "TestApp.Mappers.PersonResultMapper.g.cs",
+            SourceClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.Person",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "Person"
+            },
+            DestinationClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.Result<global::TestApp.Models.PersonModel>",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "Result<PersonModel>"
+            },
+            Properties = new EquatableArray<PropertyMapping>([
+                new PropertyMapping
+                {
+                    DestinationName = "Id",
+                    SourcePath = new EquatableArray<string>(["Id"]),
+                    SourceSegmentNullable = new EquatableArray<bool>([false])
+                },
+                new PropertyMapping
+                {
+                    DestinationName = "Name",
+                    SourcePath = new EquatableArray<string>(["FirstName"]),
+                    SourceSegmentNullable = new EquatableArray<bool>([false])
+                },
+                new PropertyMapping
+                {
+                    DestinationName = "IsActive",
+                    SourcePath = new EquatableArray<string>(["IsActive"]),
+                    SourceSegmentNullable = new EquatableArray<bool>([false])
+                }
+            ])
+        };
+
+        var output = MapperWriter.Generate(mapperClass);
+
+        await Verify(output)
+            .UseDirectory("Snapshots")
+            .ScrubLinesContaining("[GeneratedCode");
+    }
 }

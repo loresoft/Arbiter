@@ -62,11 +62,11 @@ public static class MapperWriter
 
         builder
             .AppendLine("/// <summary>")
-            .Append("/// Source generated mapper from <see cref=\"")
-            .Append(ToXmlDocTypeName(mapperClass.SourceClass.FullyQualified))
-            .Append("\"/> to <see cref=\"")
-            .Append(ToXmlDocTypeName(mapperClass.DestinationClass.FullyQualified))
-            .AppendLine("\"/>.")
+            .Append("/// Source generated mapper from <c>")
+            .Append(ToXmlDocTypeName(mapperClass.SourceClass.EntityName))
+            .Append("</c> to <c>")
+            .Append(ToXmlDocTypeName(mapperClass.DestinationClass.EntityName))
+            .AppendLine("</c>.")
             .AppendLine("/// </summary>")
             .Append("partial class ")
             .AppendLine(mapperClass.EntityName)
@@ -627,7 +627,6 @@ public static class MapperWriter
     private static string ToXmlDocTypeName(string fullyQualified)
         => fullyQualified.Replace('<', '{').Replace('>', '}');
 
-    /// <summary>
     /// Determines whether the character is a valid C# identifier character.
     /// </summary>
     private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c == '_';
