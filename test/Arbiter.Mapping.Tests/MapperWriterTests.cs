@@ -495,4 +495,58 @@ public class MapperWriterTests
             .UseDirectory("Snapshots")
             .ScrubLinesContaining("[GeneratedCode");
     }
+
+    [Test]
+    public async Task GenerateSourceExpressionWithImportedNamespace()
+    {
+        // Arrange: a mapper whose raw expression references PayerTypes.Primary from an
+        // imported namespace. The Imports list intentionally includes a duplicate of a
+        // standard using ("using System.Linq;") to verify it is not emitted twice.
+        var mapperClass = new MapperClass
+        {
+            FullyQualified = "global::TestApp.Mappers.CaseMapper",
+            EntityNamespace = "TestApp.Mappers",
+            EntityName = "CaseMapper",
+            OutputFile = "TestApp.Mappers.CaseMapper.g.cs",
+            SourceClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.Case",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "Case"
+            },
+            DestinationClass = new MappedClass
+            {
+                FullyQualified = "global::TestApp.Models.CaseModel",
+                EntityNamespace = "TestApp.Models",
+                EntityName = "CaseModel"
+            },
+            Imports = new EquatableArray<string>([
+                "using System.Linq;",              // duplicate of standard - must not appear twice
+                "using TestApp.Domain.Constants;"  // new - must be forwarded to generated output
+            ]),
+            Properties = new EquatableArray<PropertyMapping>([
+                new PropertyMapping
+                {
+                    DestinationName = "Id",
+                    SourcePath = new EquatableArray<string>(["Id"]),
+                    SourceSegmentNullable = new EquatableArray<bool>([false])
+                },
+                new PropertyMapping
+                {
+                    DestinationName = "SubscriberId",
+                    SourceExpression = "src.Client.Payers.Where(p => p.PayerTypeId == PayerTypes.Primary).OrderByDescending(p => p.Created).Select(p => p.SubscriberId).FirstOrDefault()",
+                    SourceExpressionParameter = "src",
+                    SourcePath = new EquatableArray<string>([]),
+                    SourceSegmentNullable = new EquatableArray<bool>([]),
+                    IsDestinationNullable = true
+                }
+            ])
+        };
+
+        var output = MapperWriter.Generate(mapperClass);
+
+        await Verify(output)
+            .UseDirectory("Snapshots")
+            .ScrubLinesContaining("[GeneratedCode");
+    }
 }

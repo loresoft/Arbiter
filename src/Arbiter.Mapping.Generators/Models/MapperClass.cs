@@ -51,4 +51,11 @@ public record MapperClass
     /// Gets the resolved property mappings between source and destination.
     /// </summary>
     public EquatableArray<PropertyMapping> Properties { get; init; }
+
+    /// <summary>
+    /// Gets the using directives collected from the source file(s) of the mapper class.
+    /// These are forwarded to the generated file so that raw source expressions (e.g. those
+    /// referencing constants from an imported namespace) continue to compile.
+    /// </summary>
+    public EquatableArray<string> Imports { get; init; } = new();
 }

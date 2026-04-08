@@ -88,8 +88,9 @@ public class MapperGenerator : IIncrementalGenerator
         var customMappings = ParseCreateMapMethod(targetSymbol, cancellationToken);
         var constructorParameters = GetConstructorParameterNames(destinationType);
         var mappings = BuildPropertyMappings(sourceType, destinationType, customMappings, constructorParameters, cancellationToken);
+        var imports = CollectImports(context.TargetNode);
 
-        return CreateMapperClassModel(targetSymbol, sourceType, destinationType, constructorParameters, mappings);
+        return CreateMapperClassModel(targetSymbol, sourceType, destinationType, constructorParameters, mappings, imports);
     }
 
     /// <summary>
@@ -100,13 +101,15 @@ public class MapperGenerator : IIncrementalGenerator
     /// <param name="destinationType">The destination type symbol.</param>
     /// <param name="constructorParameters">Constructor parameter names matched to property names.</param>
     /// <param name="mappings">The resolved property mappings.</param>
+    /// <param name="imports">Using directives collected from the mapper's source file.</param>
     /// <returns>A new <see cref="MapperClass"/> model.</returns>
     private static MapperClass CreateMapperClassModel(
         INamedTypeSymbol targetSymbol,
         INamedTypeSymbol sourceType,
         INamedTypeSymbol destinationType,
         string[] constructorParameters,
-        List<PropertyMapping> mappings)
+        List<PropertyMapping> mappings,
+        string[] imports)
     {
         var qualifiedName = targetSymbol.ToDisplayString(NameAndNamespaces);
 
@@ -120,6 +123,7 @@ public class MapperGenerator : IIncrementalGenerator
             DestinationClass = CreateMappedClass(destinationType),
             ConstructorParameters = [.. constructorParameters],
             Properties = [.. mappings],
+            Imports = [.. imports],
         };
     }
 
@@ -764,6 +768,44 @@ public class MapperGenerator : IIncrementalGenerator
             return parenLambda.Body as ExpressionSyntax;
 
         return null;
+    }
+
+    /// <summary>
+    /// Walks the syntax tree from <paramref name="targetNode"/> upward and collects all
+    /// <c>using</c> directives declared at the compilation-unit and namespace levels.
+    /// These are forwarded to the generated file so that raw source expressions that
+    /// reference types from imported namespaces continue to compile.
+    /// </summary>
+    /// <param name="targetNode">The mapper class syntax node.</param>
+    /// <returns>A sorted, deduplicated array of using directive texts (e.g. <c>"using Domain.Constants;"</c>).</returns>
+    private static string[] CollectImports(SyntaxNode targetNode)
+    {
+        var result = new SortedSet<string>(StringComparer.Ordinal);
+
+        var current = targetNode.Parent;
+        while (current != null)
+        {
+            IEnumerable<UsingDirectiveSyntax>? usings = current switch
+            {
+                BaseNamespaceDeclarationSyntax ns => ns.Usings,
+                CompilationUnitSyntax cu => cu.Usings,
+                _ => null,
+            };
+
+            if (usings != null)
+            {
+                foreach (var u in usings)
+                {
+                    var text = u.WithoutTrivia().ToString();
+                    if (!string.IsNullOrWhiteSpace(text))
+                        result.Add(text);
+                }
+            }
+
+            current = current.Parent;
+        }
+
+        return [.. result];
     }
 
 

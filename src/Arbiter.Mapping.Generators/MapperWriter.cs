@@ -33,8 +33,26 @@ public static class MapperWriter
             .AppendLine("using System;")
             .AppendLine("using System.CodeDom.Compiler;")
             .AppendLine("using System.Linq;")
-            .AppendLine("using System.Runtime.CompilerServices;")
-            .AppendLine();
+            .AppendLine("using System.Runtime.CompilerServices;");
+
+        // emit any additional using directives captured from the mapper's source file
+        // so that raw expressions referencing external types (e.g. constants from imported
+        // namespaces) continue to compile in the generated output
+        var standardImports = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "using System;",
+            "using System.CodeDom.Compiler;",
+            "using System.Linq;",
+            "using System.Runtime.CompilerServices;",
+        };
+
+        foreach (var u in mapperClass.Imports.AsArray())
+        {
+            if (standardImports.Add(u))
+                builder.AppendLine(u);
+        }
+
+        builder.AppendLine();
 
         builder
             .Append("namespace ")
@@ -45,9 +63,9 @@ public static class MapperWriter
         builder
             .AppendLine("/// <summary>")
             .Append("/// Source generated mapper from <see cref=\"")
-            .Append(mapperClass.SourceClass.FullyQualified)
+            .Append(ToXmlDocTypeName(mapperClass.SourceClass.FullyQualified))
             .Append("\"/> to <see cref=\"")
-            .Append(mapperClass.DestinationClass.FullyQualified)
+            .Append(ToXmlDocTypeName(mapperClass.DestinationClass.FullyQualified))
             .AppendLine("\"/>.")
             .AppendLine("/// </summary>")
             .Append("partial class ")
@@ -600,6 +618,14 @@ public static class MapperWriter
 
         return result.ToString();
     }
+
+    /// <summary>
+    /// Converts a fully-qualified type name to a valid XML doc <c>cref</c> name by replacing
+    /// angle brackets used in generic type arguments with curly braces (e.g. <c>List&lt;T&gt;</c> → <c>List{T}</c>).
+    /// Angle brackets are not valid XML inside attribute values; curly braces are the documented convention.
+    /// </summary>
+    private static string ToXmlDocTypeName(string fullyQualified)
+        => fullyQualified.Replace('<', '{').Replace('>', '}');
 
     /// <summary>
     /// Determines whether the character is a valid C# identifier character.
