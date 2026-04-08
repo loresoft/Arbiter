@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <Description>Source-generated, compile-time object mapping with support for custom property expressions and IQueryable projection.</Description>
   </PropertyGroup>
 
@@ -12,6 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\Arbiter.Mapping.Generators\bin\$(Configuration)\netstandard2.0\Arbiter.Mapping.Generators.dll" PackagePath="analyzers\dotnet\roslyn4.4\cs" Pack="true" Visible="false" />
+    <None Include="..\Arbiter.Mapping.Generators\bin\$(Configuration)\netstandard2.0\Arbiter.Mapping.Generators.dll" PackagePath="analyzers/dotnet/roslyn4.8/cs" Pack="true" Visible="false" />
   </ItemGroup>
 </Project>
