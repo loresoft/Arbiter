@@ -74,7 +74,7 @@
     <PackageVersion Include="TUnit" Version="1.30.8" />
     <PackageVersion Include="Twilio" Version="7.14.3" />
     <PackageVersion Include="Verify.TUnit" Version="31.15.0" />
-    <PackageVersion Include="YamlDotNet" Version="17.0.0" />
+    <PackageVersion Include="YamlDotNet" Version="17.0.1" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
