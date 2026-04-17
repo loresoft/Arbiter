@@ -73,7 +73,7 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.11.0" />
     <PackageVersion Include="TUnit" Version="1.35.2" />
     <PackageVersion Include="Twilio" Version="7.14.7" />
-    <PackageVersion Include="Verify.TUnit" Version="31.16.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.16.1" />
     <PackageVersion Include="YamlDotNet" Version="17.0.1" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
