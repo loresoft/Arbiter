@@ -48,7 +48,7 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
     {
         var emailServer = _options.Value;
 
-        var host = emailServer.Server;
+        var host = emailServer.Server ?? "localhost";
         var port = emailServer.Port;
         var useSsl = emailServer.UseSSL;
 
@@ -76,15 +76,15 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
             using var client = new MailKit.Net.Smtp.SmtpClient(logger);
 
             // accept all SSL certificates
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            client.ServerCertificateValidationCallback = (_, __, ___, ____) => true;
 
             await client.ConnectAsync(host, port, useSsl, cancellationToken).ConfigureAwait(false);
 
-            if (!string.IsNullOrEmpty(userName) || !string.IsNullOrEmpty(password))
+            if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
                 await client.AuthenticateAsync(userName, password, cancellationToken).ConfigureAwait(false);
 
             await client.SendAsync(mimeMessage, cancellationToken).ConfigureAwait(false);
-            await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);
+            await client.DisconnectAsync(quit: true, cancellationToken).ConfigureAwait(false);
 
             LogEmailSent(_logger, recipients, truncatedSubject, host);
             return EmailResult.Success("Email sent successfully");

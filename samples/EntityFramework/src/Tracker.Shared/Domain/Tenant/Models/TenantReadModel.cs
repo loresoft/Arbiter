@@ -21,6 +21,7 @@ public partial class TenantReadModel
 
     public int TaskCount { get; set; }
 
+    [SequenceEquality]
     public List<string>? Tasks { get; set; }
 
     public override string ToString()
