@@ -33,7 +33,7 @@
     <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.6" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="[5.3.0]" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
