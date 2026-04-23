@@ -10,6 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\Arbiter.Mapping.Generators\bin\$(Configuration)\netstandard2.0\Arbiter.Mapping.Generators.dll" PackagePath="analyzers/dotnet/roslyn4.8/cs" Pack="true" Visible="false" />
+    <None Include="..\Arbiter.Mapping.Generators\bin\$(Configuration)\netstandard2.0\Arbiter.Mapping.Generators.dll" PackagePath="analyzers/dotnet/cs" Pack="true" Visible="false" />
   </ItemGroup>
 </Project>
