@@ -41,6 +41,36 @@ public class ContinuationTokenTests
     }
 
     [Test]
+    public void Parse_WithNullToken_ReturnsDefaultValue()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int>(null);
+
+        // Assert
+        result.Should().Be(default);
+    }
+
+    [Test]
+    public void Parse_WithEmptyToken_ReturnsDefaultValue()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int>(string.Empty);
+
+        // Assert
+        result.Should().Be(default);
+    }
+
+    [Test]
+    public void Parse_WithNullTokenForReferenceType_ReturnsNull()
+    {
+        // Act
+        var result = ContinuationToken.Parse<string>(null);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Test]
     [Arguments(0)]
     [Arguments(1)]
     [Arguments(-1)]
@@ -254,10 +284,9 @@ public class ContinuationTokenTests
     }
 
     [Test]
-    public void RoundTrip_WithDateTimeOffsetNonZeroOffset_PreservesOffsetButNotDateTime()
+    public void RoundTrip_WithDateTimeOffsetNonZeroOffset_PreservesValue()
     {
-        // Arrange - Values with non-zero offsets don't fully round-trip due to implementation behavior
-        // The implementation stores UtcTicks but reconstructs them as local ticks
+        // Arrange
         var testValues = new[]
         {
             new DateTimeOffset(2024, 1, 15, 10, 30, 45, TimeSpan.FromHours(5)),
@@ -271,12 +300,9 @@ public class ContinuationTokenTests
             var token = ContinuationToken.Create(value);
             var result = ContinuationToken.Parse<DateTimeOffset>(token);
 
-            // Assert - Offset is preserved
+            // Assert
+            result.Should().Be(value);
             result.Offset.Should().Be(value.Offset);
-
-            // DateTime value will be different (it will be the UTC time interpreted as local time)
-            // For example: "2024-01-15 10:30:45 +5h" (UTC: 05:30:45) becomes "2024-01-15 05:30:45 +5h" (UTC: 00:30:45)
-            result.DateTime.Should().Be(value.UtcDateTime);
         }
     }
 
@@ -333,6 +359,20 @@ public class ContinuationTokenTests
         }
     }
 
+    [Test]
+    public void RoundTrip_WithNullString_ReturnsEmptyString()
+    {
+        // Arrange
+        string? value = null;
+
+        // Act
+        var token = ContinuationToken.Create(value);
+        var result = ContinuationToken.Parse<string>(token);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
     #endregion
 
     #region Two Value Tests
@@ -365,6 +405,26 @@ public class ContinuationTokenTests
         // Assert
         result1.Should().Be(value1);
         result2.Should().Be(value2);
+    }
+
+    [Test]
+    public void Parse_WithNullTokenForTwoValues_ReturnsDefaultTuple()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int, string>(null);
+
+        // Assert
+        result.Should().Be(default((int, string)));
+    }
+
+    [Test]
+    public void Parse_WithEmptyTokenForTwoValues_ReturnsDefaultTuple()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int, string>(string.Empty);
+
+        // Assert
+        result.Should().Be(default((int, string)));
     }
 
     [Test]
@@ -496,6 +556,26 @@ public class ContinuationTokenTests
         result1.Should().Be(value1);
         result2.Should().Be(value2);
         result3.Should().Be(value3);
+    }
+
+    [Test]
+    public void Parse_WithNullTokenForThreeValues_ReturnsDefaultTuple()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int, string, double>(null);
+
+        // Assert
+        result.Should().Be(default((int, string, double)));
+    }
+
+    [Test]
+    public void Parse_WithEmptyTokenForThreeValues_ReturnsDefaultTuple()
+    {
+        // Act
+        var result = ContinuationToken.Parse<int, string, double>(string.Empty);
+
+        // Assert
+        result.Should().Be(default((int, string, double)));
     }
 
     [Test]
@@ -731,12 +811,12 @@ public class ContinuationTokenTests
         var result1 = ContinuationToken.Parse<DateTimeOffset>(token1);
         var result2 = ContinuationToken.Parse<DateTimeOffset>(token2);
 
-        // Assert - Offset is preserved, DateTime becomes the UTC time
+        // Assert
+        result1.Should().Be(dto1);
         result1.Offset.Should().Be(TimeSpan.FromHours(5));
-        result1.DateTime.Should().Be(dto1.UtcDateTime);
 
+        result2.Should().Be(dto2);
         result2.Offset.Should().Be(TimeSpan.FromHours(-8));
-        result2.DateTime.Should().Be(dto2.UtcDateTime);
 
         token1.Should().NotBe(token2); // Different local times produce different tokens
     }

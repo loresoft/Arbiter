@@ -1,10 +1,6 @@
-using System.Buffers;
 using System.Buffers.Binary;
 using System.Buffers.Text;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Arbiter.Services;
@@ -12,6 +8,7 @@ namespace Arbiter.Services;
 /// <summary>
 /// Provides efficient serialization and deserialization of strongly-typed values into URL-safe Base64 continuation tokens.
 /// Supports common .NET types including primitives, DateTime, DateTimeOffset, Guid, and strings.
+/// Null string values are serialized as <see cref="string.Empty" />.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -115,7 +112,7 @@ public static class ContinuationToken
 
         var written = WriteValue(buffer, value);
 
-        return ToBase64Url(buffer[..written]);
+        return Base64Url.EncodeToString(buffer[..written]);
     }
 
     /// <summary>
@@ -137,7 +134,7 @@ public static class ContinuationToken
         var pos = WriteValue(buffer, value1);
         pos += WriteValue(buffer[pos..], value2);
 
-        return ToBase64Url(buffer[..pos]);
+        return Base64Url.EncodeToString(buffer[..pos]);
     }
 
     /// <summary>
@@ -162,7 +159,7 @@ public static class ContinuationToken
         pos += WriteValue(buffer[pos..], value2);
         pos += WriteValue(buffer[pos..], value3);
 
-        return ToBase64Url(buffer[..pos]);
+        return Base64Url.EncodeToString(buffer[..pos]);
     }
 
     #endregion
@@ -173,15 +170,29 @@ public static class ContinuationToken
     /// Parses a continuation token and extracts a single value.
     /// </summary>
     /// <typeparam name="T">The type of the value to extract. Must match the type used when creating the token.</typeparam>
-    /// <param name="token">The continuation token to parse.</param>
-    /// <returns>The deserialized value.</returns>
+    /// <param name="token">The continuation token to parse, or <see langword="null"/> or empty to return the default value.</param>
+    /// <returns>The deserialized value, or the default value when <paramref name="token"/> is <see langword="null"/> or empty.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the token contains a type that doesn't match T.</exception>
-    public static T Parse<T>(string token)
+    /// <exception cref="FormatException">Thrown when the token is not valid Base64Url or contains malformed payload data.</exception>
+    public static T? Parse<T>(string? token)
     {
-        var bytes = FromBase64Url(token);
+        if (string.IsNullOrEmpty(token))
+            return default;
+
+        var maxDecodedLength = Base64Url.GetMaxDecodedLength(token.Length);
+        Span<byte> bytes = maxDecodedLength <= MaxStackAllocSize
+            ? stackalloc byte[maxDecodedLength]
+            : new byte[maxDecodedLength];
+
+        var bytesWritten = Base64Url.DecodeFromChars(token.AsSpan(), bytes);
+        bytes = bytes[..bytesWritten];
         var pos = 0;
 
-        return ReadValue<T>(bytes, ref pos);
+        var value = ReadValue<T>(bytes, ref pos);
+
+        EnsureFullyConsumed(bytes, pos);
+
+        return value;
     }
 
     /// <summary>
@@ -189,16 +200,28 @@ public static class ContinuationToken
     /// </summary>
     /// <typeparam name="T1">The type of the first value.</typeparam>
     /// <typeparam name="T2">The type of the second value.</typeparam>
-    /// <param name="token">The continuation token to parse.</param>
-    /// <returns>A tuple containing the two deserialized values.</returns>
+    /// <param name="token">The continuation token to parse, or <see langword="null"/> or empty to return the default tuple.</param>
+    /// <returns>A tuple containing the two deserialized values, or the default tuple when <paramref name="token"/> is <see langword="null"/> or empty.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the token contains types that don't match T1 or T2.</exception>
-    public static (T1, T2) Parse<T1, T2>(string token)
+    /// <exception cref="FormatException">Thrown when the token is not valid Base64Url or contains malformed payload data.</exception>
+    public static (T1, T2) Parse<T1, T2>(string? token)
     {
-        var bytes = FromBase64Url(token);
+        if (string.IsNullOrEmpty(token))
+            return default;
+
+        var maxDecodedLength = Base64Url.GetMaxDecodedLength(token.Length);
+        Span<byte> bytes = maxDecodedLength <= MaxStackAllocSize
+            ? stackalloc byte[maxDecodedLength]
+            : new byte[maxDecodedLength];
+
+        var bytesWritten = Base64Url.DecodeFromChars(token.AsSpan(), bytes);
+        bytes = bytes[..bytesWritten];
         var pos = 0;
 
         var v1 = ReadValue<T1>(bytes, ref pos);
         var v2 = ReadValue<T2>(bytes, ref pos);
+
+        EnsureFullyConsumed(bytes, pos);
 
         return (v1, v2);
     }
@@ -209,17 +232,29 @@ public static class ContinuationToken
     /// <typeparam name="T1">The type of the first value.</typeparam>
     /// <typeparam name="T2">The type of the second value.</typeparam>
     /// <typeparam name="T3">The type of the third value.</typeparam>
-    /// <param name="token">The continuation token to parse.</param>
-    /// <returns>A tuple containing the three deserialized values.</returns>
+    /// <param name="token">The continuation token to parse, or <see langword="null"/> or empty to return the default tuple.</param>
+    /// <returns>A tuple containing the three deserialized values, or the default tuple when <paramref name="token"/> is <see langword="null"/> or empty.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the token contains types that don't match T1, T2, or T3.</exception>
-    public static (T1, T2, T3) Parse<T1, T2, T3>(string token)
+    /// <exception cref="FormatException">Thrown when the token is not valid Base64Url or contains malformed payload data.</exception>
+    public static (T1, T2, T3) Parse<T1, T2, T3>(string? token)
     {
-        var bytes = FromBase64Url(token);
+        if (string.IsNullOrEmpty(token))
+            return default;
+
+        var maxDecodedLength = Base64Url.GetMaxDecodedLength(token.Length);
+        Span<byte> bytes = maxDecodedLength <= MaxStackAllocSize
+            ? stackalloc byte[maxDecodedLength]
+            : new byte[maxDecodedLength];
+
+        var bytesWritten = Base64Url.DecodeFromChars(token.AsSpan(), bytes);
+        bytes = bytes[..bytesWritten];
         var pos = 0;
 
         var v1 = ReadValue<T1>(bytes, ref pos);
         var v2 = ReadValue<T2>(bytes, ref pos);
         var v3 = ReadValue<T3>(bytes, ref pos);
+
+        EnsureFullyConsumed(bytes, pos);
 
         return (v1, v2, v3);
     }
@@ -228,72 +263,114 @@ public static class ContinuationToken
 
     #region Serialization
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int EstimateSize<T>(T value)
     {
-        return value switch
+        if (typeof(T) == typeof(bool))
+            return 2;
+
+        if (typeof(T) == typeof(byte))
+            return 2;
+
+        if (typeof(T) == typeof(DateTime))
+            return 10;
+
+        if (typeof(T) == typeof(DateTimeOffset))
+            return 11;
+
+        if (typeof(T) == typeof(decimal))
+            return 17;
+
+        if (typeof(T) == typeof(double))
+            return 9;
+
+        if (typeof(T) == typeof(Guid))
+            return 17;
+
+        if (typeof(T) == typeof(short))
+            return 3;
+
+        if (typeof(T) == typeof(int))
+            return 5;
+
+        if (typeof(T) == typeof(long))
+            return 9;
+
+        if (typeof(T) == typeof(string))
         {
-            bool => 2,
-            byte => 2,
-            DateTime => 10,
-            DateTimeOffset => 11,
-            decimal => 17,
-            double => 9,
-            Guid => 17,
-            short => 3,
-            int => 5,
-            long => 9,
-            string s => 5 + Encoding.UTF8.GetByteCount(s),
-            _ => throw new NotSupportedException($"Type {typeof(T).Name} not supported"),
-        };
+            var text = Unsafe.As<T, string>(ref value) ?? string.Empty;
+            return 5 + Encoding.UTF8.GetByteCount(text);
+        }
+
+        throw new NotSupportedException($"Type {typeof(T).Name} not supported");
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteValue<T>(Span<byte> buffer, T value)
     {
-        return value switch
-        {
-            bool b => WriteBoolean(buffer, b),
-            byte b => WriteByte(buffer, b),
-            DateTime dt => WriteDateTime(buffer, dt),
-            DateTimeOffset dto => WriteDateTimeOffset(buffer, dto),
-            decimal m => WriteDecimal(buffer, m),
-            double d => WriteDouble(buffer, d),
-            Guid g => WriteGuid(buffer, g),
-            short s => WriteInt16(buffer, s),
-            int i => WriteInt32(buffer, i),
-            long l => WriteInt64(buffer, l),
-            string s => WriteString(buffer, s),
-            _ => throw new NotSupportedException($"Type {typeof(T).Name} not supported"),
-        };
+        if (typeof(T) == typeof(bool))
+            return WriteBoolean(buffer, Unsafe.As<T, bool>(ref value));
+
+        if (typeof(T) == typeof(byte))
+            return WriteByte(buffer, Unsafe.As<T, byte>(ref value));
+
+        if (typeof(T) == typeof(DateTime))
+            return WriteDateTime(buffer, Unsafe.As<T, DateTime>(ref value));
+
+        if (typeof(T) == typeof(DateTimeOffset))
+            return WriteDateTimeOffset(buffer, Unsafe.As<T, DateTimeOffset>(ref value));
+
+        if (typeof(T) == typeof(decimal))
+            return WriteDecimal(buffer, Unsafe.As<T, decimal>(ref value));
+
+        if (typeof(T) == typeof(double))
+            return WriteDouble(buffer, Unsafe.As<T, double>(ref value));
+
+        if (typeof(T) == typeof(Guid))
+            return WriteGuid(buffer, Unsafe.As<T, Guid>(ref value));
+
+        if (typeof(T) == typeof(short))
+            return WriteInt16(buffer, Unsafe.As<T, short>(ref value));
+
+        if (typeof(T) == typeof(int))
+            return WriteInt32(buffer, Unsafe.As<T, int>(ref value));
+
+        if (typeof(T) == typeof(long))
+            return WriteInt64(buffer, Unsafe.As<T, long>(ref value));
+
+        if (typeof(T) == typeof(string))
+            return WriteString(buffer, Unsafe.As<T, string>(ref value));
+
+        throw new NotSupportedException($"Type {typeof(T).Name} not supported");
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T ReadValue<T>(ReadOnlySpan<byte> buffer, ref int position)
     {
-        var marker = (TypeMarker)buffer[position++];
+        EnsureAvailable(buffer, position, 1);
 
-        // Double cast pattern: (T)(object)value
-        // First cast boxes the value type to object, then unboxes to T
-        // This is required because the compiler cannot directly cast between unrelated value types (e.g., bool -> T)
-        // The intermediate object cast allows the runtime to perform the unboxing conversion
+        var marker = (TypeMarker)buffer[position++];
 
         return marker switch
         {
-            TypeMarker.Boolean when typeof(T) == typeof(bool) => (T)(object)ReadBoolean(buffer, ref position),
-            TypeMarker.Byte when typeof(T) == typeof(byte) => (T)(object)ReadByte(buffer, ref position),
-            TypeMarker.DateTime when typeof(T) == typeof(DateTime) => (T)(object)ReadDateTime(buffer, ref position),
-            TypeMarker.DateTimeOffset when typeof(T) == typeof(DateTimeOffset) => (T)(object)ReadDateTimeOffset(buffer, ref position),
-            TypeMarker.Decimal when typeof(T) == typeof(decimal) => (T)(object)ReadDecimal(buffer, ref position),
-            TypeMarker.Double when typeof(T) == typeof(double) => (T)(object)ReadDouble(buffer, ref position),
-            TypeMarker.Guid when typeof(T) == typeof(Guid) => (T)(object)ReadGuid(buffer, ref position),
-            TypeMarker.Int16 when typeof(T) == typeof(short) => (T)(object)ReadInt16(buffer, ref position),
-            TypeMarker.Int32 when typeof(T) == typeof(int) => (T)(object)ReadInt32(buffer, ref position),
-            TypeMarker.Int64 when typeof(T) == typeof(long) => (T)(object)ReadInt64(buffer, ref position),
-            TypeMarker.String when typeof(T) == typeof(string) => (T)(object)ReadString(buffer, ref position),
+            TypeMarker.Boolean when typeof(T) == typeof(bool) => As<bool, T>(ReadBoolean(buffer, ref position)),
+            TypeMarker.Byte when typeof(T) == typeof(byte) => As<byte, T>(ReadByte(buffer, ref position)),
+            TypeMarker.DateTime when typeof(T) == typeof(DateTime) => As<DateTime, T>(ReadDateTime(buffer, ref position)),
+            TypeMarker.DateTimeOffset when typeof(T) == typeof(DateTimeOffset) => As<DateTimeOffset, T>(ReadDateTimeOffset(buffer, ref position)),
+            TypeMarker.Decimal when typeof(T) == typeof(decimal) => As<decimal, T>(ReadDecimal(buffer, ref position)),
+            TypeMarker.Double when typeof(T) == typeof(double) => As<double, T>(ReadDouble(buffer, ref position)),
+            TypeMarker.Guid when typeof(T) == typeof(Guid) => As<Guid, T>(ReadGuid(buffer, ref position)),
+            TypeMarker.Int16 when typeof(T) == typeof(short) => As<short, T>(ReadInt16(buffer, ref position)),
+            TypeMarker.Int32 when typeof(T) == typeof(int) => As<int, T>(ReadInt32(buffer, ref position)),
+            TypeMarker.Int64 when typeof(T) == typeof(long) => As<long, T>(ReadInt64(buffer, ref position)),
+            TypeMarker.String when typeof(T) == typeof(string) => As<string, T>(ReadString(buffer, ref position)),
             _ => throw new InvalidOperationException($"Type mismatch or unsupported type"),
         };
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static TTo As<TFrom, TTo>(TFrom value)
+    {
+        return Unsafe.As<TFrom, TTo>(ref value);
+    }
+
 
     private static int WriteInt32(Span<byte> buffer, int value)
     {
@@ -306,11 +383,14 @@ public static class ContinuationToken
 
     private static int ReadInt32(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 4);
+
         var value = BinaryPrimitives.ReadInt32LittleEndian(buffer[position..]);
         position += 4;
 
         return value;
     }
+
 
     private static int WriteByte(Span<byte> buffer, byte value)
     {
@@ -322,8 +402,11 @@ public static class ContinuationToken
 
     private static byte ReadByte(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 1);
+
         return buffer[position++];
     }
+
 
     private static int WriteInt16(Span<byte> buffer, short value)
     {
@@ -336,11 +419,14 @@ public static class ContinuationToken
 
     private static short ReadInt16(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 2);
+
         var value = BinaryPrimitives.ReadInt16LittleEndian(buffer[position..]);
         position += 2;
 
         return value;
     }
+
 
     private static int WriteInt64(Span<byte> buffer, long value)
     {
@@ -353,11 +439,14 @@ public static class ContinuationToken
 
     private static long ReadInt64(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 8);
+
         var value = BinaryPrimitives.ReadInt64LittleEndian(buffer[position..]);
         position += 8;
 
         return value;
     }
+
 
     private static int WriteDecimal(Span<byte> buffer, decimal value)
     {
@@ -378,7 +467,9 @@ public static class ContinuationToken
 
     private static decimal ReadDecimal(ReadOnlySpan<byte> buffer, ref int position)
     {
-        var bits = new int[4];
+        EnsureAvailable(buffer, position, 16);
+
+        Span<int> bits = stackalloc int[4];
 
         // Reconstruct the 4 32-bit components of the decimal value
         bits[0] = BinaryPrimitives.ReadInt32LittleEndian(buffer[position..]);        // Low bits
@@ -391,12 +482,13 @@ public static class ContinuationToken
         return new decimal(bits);
     }
 
+
     private static int WriteDateTime(Span<byte> buffer, DateTime value)
     {
         buffer[0] = (byte)TypeMarker.DateTime;
 
         BinaryPrimitives.WriteInt64LittleEndian(buffer[1..], value.Ticks);
-        
+
         // Store DateTime.Kind to preserve it during round-trip
         // 0 = Unspecified, 1 = Utc, 2 = Local
         buffer[9] = (byte)value.Kind;
@@ -406,21 +498,24 @@ public static class ContinuationToken
 
     private static DateTime ReadDateTime(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 9);
+
         var ticks = BinaryPrimitives.ReadInt64LittleEndian(buffer[position..]);
         position += 8;
-        
+
         // Read DateTime.Kind to restore the original kind
         var kind = (DateTimeKind)buffer[position++];
 
         return new DateTime(ticks, kind);
     }
 
+
     private static int WriteDateTimeOffset(Span<byte> buffer, DateTimeOffset value)
     {
         buffer[0] = (byte)TypeMarker.DateTimeOffset;
 
-        // Store UTC ticks (8 bytes) for the absolute time
-        BinaryPrimitives.WriteInt64LittleEndian(buffer[1..], value.UtcTicks);
+        // Store local ticks and offset to preserve the original DateTimeOffset value.
+        BinaryPrimitives.WriteInt64LittleEndian(buffer[1..], value.Ticks);
 
         // Store offset in minutes (2 bytes) to preserve the original time zone
         // Range: -14 hours to +14 hours (-840 to +840 minutes)
@@ -431,16 +526,17 @@ public static class ContinuationToken
 
     private static DateTimeOffset ReadDateTimeOffset(ReadOnlySpan<byte> buffer, ref int position)
     {
-        // Read UTC ticks representing the absolute time
+        EnsureAvailable(buffer, position, 10);
+
         var ticks = BinaryPrimitives.ReadInt64LittleEndian(buffer[position..]);
         position += 8;
 
-        // Read offset in minutes to reconstruct the original time zone
         var offsetMinutes = BinaryPrimitives.ReadInt16LittleEndian(buffer[position..]);
         position += 2;
 
         return new DateTimeOffset(ticks, TimeSpan.FromMinutes(offsetMinutes));
     }
+
 
     private static int WriteGuid(Span<byte> buffer, Guid value)
     {
@@ -452,11 +548,14 @@ public static class ContinuationToken
 
     private static Guid ReadGuid(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 16);
+
         var value = new Guid(buffer.Slice(position, 16));
         position += 16;
 
         return value;
     }
+
 
     private static int WriteDouble(Span<byte> buffer, double value)
     {
@@ -469,11 +568,14 @@ public static class ContinuationToken
 
     private static double ReadDouble(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 8);
+
         var value = BinaryPrimitives.ReadDoubleLittleEndian(buffer[position..]);
         position += 8;
 
         return value;
     }
+
 
     private static int WriteBoolean(Span<byte> buffer, bool value)
     {
@@ -485,11 +587,16 @@ public static class ContinuationToken
 
     private static bool ReadBoolean(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 1);
+
         return buffer[position++] != 0;
     }
 
+
     private static int WriteString(Span<byte> buffer, string value)
     {
+        value ??= string.Empty;
+
         buffer[0] = (byte)TypeMarker.String;
 
         // Convert string to UTF-8 bytes and write directly to buffer after length prefix
@@ -503,9 +610,16 @@ public static class ContinuationToken
 
     private static string ReadString(ReadOnlySpan<byte> buffer, ref int position)
     {
+        EnsureAvailable(buffer, position, 4);
+
         // Read the 4-byte length prefix to determine how many UTF-8 bytes to decode
         var length = BinaryPrimitives.ReadInt32LittleEndian(buffer[position..]);
         position += 4;
+
+        if (length < 0)
+            throw new FormatException("Continuation token contains an invalid string length.");
+
+        EnsureAvailable(buffer, position, length);
 
         // Decode the UTF-8 byte sequence back to a string
         var value = Encoding.UTF8.GetString(buffer.Slice(position, length));
@@ -514,49 +628,18 @@ public static class ContinuationToken
         return value;
     }
 
-    #endregion
-
-    #region Base64Url Encoding
-
-    private static string ToBase64Url(ReadOnlySpan<byte> bytes)
+    private static void EnsureAvailable(ReadOnlySpan<byte> buffer, int position, int count)
     {
-        // Calculate the maximum size needed for Base64Url encoding
-        var maxEncodedLength = Base64Url.GetEncodedLength(bytes.Length);
-        Span<byte> buffer = maxEncodedLength <= MaxStackAllocSize
-            ? stackalloc byte[maxEncodedLength]
-            : new byte[maxEncodedLength];
-
-        // Encode to Base64Url format (URL-safe: uses '-' and '_' instead of '+' and '/')
-        Base64Url.EncodeToUtf8(bytes, buffer, out _, out var bytesWritten);
-
-        // Convert UTF-8 bytes to string
-        return Encoding.UTF8.GetString(buffer[..bytesWritten]);
+        if ((uint)position > (uint)buffer.Length || count > buffer.Length - position)
+            throw new FormatException("Continuation token is malformed or truncated.");
     }
 
-    private static byte[] FromBase64Url(string base64Url)
+    private static void EnsureFullyConsumed(ReadOnlySpan<byte> buffer, int position)
     {
-        // Convert string to UTF-8 bytes for Base64Url decoding
-        var utf8Length = Encoding.UTF8.GetByteCount(base64Url);
-        Span<byte> utf8Bytes = utf8Length <= MaxStackAllocSize
-            ? stackalloc byte[utf8Length]
-            : new byte[utf8Length];
-
-        Encoding.UTF8.GetBytes(base64Url, utf8Bytes);
-
-        // Allocate buffer for decoded bytes (actual size will be smaller or equal)
-        var maxDecodedLength = Base64Url.GetMaxDecodedLength(utf8Bytes.Length);
-        var result = new byte[maxDecodedLength];
-
-        // Decode from Base64Url format back to raw bytes
-        Base64Url.DecodeFromUtf8(utf8Bytes, result, out _, out var bytesWritten);
-
-        if (bytesWritten == maxDecodedLength)
-            return result;
-
-        // Trim to actual decoded size if smaller than maximum
-        Array.Resize(ref result, bytesWritten);
-        return result;
+        if (position != buffer.Length)
+            throw new FormatException("Continuation token contains unexpected trailing data.");
     }
 
     #endregion
+
 }
