@@ -2,6 +2,8 @@ using System.ComponentModel;
 
 using BenchmarkDotNet.Attributes;
 
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Arbiter.Benchmarks.Mapping;
 
 [Description("MappingBenchmark")]
@@ -18,7 +20,7 @@ public class MappingBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        var config = new AutoMapper.MapperConfiguration(cfg => cfg.AddProfile<PriorityProfile>());
+        var config = new AutoMapper.MapperConfiguration(cfg => cfg.AddProfile<PriorityProfile>(), NullLoggerFactory.Instance);
         var mapper = config.CreateMapper();
 
         _priorityAutoMapper = new PriorityAutoMapper(mapper);
