@@ -17,9 +17,12 @@ public static class RequestLoggingMiddlewareExtensions
     /// <remarks>
     /// This middleware logs HTTP request details including method, path, status code, and elapsed time.
     /// Optionally, it can also log request bodies based on the configured options.
+    /// Register this middleware after <c>UseAuthentication</c> so authenticated user context is available in the logging scope.
     /// </remarks>
     /// <example>
     /// <code>
+    /// app.UseAuthentication();
+    ///
     /// app.UseRequestLogging(options =>
     /// {
     ///     options.LogLevel = LogLevel.Debug;

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -77,6 +78,35 @@ public class RequestLoggingMiddlewareTests
 
         // Assert
         logger.LoggedMessages.Should().ContainMatch($"*{method}*{path}*");
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenUserIsAuthenticated_UsesAuthenticatedUserContext()
+    {
+        // Arrange
+        var logger = new FakeLogger<RequestLoggingMiddleware>();
+        var options = CreateOptions();
+        var middleware = new RequestLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastUserName.Should().Be("alice");
+        logger.LastUserId.Should().Be("user-123");
     }
 
     #endregion
@@ -603,8 +633,22 @@ public class RequestLoggingMiddlewareTests
     {
         public List<string> LoggedMessages { get; } = new();
         public LogLevel LogLevel { get; private set; }
+        public string? LastUserName { get; private set; }
+        public string? LastUserId { get; private set; }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            if (state is IEnumerable<KeyValuePair<string, object?>> values)
+            {
+                var scopeValues = values.ToDictionary(x => x.Key, x => x.Value?.ToString(), StringComparer.Ordinal);
+                scopeValues.TryGetValue("UserName", out var userName);
+                scopeValues.TryGetValue("UserId", out var userId);
+                LastUserName = userName;
+                LastUserId = userId;
+            }
+
+            return NullScope.Instance;
+        }
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -618,6 +662,15 @@ public class RequestLoggingMiddlewareTests
             LogLevel = logLevel;
             var message = formatter(state, exception);
             LoggedMessages.Add(message);
+        }
+    }
+
+    private sealed class NullScope : IDisposable
+    {
+        public static NullScope Instance { get; } = new();
+
+        public void Dispose()
+        {
         }
     }
 

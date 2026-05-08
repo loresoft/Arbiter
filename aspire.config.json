@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "samples/EntityFramework/src/Tracker.Host/Tracker.Host.csproj"
+  }
+}

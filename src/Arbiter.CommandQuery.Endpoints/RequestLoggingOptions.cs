@@ -14,9 +14,15 @@ public class RequestLoggingOptions
     /// <c>true</c> to include the request body; otherwise, <c>false</c>. Default is <c>false</c>.
     /// </value>
     /// <remarks>
+    /// <para>
     /// Enabling request body logging may have a performance impact, especially for large payloads
     /// or high-traffic applications. Use <see cref="RequestBodyMaxSize"/> to limit the size of
     /// logged request bodies and <see cref="RequestBodyMimeTypes"/> to filter which content types are logged.
+    /// </para>
+    /// <para>
+    /// Request bodies can contain sensitive data (for example credentials, tokens, or personal data),
+    /// so enable this setting only when appropriate for your security and compliance requirements.
+    /// </para>
     /// </remarks>
     public bool IncludeRequestBody { get; set; }
 

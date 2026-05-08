@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text;
 
 using Arbiter.Services;
@@ -59,15 +60,19 @@ public partial class RequestLoggingMiddleware
             return;
         }
 
-        // track user identity in logs and tracing
-        var userName = context.User?.Identity?.Name ?? "anonymous";
+        var (UserName, UserId) = ResolveUserContext(context);
 
-        // enrich logs with user information
-        using var scope = _logger.BeginScope("{UserName}", userName);
+        // enrich logs with user information for downstream logs
+        // use an array (IReadOnlyList<KeyValuePair<,>>) instead of Dictionary to avoid hashing/bucket allocation
+        using var scope = _logger.BeginScope(new[]
+        {
+            new KeyValuePair<string, object?>("UserName", UserName),
+            new KeyValuePair<string, object?>("UserId", UserId),
+        });
 
         // enrich tracing with user information
-        Activity.Current?.SetTag("enduser.name", userName);
-
+        Activity.Current?.SetTag("enduser.name", UserName);
+        Activity.Current?.SetTag("enduser.id", UserId);
 
         // start timing
         var timestamp = Stopwatch.GetTimestamp();
@@ -202,6 +207,41 @@ public partial class RequestLoggingMiddleware
             return null;
         }
     }
+
+
+    private static (string UserName, string UserId) ResolveUserContext(HttpContext context)
+    {
+        var user = context.User;
+        if (user?.Identity?.IsAuthenticated != true)
+            return ("anonymous", "anonymous");
+
+        var userName = ResolveUserName(user);
+        var userId = ResolveUserId(user);
+
+        return (userName, userId);
+    }
+
+    private static string ResolveUserName(ClaimsPrincipal user)
+    {
+        var userName = user.Identity?.Name;
+        if (!string.IsNullOrWhiteSpace(userName))
+            return userName;
+
+        return user.FindFirstValue(ClaimTypes.Name)
+            ?? user.FindFirstValue(ClaimTypes.Upn)
+            ?? user.FindFirstValue(ClaimTypes.Email)
+            ?? user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? "anonymous";
+    }
+
+    private static string ResolveUserId(ClaimsPrincipal user)
+    {
+        return user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.FindFirstValue("sub")
+            ?? user.FindFirstValue("oid")
+            ?? ResolveUserName(user);
+    }
+
 
     [LoggerMessage(EventId = 1, Message = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms")]
     private static partial void LogRequestBasic(ILogger logger, LogLevel logLevel, string? requestMethod, string? requestPath, int statusCode, double elapsed);
