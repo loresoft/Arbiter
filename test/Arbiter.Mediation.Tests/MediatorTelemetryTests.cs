@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 using Arbiter.Tests.Domain;
 
@@ -24,14 +26,14 @@ public class MediatorTelemetryTests
     }
 
     // Creates an ActivityListener subscribed to MediatorTelemetry.SourceName and collects stopped activities.
-    private static (List<Activity> activities, ActivityListener listener) CreateListener()
+    private static (ConcurrentQueue<Activity> activities, ActivityListener listener) CreateListener()
     {
-        var activities = new List<Activity>();
+        var activities = new ConcurrentQueue<Activity>();
         var listener = new ActivityListener
         {
             ShouldListenTo = src => src.Name == MediatorTelemetry.SourceName,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStopped = activities.Add,
+            ActivityStopped = activities.Enqueue,
         };
         ActivitySource.AddActivityListener(listener);
         return (activities, listener);
@@ -46,18 +48,18 @@ public class MediatorTelemetryTests
         await using var provider = BuildProvider(services =>
         {
             services.TryAddSingleton(new Logger());
-            services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
+            services.TryAddTransient<IRequestHandler<TelemetryPing, Pong>, TelemetryPingHandler>();
         });
 
         var mediator = provider.GetRequiredService<IMediator>();
-        await mediator.Send<Ping, Pong>(new Ping { Message = "Hello" });
+        await mediator.Send<TelemetryPing, Pong>(new TelemetryPing { Message = "Hello" });
 
-        var span = activities.FirstOrDefault(a => a.OperationName.StartsWith(MediatorTelemetry.SendOperation));
+        var span = activities.FirstOrDefault(a => a.OperationName == $"{MediatorTelemetry.SendOperation} TelemetryPing");
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Ok);
         await Assert.That(span.Kind).IsEqualTo(ActivityKind.Internal);
-        await Assert.That(span.OperationName).IsEqualTo($"{MediatorTelemetry.SendOperation} Ping");
-        await Assert.That(span.GetTagItem(MediatorTelemetry.RequestTypeTag)?.ToString()).IsEqualTo(typeof(Ping).FullName);
+        await Assert.That(span.OperationName).IsEqualTo($"{MediatorTelemetry.SendOperation} TelemetryPing");
+        await Assert.That(span.GetTagItem(MediatorTelemetry.RequestTypeTag)?.ToString()).IsEqualTo(typeof(TelemetryPing).FullName);
         await Assert.That(span.GetTagItem(MediatorTelemetry.ResponseTypeTag)?.ToString()).IsEqualTo(typeof(Pong).FullName);
     }
 
@@ -132,5 +134,18 @@ public class MediatorTelemetryTests
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Ok);
         await Assert.That(span.GetTagItem(MediatorTelemetry.NotificationTypeTag)?.ToString()).IsEqualTo(typeof(Pinged).FullName);
+    }
+
+    private sealed class TelemetryPing : IRequest<Pong>
+    {
+        public string? Message { get; init; }
+    }
+
+    private sealed class TelemetryPingHandler : IRequestHandler<TelemetryPing, Pong>
+    {
+        public ValueTask<Pong?> Handle(TelemetryPing request, CancellationToken cancellationToken = default)
+        {
+            return ValueTask.FromResult<Pong?>(new Pong { Message = $"{request.Message} Pong" });
+        }
     }
 }
