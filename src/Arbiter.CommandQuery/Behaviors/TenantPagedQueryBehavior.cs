@@ -23,7 +23,6 @@ public partial class TenantPagedQueryBehavior<TKey, TEntityModel>
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantPagedQueryBehavior{TKey, TEntityModel}"/> class.
     /// </summary>
-    /// <inheritdoc />
     public TenantPagedQueryBehavior(ILoggerFactory loggerFactory, ITenantResolver<TKey> tenantResolver)
         : base(loggerFactory)
     {
@@ -72,7 +71,7 @@ public partial class TenantPagedQueryBehavior<TKey, TEntityModel>
 
         var tenantFilter = new EntityFilter
         {
-            Name = nameof(IHaveTenant<TKey>.TenantId),
+            Name = nameof(IHaveTenant<>.TenantId),
             Value = tenantId,
             Operator = FilterOperators.Equal,
         };

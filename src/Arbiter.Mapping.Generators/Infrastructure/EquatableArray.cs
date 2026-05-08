@@ -76,14 +76,24 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
     /// <summary>
     /// Returns the underlying array.
     /// </summary>
-    /// <returns>The underlying array.</returns>
+    /// <returns>The underlying <typeparamref name="T"/> array.</returns>
     public T[] AsArray() => Array;
 
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether two <see cref="EquatableArray{T}"/> instances are equal.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns><see langword="true"/> if the two instances are equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right) => left.Equals(right);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether two <see cref="EquatableArray{T}"/> instances are not equal.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns><see langword="true"/> if the two instances are not equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(EquatableArray<T> left, EquatableArray<T> right) => !left.Equals(right);
 
     /// <inheritdoc />

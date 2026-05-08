@@ -39,21 +39,26 @@ public abstract class EntityDataContextHandlerBase<TContext, TEntity, TKey, TRea
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityDataContextHandlerBase{TContext, TEntity, TKey, TReadModel, TRequest, TResponse}"/> class.
     /// </summary>
-    /// <inheritdoc/>
+    /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
+    /// <param name="dataContext">The <typeparamref name="TContext"/> used to access the data store.</param>
+    /// <param name="mapper">The <see cref="IMapper"/> used to map between entity and model types.</param>
+    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/>, <paramref name="dataContext"/>, or <paramref name="mapper"/> is <see langword="null"/>.</exception>
     protected EntityDataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
 
     /// <summary>
-    /// Reads the entity from the data context.
+    /// Reads the <typeparamref name="TEntity"/> identified by <paramref name="key"/> from the data context
+    /// and projects it to <typeparamref name="TReadModel"/>.
     /// </summary>
-    /// <param name="key">The entity key to read</param>
-    /// <param name="pipelineName">The optional pipeline name to apply</param>
-    /// <param name="principal">The optional claims principal</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>Awaitable task returning the <typeparamref name="TReadModel"/></returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is null</exception>
+    /// <param name="key">The primary key of the entity to read.</param>
+    /// <param name="pipelineName">The optional name of the query pipeline to apply when querying the entity.</param>
+    /// <param name="principal">The optional <see cref="ClaimsPrincipal"/> used by the query pipeline for authorization or filtering.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The <typeparamref name="TReadModel"/> for the entity, or <see langword="null"/> if no matching entity is found.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is <see langword="null"/>.</exception>
     protected virtual async ValueTask<TReadModel?> Read(
         [NotNull] TKey key,
         string? pipelineName = null,

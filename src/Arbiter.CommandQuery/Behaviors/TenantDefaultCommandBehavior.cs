@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 namespace Arbiter.CommandQuery.Behaviors;
 
 /// <summary>
-/// A behavior for setting the default tenant id of a model.
+/// A pipeline behavior that sets the default tenant identifier on a command model
+/// when the model implements <see cref="IHaveTenant{TKey}"/> and no tenant has been assigned.
+/// The tenant is resolved via <see cref="ITenantResolver{TKey}"/> from the request principal.
 /// </summary>
-/// <typeparam name="TKey">The type of the model key</typeparam>
-/// <typeparam name="TEntityModel">The type of the model</typeparam>
-/// <typeparam name="TResponse">The type of the response</typeparam>
+/// <typeparam name="TKey">The type of the tenant key.</typeparam>
+/// <typeparam name="TEntityModel">The type of the entity model carried by the command.</typeparam>
+/// <typeparam name="TResponse">The type of the response returned by the pipeline.</typeparam>
 public class TenantDefaultCommandBehavior<TKey, TEntityModel, TResponse>
     : PipelineBehaviorBase<EntityModelBase<TEntityModel, TResponse>, TResponse>
     where TEntityModel : class
@@ -20,14 +22,18 @@ public class TenantDefaultCommandBehavior<TKey, TEntityModel, TResponse>
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantDefaultCommandBehavior{TKey, TEntityModel, TResponse}"/> class.
     /// </summary>
-    /// <inheritdoc />
-    /// <exception cref="ArgumentNullException">When <paramref name="tenantResolver"/> is null</exception>
+    /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this behavior.</param>
+    /// <param name="tenantResolver">The resolver used to obtain the tenant identifier from the request principal.</param>
+    /// <exception cref="ArgumentNullException">When <paramref name="loggerFactory"/> or <paramref name="tenantResolver"/> is <see langword="null"/>.</exception>
     public TenantDefaultCommandBehavior(ILoggerFactory loggerFactory, ITenantResolver<TKey> tenantResolver) : base(loggerFactory)
     {
         _tenantResolver = tenantResolver ?? throw new ArgumentNullException(nameof(tenantResolver));
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Sets the tenant identifier on the request model before passing the request to the next handler in the pipeline.
+    /// </remarks>
     protected override async ValueTask<TResponse?> Process(
         EntityModelBase<TEntityModel, TResponse> request,
         RequestHandlerDelegate<TResponse> next,
@@ -42,6 +48,11 @@ public class TenantDefaultCommandBehavior<TKey, TEntityModel, TResponse>
         return await next(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Sets the tenant identifier on the request model if it implements <see cref="IHaveTenant{TKey}"/>
+    /// and its <c>TenantId</c> is the default value.
+    /// </summary>
+    /// <param name="request">The command request whose model may require a tenant identifier.</param>
     private async ValueTask SetTenantId(EntityModelBase<TEntityModel, TResponse> request)
     {
         if (request.Model is not IHaveTenant<TKey> tenantModel)
