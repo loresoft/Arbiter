@@ -11,8 +11,10 @@ deserialized
 deserializer
 deserializing
 inline
+interop
 json
 linq
+metadata
 middleware
 mvc
 nullable
@@ -21,5 +23,11 @@ serialization
 serialize
 serializer
 serializing
+sql
+timestamp
 upsert
 validator
+validators
+virtualize
+virtualized
+virtualizing
