@@ -54,6 +54,9 @@ namespace Arbiter.Mediation;
 /// </example>
 public interface IMediator
 {
+    private const string DynamicSendRequiresDynamicCode = "Non-generic mediator send requires runtime generic type construction. Use Send<TRequest, TResponse> when publishing with Native AOT.";
+    private const string DynamicSendRequiresUnreferencedCode = "Non-generic mediator send requires runtime type inspection. Use Send<TRequest, TResponse> when publishing a trimmed application.";
+
     /// <summary>
     /// Sends a request to the appropriate handler and returns the response.
     /// </summary>
@@ -76,6 +79,7 @@ public interface IMediator
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Awaitable task returning the <typeparamref name="TResponse"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
+    [RequiresDynamicCode(DynamicSendRequiresDynamicCode)]
     ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default);
@@ -88,6 +92,8 @@ public interface IMediator
     /// <returns>Awaitable task returning the handler response.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when <paramref name="request"/> does not implement <see cref="IRequest{TResponse}"/> interface.</exception>
+    [RequiresDynamicCode(DynamicSendRequiresDynamicCode)]
+    [RequiresUnreferencedCode(DynamicSendRequiresUnreferencedCode)]
     ValueTask<object?> Send(
         object request,
         CancellationToken cancellationToken = default);

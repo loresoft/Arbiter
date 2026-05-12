@@ -108,6 +108,27 @@ public class MediatorTests
     }
 
     [Test]
+    public async Task SendWithInterfaceRequestType()
+    {
+        var logger = new Logger();
+
+        var services = new ServiceCollection();
+        services.AddMediator();
+
+        services.TryAddSingleton(logger);
+        services.TryAddTransient<IRequestHandler<Ping, Pong>, PingHandler>();
+
+        var provider = services.BuildServiceProvider();
+        var mediator = provider.GetRequiredService<IMediator>();
+
+        IRequest<Pong> request = new Ping { Message = "Ping" };
+        var response = await mediator.Send(request);
+
+        await Assert.That(response).IsNotNull();
+        await Assert.That(response!.Message).IsEqualTo("Ping Pong");
+    }
+
+    [Test]
     public async Task SendWithBehaviorPipelineObjectType()
     {
         var logger = new Logger();

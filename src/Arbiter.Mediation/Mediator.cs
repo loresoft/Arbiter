@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,9 @@ namespace Arbiter.Mediation;
 /// </summary>
 public sealed class Mediator : IMediator
 {
+    private const string DynamicSendRequiresDynamicCode = "Non-generic mediator send requires runtime generic type construction. Use Send<TRequest, TResponse> when publishing with Native AOT.";
+    private const string DynamicSendRequiresUnreferencedCode = "Non-generic mediator send requires runtime type inspection. Use Send<TRequest, TResponse> when publishing a trimmed application.";
+
     private static readonly ConcurrentDictionary<Type, IHandler> _handlerCache = new();
 
     private readonly IServiceProvider _serviceProvider;
@@ -93,6 +97,7 @@ public sealed class Mediator : IMediator
     }
 
     /// <inheritdoc />
+    [RequiresDynamicCode(DynamicSendRequiresDynamicCode)]
     public async ValueTask<TResponse?> Send<TResponse>(
         IRequest<TResponse> request,
         CancellationToken cancellationToken = default)
@@ -147,6 +152,8 @@ public sealed class Mediator : IMediator
     }
 
     /// <inheritdoc />
+    [RequiresDynamicCode(DynamicSendRequiresDynamicCode)]
+    [RequiresUnreferencedCode(DynamicSendRequiresUnreferencedCode)]
     public async ValueTask<object?> Send(
         object request,
         CancellationToken cancellationToken = default)
