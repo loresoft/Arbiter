@@ -66,4 +66,14 @@ public class EmailConfiguration
     /// Gets or sets the email address to override the recipient list. Used for testing purposes to redirect all emails to a single address.
     /// </summary>
     public string? RecipientOverride { get; set; }
+
+    /// <summary>
+    /// Gets or sets the application client ID used to authenticate email delivery.
+    /// </summary>
+    public string? ClientId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the tenant ID used to authenticate email delivery.
+    /// </summary>
+    public string? TenantId { get; set; }
 }

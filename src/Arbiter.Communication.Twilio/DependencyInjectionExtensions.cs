@@ -36,7 +36,7 @@ public static class DependencyInjectionExtensions
         services.AddSendGrid((serviceProvider, options) =>
         {
             var configuration = serviceProvider.GetRequiredService<IOptions<EmailConfiguration>>();
-            options.ApiKey = configuration.Value.ServiceKey;
+            options.ApiKey = configuration.Value.ServiceKey ?? configuration.Value.Password;
         });
 
         return services;

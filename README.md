@@ -125,10 +125,11 @@ public class UserController : ControllerBase
 
 ### Communication Providers Packages
 
-| Library                                                     | Package                                                                                                                                                          | Description                                                   |
-| :---------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
-| [Arbiter.Communication.Azure](#arbitercommunicationazure)   | [![Arbiter.Communication.Azure](https://img.shields.io/nuget/v/Arbiter.Communication.Azure.svg)](https://www.nuget.org/packages/Arbiter.Communication.Azure/)    | Communication implementation for Azure Communication Services |
-| [Arbiter.Communication.Twilio](#arbitercommunicationtwilio) | [![Arbiter.Communication.Twilio](https://img.shields.io/nuget/v/Arbiter.Communication.Twilio.svg)](https://www.nuget.org/packages/Arbiter.Communication.Twilio/) | Communication implementation for SendGrid and Twilio          |
+| Library                                                                                    | Package                                                                                                                                                          | Description                                                     |
+| :----------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| [Arbiter.Communication.Azure](#arbitercommunicationazure)                                  | [![Arbiter.Communication.Azure](https://img.shields.io/nuget/v/Arbiter.Communication.Azure.svg)](https://www.nuget.org/packages/Arbiter.Communication.Azure/)    | Communication implementation for Azure Communication Services   |
+| [Arbiter.Communication.Graph](https://www.nuget.org/packages/Arbiter.Communication.Graph/) | [![Arbiter.Communication.Graph](https://img.shields.io/nuget/v/Arbiter.Communication.Graph.svg)](https://www.nuget.org/packages/Arbiter.Communication.Graph/)    | Communication implementation for Microsoft Graph email delivery |
+| [Arbiter.Communication.Twilio](#arbitercommunicationtwilio)                                | [![Arbiter.Communication.Twilio](https://img.shields.io/nuget/v/Arbiter.Communication.Twilio.svg)](https://www.nuget.org/packages/Arbiter.Communication.Twilio/) | Communication implementation for SendGrid and Twilio            |
 
 ## Core Libraries
 
@@ -755,6 +756,12 @@ dotnet add package Arbiter.Communication
 
 ```bash
 dotnet add package Arbiter.Communication.Azure
+```
+
+**Microsoft Graph Email:**
+
+```bash
+dotnet add package Arbiter.Communication.Graph
 ```
 
 **SendGrid and Twilio:**

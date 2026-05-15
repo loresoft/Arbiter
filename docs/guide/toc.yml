@@ -84,6 +84,8 @@ items:
         href: communication/overview.md
       - name: Azure Communication Services
         href: communication/azure.md
+      - name: Microsoft Graph
+        href: communication/graph.md
       - name: Twilio and SendGrid
         href: communication/twilio.md
       - name: Template Best Practices

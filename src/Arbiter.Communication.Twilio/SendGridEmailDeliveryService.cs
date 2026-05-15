@@ -29,9 +29,9 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
         ISendGridClient sendGridClient,
         IOptions<EmailConfiguration> options)
     {
-        _logger = logger;
-        _sendGridClient = sendGridClient;
-        _options = options;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _sendGridClient = sendGridClient ?? throw new ArgumentNullException(nameof(sendGridClient));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     /// <summary>
@@ -195,14 +195,21 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
 
         var originalRecipients = emailMessage.Recipients.ToString();
         var overrideAddress = new Email.EmailAddress(recipientOverride);
-        var htmlMessage = $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>";
+
+        var htmlMessage = emailMessage.Content.HtmlBody.HasValue()
+            ? $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>"
+            : emailMessage.Content.HtmlBody;
+
+        var textMessage = emailMessage.Content.TextBody.HasValue()
+            ? $"{emailMessage.Content.TextBody}\n\nOriginal Recipients: {originalRecipients}"
+            : emailMessage.Content.TextBody;
 
         LogRecipientOverride(_logger, recipientOverride, originalRecipients);
 
         return emailMessage with
         {
             Recipients = new EmailRecipients { To = [overrideAddress] },
-            Content = emailMessage.Content with { HtmlBody = htmlMessage },
+            Content = emailMessage.Content with { HtmlBody = htmlMessage, TextBody = textMessage },
         };
     }
 

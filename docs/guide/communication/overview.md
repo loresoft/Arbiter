@@ -5,10 +5,11 @@ description: Powerful and flexible messaging system for sending templated emails
 
 # Communication Overview
 
-Arbiter.Communication provides a powerful and flexible messaging system for sending templated emails and SMS messages. The library consists of three main packages:
+Arbiter.Communication provides a powerful and flexible messaging system for sending templated emails and SMS messages. The library consists of four main packages:
 
 - **Arbiter.Communication** - Core functionality for templates and message delivery
 - **Arbiter.Communication.Azure** - Azure Communication Services integration
+- **Arbiter.Communication.Graph** - Microsoft Graph email delivery integration
 - **Arbiter.Communication.Twilio** - Twilio and SendGrid integration
 
 ## Key Features
@@ -18,7 +19,7 @@ Arbiter.Communication provides a powerful and flexible messaging system for send
 - **SMS delivery** with multiple provider support
 - **Embedded resource templates** for packaging templates with your application
 - **Dependency injection integration** with .NET Core
-- **Multiple delivery providers** (SMTP, Azure Communication Services, Twilio, SendGrid)
+- **Multiple delivery providers** (SMTP, Azure Communication Services, Microsoft Graph, Twilio, SendGrid)
 - **Configuration-based setup** using `appsettings.json`
 
 ## Core Concepts
@@ -87,6 +88,9 @@ Choose the appropriate provider package(s):
 ```bash
 # For Azure Communication Services
 dotnet add package Arbiter.Communication.Azure
+
+# For Microsoft Graph email delivery
+dotnet add package Arbiter.Communication.Graph
 
 # For Twilio SMS and SendGrid Email
 dotnet add package Arbiter.Communication.Twilio

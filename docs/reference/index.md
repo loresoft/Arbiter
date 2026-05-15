@@ -29,6 +29,7 @@ This API reference provides comprehensive documentation for the Arbiter library 
 
 - **Arbiter.Communication** - Message templating and delivery abstraction for email and SMS services
 - **Arbiter.Communication.Azure** - Integration with Azure Communication Services
+- **Arbiter.Communication.Graph** - Integration with Microsoft Graph email delivery
 - **Arbiter.Communication.Twilio** - Integration with SendGrid email and Twilio SMS services
 
 ## Key Features

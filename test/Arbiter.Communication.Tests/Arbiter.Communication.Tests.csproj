@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Arbiter.Communication.Azure\Arbiter.Communication.Azure.csproj" />
+    <ProjectReference Include="..\..\src\Arbiter.Communication.Graph\Arbiter.Communication.Graph.csproj" />
     <ProjectReference Include="..\..\src\Arbiter.Communication.Twilio\Arbiter.Communication.Twilio.csproj" />
     <ProjectReference Include="..\..\src\Arbiter.Communication\Arbiter.Communication.csproj" />
   </ItemGroup>
