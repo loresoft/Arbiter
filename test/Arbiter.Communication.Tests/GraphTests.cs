@@ -17,7 +17,7 @@ public class GraphTests
 
     public IServiceProvider Services => Application.Services;
 
-    [Test/*, Skip("Local Only")*/]
+    [Test, Skip("Local Only")]
     public async Task SendPasswordResetTest()
     {
         var templateService = Services.GetRequiredService<IEmailTemplateService>();
