@@ -30,6 +30,30 @@ public class MessagePackSerializationTests
     }
 
     [Test]
+    public void EntityFilterWithKeyRoundTripSerialization()
+    {
+        // Arrange - create a filter for a keyed value
+        var filter = new EntityFilter
+        {
+            Name = "Attributes",
+            Key = "Status",
+            Operator = FilterOperators.Equal,
+            Value = "Active"
+        };
+
+        // Act - serialize and deserialize
+        var bytes = MessagePackSerializer.Serialize(filter, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<EntityFilter>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Name.Should().Be(filter.Name);
+        deserialized.Key.Should().Be(filter.Key);
+        deserialized.Operator.Should().Be(filter.Operator);
+        deserialized.Value.Should().Be(filter.Value);
+    }
+
+    [Test]
     public void EntityFilterGroupRoundTripSerialization()
     {
         // Arrange - create a group filter with nested filters

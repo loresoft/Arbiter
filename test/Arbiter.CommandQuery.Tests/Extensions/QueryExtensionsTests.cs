@@ -439,4 +439,58 @@ public class QueryExtensionsTests
         act.Should().Throw<ParseException>();
     }
 
+    [Test]
+    public void FilterKeyNormal()
+    {
+        var fruits = Fruit.Data();
+        fruits.Should().NotBeEmpty();
+
+        var list = fruits
+            .AsQueryable()
+            .Filter(new EntityFilter { Name = "Tags", Key = "color", Value = "red" })
+            .ToList();
+
+        list.Should().NotBeEmpty();
+        list.Count.Should().Be(3);
+        list.Should().AllSatisfy(f => f.Tags!["color"].Should().Be("red"));
+    }
+
+    [Test]
+    public void FilterKeyContains()
+    {
+        var fruits = Fruit.Data();
+        fruits.Should().NotBeEmpty();
+
+        var list = fruits
+            .AsQueryable()
+            .Filter(new EntityFilter { Name = "Tags", Key = "season", Operator = FilterOperators.Contains, Value = "sum" })
+            .ToList();
+
+        list.Should().NotBeEmpty();
+        list.Count.Should().Be(4);
+    }
+
+    [Test]
+    public void FilterKeyLogicalOr()
+    {
+        var fruits = Fruit.Data();
+        fruits.Should().NotBeEmpty();
+
+        var list = fruits
+            .AsQueryable()
+            .Filter(new EntityFilter
+            {
+                Logic = FilterLogic.Or,
+                Filters = new List<EntityFilter>
+                {
+                    new EntityFilter { Name = "Tags", Key = "color", Value = "blue" },
+                    new EntityFilter { Name = "Tags", Key = "color", Value = "purple" }
+                }
+            })
+            .ToList();
+
+        list.Should().NotBeEmpty();
+        list.Count.Should().Be(2);
+    }
+
 }

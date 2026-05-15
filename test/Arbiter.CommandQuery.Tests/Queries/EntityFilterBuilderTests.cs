@@ -83,6 +83,32 @@ public class EntityFilterBuilderTests
     }
 
     [Test]
+    public void CreateFilterShouldReturnEntityFilter()
+    {
+        // Act
+        var result = EntityFilterBuilder.CreateFilter("Field1", "Value1", FilterOperators.Equal);
+
+        // Assert
+        result.Name.Should().Be("Field1");
+        result.Key.Should().BeNull();
+        result.Value.Should().Be("Value1");
+        result.Operator.Should().Be(FilterOperators.Equal);
+    }
+
+    [Test]
+    public void CreateFilterWithKeyShouldReturnEntityFilter()
+    {
+        // Act
+        var result = EntityFilterBuilder.CreateFilter("Attributes", "Status", "Active", FilterOperators.Equal);
+
+        // Assert
+        result.Name.Should().Be("Attributes");
+        result.Key.Should().Be("Status");
+        result.Value.Should().Be("Active");
+        result.Operator.Should().Be(FilterOperators.Equal);
+    }
+
+    [Test]
     public void CreateGroupShouldReturnEntityFilter()
     {
         // Arrange

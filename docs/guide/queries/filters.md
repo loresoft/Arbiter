@@ -143,6 +143,9 @@ public class EntityFilter
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
+    [JsonPropertyName("key")]
+    public string? Key { get; set; }
+
     [JsonPropertyName("value")]
     public object? Value { get; set; }
 
@@ -164,6 +167,10 @@ public class EntityFilter
 #### Name
 
 The name of the field or property to filter on. This should match the property name of the entity being queried.
+
+#### Key
+
+An optional key used to select a value from a dictionary-like or keyed field. When specified, the filter targets the value for the key within the field instead of the field itself.
 
 #### Operator
 
@@ -222,6 +229,18 @@ A list of nested filters for complex filter groups. When this property is set, t
 var filter = new EntityFilter
 {
     Name = "Status",
+    Operator = FilterOperators.Equal,
+    Value = "Active"
+};
+```
+
+#### Dictionary Key Filter
+
+```csharp
+var filter = new EntityFilter
+{
+    Name = "Attributes",
+    Key = "Status",
     Operator = FilterOperators.Equal,
     Value = "Active"
 };

@@ -22,6 +22,20 @@ public class EntityFilterJsonTests
     }
 
     [Test]
+    public void ParseKeyJson()
+    {
+        var json = "{\"name\":\"Attributes\",\"key\":\"Status\",\"operator\":\"Equal\",\"value\":\"Active\"}";
+
+        var filter = JsonSerializer.Deserialize<EntityFilter>(json);
+
+        filter.Should().NotBeNull();
+        filter.Name.Should().Be("Attributes");
+        filter.Key.Should().Be("Status");
+        filter.Operator.Should().Be(FilterOperators.Equal);
+        filter.Value.Should().Be("Active");
+    }
+
+    [Test]
     public void ParseBooleanJson()
     {
         var json = "{\"name\":\"Name\",\"operator\":\"Equal\",\"value\":true}";
@@ -116,6 +130,28 @@ public class EntityFilterJsonTests
         filterDeserialize.Filters[1].Value.Should().BeOfType<string>();
         filterDeserialize.Filters[1].Value.Should().Be("1234");
 
+    }
+
+    [Test]
+    public void SerializeRoundTripKeyFilter()
+    {
+        var filter = new EntityFilter
+        {
+            Name = "Attributes",
+            Key = "Status",
+            Value = "Active",
+            Operator = FilterOperators.Equal
+        };
+
+        var json = JsonSerializer.Serialize(filter);
+        json.Should().Be("{\"name\":\"Attributes\",\"key\":\"Status\",\"operator\":\"Equal\",\"value\":\"Active\"}");
+
+        var filterDeserialize = JsonSerializer.Deserialize<EntityFilter>(json);
+        filterDeserialize.Should().NotBeNull();
+        filterDeserialize.Name.Should().Be("Attributes");
+        filterDeserialize.Key.Should().Be("Status");
+        filterDeserialize.Operator.Should().Be(FilterOperators.Equal);
+        filterDeserialize.Value.Should().Be("Active");
     }
 
 }

@@ -55,6 +55,15 @@ public partial class EntityFilter
     public string? Name { get; set; }
 
     /// <summary>
+    /// Gets or sets the optional key used when filtering a keyed value within the field or property.
+    /// </summary>
+    /// <value>
+    /// The optional key used to select a value from a keyed or dictionary-like field.
+    /// </value>
+    [JsonPropertyName("key")]
+    public string? Key { get; set; }
+
+    /// <summary>
     /// Gets or sets the value to filter on.
     /// </summary>
     /// <value>

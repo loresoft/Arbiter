@@ -11,6 +11,7 @@ namespace Arbiter.CommandQuery.Converters;
 public sealed class EntityFilterConverter : JsonConverter<EntityFilter>
 {
     private static readonly JsonEncodedText Name = JsonEncodedText.Encode("name");
+    private static readonly JsonEncodedText Key = JsonEncodedText.Encode("key");
     private static readonly JsonEncodedText Value = JsonEncodedText.Encode("value");
     private static readonly JsonEncodedText Operator = JsonEncodedText.Encode("operator");
     private static readonly JsonEncodedText Logic = JsonEncodedText.Encode("logic");
@@ -43,6 +44,10 @@ public sealed class EntityFilterConverter : JsonConverter<EntityFilter>
         if (TryReadStringProperty(ref reader, Name, out var propertyValue))
         {
             value.Name = propertyValue;
+        }
+        else if (TryReadStringProperty(ref reader, Key, out propertyValue))
+        {
+            value.Key = propertyValue;
         }
         else if (TryReadObjectProperty(ref reader, Value, out var objectValue))
         {
@@ -213,6 +218,9 @@ public sealed class EntityFilterConverter : JsonConverter<EntityFilter>
 
         if (!string.IsNullOrEmpty(value.Name))
             writer.WriteString(Name, value.Name);
+
+        if (!string.IsNullOrEmpty(value.Key))
+            writer.WriteString(Key, value.Key);
 
         if (value.Operator.HasValue)
             writer.WriteString(Operator, value.Operator.Value.ToString());

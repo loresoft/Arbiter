@@ -185,10 +185,9 @@ public class LinqExpressionBuilder
         if (string.IsNullOrWhiteSpace(filter.Name))
             return;
 
-        int index = parameters.Count;
-
-        var field = filter.Name;
+        var field = GetFieldExpression(parameters, filter);
         var value = filter.Value;
+        int index = parameters.Count;
 
         var method = filter.Operator switch
         {
@@ -239,10 +238,9 @@ public class LinqExpressionBuilder
         if (string.IsNullOrWhiteSpace(filter.Name))
             return;
 
-        int index = parameters.Count;
-
-        var field = filter.Name;
+        var field = GetFieldExpression(parameters, filter);
         var value = filter.Value;
+        int index = parameters.Count;
 
         var comparison = filter.Operator switch
         {
@@ -277,10 +275,7 @@ public class LinqExpressionBuilder
         if (string.IsNullOrWhiteSpace(filter.Name))
             return;
 
-        int index = parameters.Count;
-
-        var field = filter.Name;
-        var value = filter.Value;
+        var field = GetFieldExpression(parameters, filter);
 
         var comparison = filter.Operator switch
         {
@@ -321,21 +316,32 @@ public class LinqExpressionBuilder
         if (string.IsNullOrWhiteSpace(filter.Name))
             return;
 
-        int index = parameters.Count;
-
-        var field = filter.Name;
+        var field = GetFieldExpression(parameters, filter, qualifyWithIt: true);
         var value = filter.Value;
+        int index = parameters.Count;
 
         var negation = filter.Operator == FilterOperators.NotIn;
         if (negation)
             builder.Append('!');
 
         builder
-            .Append("it.")
             .Append(field)
             .Append(" in @")
             .Append(index);
 
         parameters.Add(value);
+    }
+
+    private static string GetFieldExpression(List<object?> parameters, EntityFilter filter, bool qualifyWithIt = false)
+    {
+        var field = qualifyWithIt ? $"it.{filter.Name}" : filter.Name!;
+
+        if (string.IsNullOrWhiteSpace(filter.Key))
+            return field;
+
+        int index = parameters.Count;
+        parameters.Add(filter.Key);
+
+        return $"{field}[@{index}]";
     }
 }

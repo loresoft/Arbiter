@@ -143,6 +143,19 @@ public static class EntityFilterBuilder
         => new() { Name = field, Value = value, Operator = @operator };
 
     /// <summary>
+    /// Creates a filter for the specified keyed field, value, and operator.
+    /// </summary>
+    /// <param name="field">The name of the field or property to filter on. Cannot be <see langword="null"/> or empty.</param>
+    /// <param name="key">The key used to select a value from the field or property. Cannot be <see langword="null"/> or empty.</param>
+    /// <param name="value">The value to filter against. Can be <see langword="null"/> depending on the operator used.</param>
+    /// <param name="operator">The comparison operator to use for filtering. If <see langword="null"/>, uses the default operator (Equal).</param>
+    /// <returns>
+    /// An <see cref="EntityFilter"/> instance configured with the specified field, key, value, and operator.
+    /// </returns>
+    public static EntityFilter CreateFilter(string field, string key, object? value, FilterOperators? @operator = null)
+        => new() { Name = field, Key = key, Value = value, Operator = @operator };
+
+    /// <summary>
     /// Creates a filter group for the specified filters using the AND logic operator.
     /// </summary>
     /// <param name="filters">The collection of filters to group together. Invalid filters are automatically removed.</param>

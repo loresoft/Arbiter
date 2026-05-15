@@ -20,6 +20,22 @@ public class LinqExpressionBuilderTest
     }
 
     [Test]
+    public void FilterKeyNormal()
+    {
+        var entityFilter = new EntityFilter { Name = "Attributes", Key = "Rank", Value = 7 };
+
+        var builder = new LinqExpressionBuilder();
+        builder.Build(entityFilter);
+
+        builder.Expression.Should().NotBeEmpty();
+        builder.Expression.Should().Be("Attributes[@0] == @1");
+
+        builder.Parameters.Count.Should().Be(2);
+        builder.Parameters[0].Should().Be("Rank");
+        builder.Parameters[1].Should().Be(7);
+    }
+
+    [Test]
     public void FilterLogicalOr()
     {
         var entityFilter = new EntityFilter
@@ -172,6 +188,27 @@ public class LinqExpressionBuilderTest
     }
 
     [Test]
+    public void FilterKeyContains()
+    {
+        var entityFilter = new EntityFilter
+        {
+            Name = "Attributes",
+            Key = "Name",
+            Operator = FilterOperators.Contains,
+            Value = "Berry"
+        };
+        var builder = new LinqExpressionBuilder();
+        builder.Build(entityFilter);
+
+        builder.Expression.Should().NotBeEmpty();
+        builder.Expression.Should().Be("Attributes[@0] != NULL && Attributes[@0].Contains(@1)");
+
+        builder.Parameters.Count.Should().Be(2);
+        builder.Parameters[0].Should().Be("Name");
+        builder.Parameters[1].Should().Be("Berry");
+    }
+
+    [Test]
     public void FilterIsNull()
     {
         var entityFilter = new EntityFilter
@@ -206,6 +243,25 @@ public class LinqExpressionBuilderTest
     }
 
     [Test]
+    public void FilterKeyIsNotNull()
+    {
+        var entityFilter = new EntityFilter
+        {
+            Name = "Attributes",
+            Key = "Name",
+            Operator = FilterOperators.IsNotNull
+        };
+        var builder = new LinqExpressionBuilder();
+        builder.Build(entityFilter);
+
+        builder.Expression.Should().NotBeEmpty();
+        builder.Expression.Should().Be("Attributes[@0] != NULL");
+
+        builder.Parameters.Count.Should().Be(1);
+        builder.Parameters[0].Should().Be("Name");
+    }
+
+    [Test]
     public void FilterIn()
     {
         var entityFilter = new EntityFilter
@@ -222,6 +278,27 @@ public class LinqExpressionBuilderTest
 
         builder.Parameters.Count.Should().Be(1);
         builder.Parameters[0].Should().BeOfType<string[]>();
+    }
+
+    [Test]
+    public void FilterKeyIn()
+    {
+        var entityFilter = new EntityFilter
+        {
+            Name = "Attributes",
+            Key = "Name",
+            Operator = FilterOperators.In,
+            Value = new[] { "Test", "Tester" }
+        };
+        var builder = new LinqExpressionBuilder();
+        builder.Build(entityFilter);
+
+        builder.Expression.Should().NotBeEmpty();
+        builder.Expression.Should().Be("it.Attributes[@0] in @1");
+
+        builder.Parameters.Count.Should().Be(2);
+        builder.Parameters[0].Should().Be("Name");
+        builder.Parameters[1].Should().BeOfType<string[]>();
     }
 
     [Test]
