@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security.Claims;
 using System.Text;
 
 using Arbiter.Services;
@@ -11,7 +10,9 @@ using Microsoft.Extensions.Options;
 namespace Arbiter.CommandQuery.Endpoints;
 
 /// <summary>
-/// Middleware for logging HTTP request and response details.
+/// Middleware that logs HTTP request/response metadata (method, path, status code, and elapsed time),
+/// with optional request-body logging based on configured MIME types and size limits, and enriched user
+/// claim scope/activity context for correlated diagnostics.
 /// </summary>
 public partial class RequestLoggingMiddleware
 {
@@ -60,20 +61,6 @@ public partial class RequestLoggingMiddleware
             return;
         }
 
-        var (UserName, UserId) = ResolveUserContext(context);
-
-        // enrich logs with user information for downstream logs
-        // use an array (IReadOnlyList<KeyValuePair<,>>) instead of Dictionary to avoid hashing/bucket allocation
-        using var scope = _logger.BeginScope(new[]
-        {
-            new KeyValuePair<string, object?>("UserName", UserName),
-            new KeyValuePair<string, object?>("UserId", UserId),
-        });
-
-        // enrich tracing with user information
-        Activity.Current?.SetTag("enduser.name", UserName);
-        Activity.Current?.SetTag("enduser.id", UserId);
-
         // start timing
         var timestamp = Stopwatch.GetTimestamp();
 
@@ -98,7 +85,12 @@ public partial class RequestLoggingMiddleware
             // calculate elapsed time
             var elapsed = Stopwatch.GetElapsedTime(timestamp);
 
-            // log the request
+            // Create the claim-based scope here (in finally) so we capture the final authenticated user state
+            // after downstream middleware/endpoint execution. Creating it before _next could capture an early
+            // principal that is later changed/augmented by authentication or endpoint-specific logic.
+            // We only need this scope for the terminal request log entry emitted below.
+            using var scope = ClaimLoggingContext.BeginScope(_logger, context.User, _options);
+
             if (string.IsNullOrEmpty(requestBody))
                 LogRequestBasic(_logger, logLevel, requestMethod, requestPath, statusCode, elapsed.TotalMilliseconds);
             else
@@ -207,41 +199,6 @@ public partial class RequestLoggingMiddleware
             return null;
         }
     }
-
-
-    private static (string UserName, string UserId) ResolveUserContext(HttpContext context)
-    {
-        var user = context.User;
-        if (user?.Identity?.IsAuthenticated != true)
-            return ("anonymous", "anonymous");
-
-        var userName = ResolveUserName(user);
-        var userId = ResolveUserId(user);
-
-        return (userName, userId);
-    }
-
-    private static string ResolveUserName(ClaimsPrincipal user)
-    {
-        var userName = user.Identity?.Name;
-        if (!string.IsNullOrWhiteSpace(userName))
-            return userName;
-
-        return user.FindFirstValue(ClaimTypes.Name)
-            ?? user.FindFirstValue(ClaimTypes.Upn)
-            ?? user.FindFirstValue(ClaimTypes.Email)
-            ?? user.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? "anonymous";
-    }
-
-    private static string ResolveUserId(ClaimsPrincipal user)
-    {
-        return user.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? user.FindFirstValue("sub")
-            ?? user.FindFirstValue("oid")
-            ?? ResolveUserName(user);
-    }
-
 
     [LoggerMessage(EventId = 1, Message = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms")]
     private static partial void LogRequestBasic(ILogger logger, LogLevel logLevel, string? requestMethod, string? requestPath, int statusCode, double elapsed);

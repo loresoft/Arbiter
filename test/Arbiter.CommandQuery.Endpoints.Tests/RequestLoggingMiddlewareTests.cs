@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +18,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -39,6 +41,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -65,6 +68,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -86,6 +90,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -109,6 +114,297 @@ public class RequestLoggingMiddlewareTests
         logger.LastUserId.Should().Be("user-123");
     }
 
+    [Test]
+    public async Task InvokeAsync_WhenUserIsSetByNextMiddleware_UsesFinalAuthenticatedUserContext()
+    {
+        // Arrange
+        var logger = new FakeLogger<RequestLoggingMiddleware>();
+        var options = CreateOptions();
+
+        var middleware = new RequestLoggingMiddleware(
+            next: ctx =>
+            {
+                var identity = new ClaimsIdentity(
+                [
+                    new Claim(ClaimTypes.Name, "authorized-user"),
+                    new Claim(ClaimTypes.NameIdentifier, "authorized-123")
+                ],
+                authenticationType: "Policy");
+                ctx.User = new ClaimsPrincipal(identity);
+
+                return Task.CompletedTask;
+            },
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastUserName.Should().Be("authorized-user");
+        logger.LastUserId.Should().Be("authorized-123");
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenClaimLoggingAddsAdditionalClaims_IncludesAdditionalClaimsInFinalScope()
+    {
+        // Arrange
+        var logger = new FakeLogger<RequestLoggingMiddleware>();
+        var claimLogger = new FakeLogger<ClaimLoggingMiddleware>();
+        var requestOptions = new RequestLoggingOptions()
+            .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id");
+
+        var requestLogging = new RequestLoggingMiddleware(
+            next: async ctx =>
+            {
+                var claimLogging = new ClaimLoggingMiddleware(
+                    next: _ => Task.CompletedTask,
+                    logger: claimLogger,
+                    options: Options.Create(requestOptions));
+
+                await claimLogging.InvokeAsync(ctx);
+            },
+            logger: logger,
+            options: Options.Create(requestOptions)
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123"),
+            new Claim("partner_id", "partner-456")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await requestLogging.InvokeAsync(context);
+
+        // Assert
+        logger.LastScopeValues.Should().ContainKey("PartnerId").WhoseValue.Should().Be("partner-456");
+    }
+
+    #endregion
+
+    #region Claim Logging Tests
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WhenUserIsAuthenticated_CreatesUserScopeForDownstreamLogs()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: Options.Create(new RequestLoggingOptions())
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastUserName.Should().Be("alice");
+        logger.LastUserId.Should().Be("user-123");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WithAdditionalClaims_IncludesClaimsInScope()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var options = Options.Create(new RequestLoggingOptions()
+            .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id")
+            .IncludeClaim("location_id", "LocationId", "enduser.location_id"));
+
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123"),
+            new Claim("partner_id", "partner-456"),
+            new Claim("location_id", "location-789")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastScopeValues.Should().ContainKey("PartnerId").WhoseValue.Should().Be("partner-456");
+        logger.LastScopeValues.Should().ContainKey("LocationId").WhoseValue.Should().Be("location-789");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WhenAdditionalClaimIsMissing_OmitsClaimFromScope()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var options = Options.Create(new RequestLoggingOptions()
+            .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id"));
+
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastScopeValues.Should().NotContainKey("PartnerId");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WithAdditionalClaims_SetsActivityTags()
+    {
+        // Arrange
+        using var activity = new Activity("test");
+        activity.Start();
+
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var options = Options.Create(new RequestLoggingOptions()
+            .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id"));
+
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123"),
+            new Claim("partner_id", "partner-456")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        activity.GetTagItem("enduser.name").Should().Be("alice");
+        activity.GetTagItem("enduser.id").Should().Be("user-123");
+        activity.GetTagItem("enduser.partner_id").Should().Be("partner-456");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WithOrderedClaimTypes_UsesFirstNonEmptyValue()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var options = Options.Create(new RequestLoggingOptions()
+            .IncludeClaim(["missing_partner_id", "partner_id"], "PartnerId", "enduser.partner_id"));
+
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: options
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123"),
+            new Claim("partner_id", "partner-456")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastScopeValues.Should().ContainKey("PartnerId").WhoseValue.Should().Be("partner-456");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WhenIdentityNameIsSet_UsesIdentityNameForUserName()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: Options.Create(new RequestLoggingOptions())
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "identity-name"),
+            new Claim(ClaimTypes.Email, "email@example.com"),
+            new Claim(ClaimTypes.NameIdentifier, "user-123")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastUserName.Should().Be("identity-name");
+    }
+
+    [Test]
+    public async Task ClaimLogging_InvokeAsync_WhenUserIdClaimIsMissing_UsesResolvedUserName()
+    {
+        // Arrange
+        var logger = new FakeLogger<ClaimLoggingMiddleware>();
+        var middleware = new ClaimLoggingMiddleware(
+            next: _ => Task.CompletedTask,
+            logger: logger,
+            options: Options.Create(new RequestLoggingOptions())
+        );
+
+        var context = CreateHttpContext("GET", "/api/test");
+        var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, "alice")
+        ],
+        authenticationType: "Test");
+        context.User = new ClaimsPrincipal(identity);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        logger.LastUserId.Should().Be("alice");
+    }
+
     #endregion
 
     #region Response Status Code Tests
@@ -128,6 +424,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: ctx =>
             {
@@ -157,6 +454,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -179,6 +477,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -201,6 +500,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -223,6 +523,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -245,6 +546,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: false);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -267,6 +569,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -289,6 +592,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -312,6 +616,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -337,6 +642,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true, maxBodySize: 100);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -359,6 +665,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -390,6 +697,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var bodyRead = false;
 
         var middleware = new RequestLoggingMiddleware(
@@ -424,6 +732,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: async _ =>
             {
@@ -454,6 +763,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions();
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => throw new InvalidOperationException("Test exception"),
             logger: logger,
@@ -477,6 +787,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -514,6 +825,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(logLevel: logLevel);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -540,6 +852,7 @@ public class RequestLoggingMiddlewareTests
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var customMimeTypes = new HashSet<string> { "application/custom" };
         var options = CreateOptions(includeRequestBody: true, mimeTypes: customMimeTypes);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -562,6 +875,7 @@ public class RequestLoggingMiddlewareTests
         // Arrange
         var logger = new FakeLogger<RequestLoggingMiddleware>();
         var options = CreateOptions(includeRequestBody: true);
+
         var middleware = new RequestLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
@@ -635,12 +949,14 @@ public class RequestLoggingMiddlewareTests
         public LogLevel LogLevel { get; private set; }
         public string? LastUserName { get; private set; }
         public string? LastUserId { get; private set; }
+        public Dictionary<string, string?> LastScopeValues { get; private set; } = new(StringComparer.Ordinal);
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
         {
             if (state is IEnumerable<KeyValuePair<string, object?>> values)
             {
                 var scopeValues = values.ToDictionary(x => x.Key, x => x.Value?.ToString(), StringComparer.Ordinal);
+                LastScopeValues = scopeValues;
                 scopeValues.TryGetValue("UserName", out var userName);
                 scopeValues.TryGetValue("UserId", out var userId);
                 LastUserName = userName;

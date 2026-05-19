@@ -25,7 +25,7 @@
     <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="MediatR" Version="14.1.0" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.85" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.87" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.8" />
@@ -72,7 +72,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.11.0" />
-    <PackageVersion Include="TUnit" Version="1.45.0" />
+    <PackageVersion Include="TUnit" Version="1.45.8" />
     <PackageVersion Include="Twilio" Version="7.14.9" />
     <PackageVersion Include="Verify.TUnit" Version="31.16.3" />
     <PackageVersion Include="YamlDotNet" Version="17.1.0" />
