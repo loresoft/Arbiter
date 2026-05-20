@@ -41,6 +41,21 @@ public class ContinuationTokenTests
     }
 
     [Test]
+    public void Parse_WithDateTimeOffset_ReturnsOriginalValue()
+    {
+        // Arrange
+        var originalValue = new DateTimeOffset(2026, 4, 14, 12, 0, 0, TimeSpan.Zero);
+        var token = ContinuationToken.Create<DateTimeOffset?>(originalValue);
+
+        // Act
+        var result = ContinuationToken.Parse<DateTimeOffset?>(token);
+
+        // Assert
+        result.Should().Be(originalValue);
+    }
+
+
+    [Test]
     public void Parse_WithNullToken_ReturnsDefaultValue()
     {
         // Act
@@ -373,6 +388,34 @@ public class ContinuationTokenTests
         result.Should().BeEmpty();
     }
 
+    [Test]
+    public void RoundTrip_WithNullableInt32Null_ReturnsNull()
+    {
+        // Arrange
+        int? value = null;
+
+        // Act
+        var token = ContinuationToken.Create(value);
+        var result = ContinuationToken.Parse<int?>(token);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Test]
+    public void RoundTrip_WithNullableDateTimeOffsetNull_ReturnsNull()
+    {
+        // Arrange
+        DateTimeOffset? value = null;
+
+        // Act
+        var token = ContinuationToken.Create(value);
+        var result = ContinuationToken.Parse<DateTimeOffset?>(token);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
     #endregion
 
     #region Two Value Tests
@@ -521,6 +564,38 @@ public class ContinuationTokenTests
         }
     }
 
+    [Test]
+    public void RoundTrip_WithNullableNullAndValue_PreservesValues()
+    {
+        // Arrange
+        int? value1 = null;
+        DateTimeOffset? value2 = new DateTimeOffset(2026, 4, 14, 12, 0, 0, TimeSpan.Zero);
+
+        // Act
+        var token = ContinuationToken.Create(value1, value2);
+        var (result1, result2) = ContinuationToken.Parse<int?, DateTimeOffset?>(token);
+
+        // Assert
+        result1.Should().BeNull();
+        result2.Should().Be(value2);
+    }
+
+    [Test]
+    public void RoundTrip_WithNullableValueAndNull_PreservesValues()
+    {
+        // Arrange
+        Guid? value1 = Guid.NewGuid();
+        long? value2 = null;
+
+        // Act
+        var token = ContinuationToken.Create(value1, value2);
+        var (result1, result2) = ContinuationToken.Parse<Guid?, long?>(token);
+
+        // Assert
+        result1.Should().Be(value1);
+        result2.Should().BeNull();
+    }
+
     #endregion
 
     #region Three Value Tests
@@ -612,6 +687,24 @@ public class ContinuationTokenTests
         resultGuid.Should().Be(guid);
         resultDto.Should().Be(dateTimeOffset);
         resultDecimal.Should().Be(decimalValue);
+    }
+
+    [Test]
+    public void RoundTrip_WithThreeNullableValues_PreservesNullsAndValues()
+    {
+        // Arrange
+        DateTime? value1 = null;
+        int? value2 = 42;
+        Guid? value3 = null;
+
+        // Act
+        var token = ContinuationToken.Create(value1, value2, value3);
+        var (result1, result2, result3) = ContinuationToken.Parse<DateTime?, int?, Guid?>(token);
+
+        // Assert
+        result1.Should().BeNull();
+        result2.Should().Be(value2);
+        result3.Should().BeNull();
     }
 
     #endregion

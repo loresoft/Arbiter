@@ -1,6 +1,5 @@
 using System.Buffers.Binary;
 using System.Buffers.Text;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Arbiter.Services;
@@ -81,6 +80,7 @@ public static class ContinuationToken
     // Type markers for efficient serialization
     private enum TypeMarker : byte
     {
+        Null = 0,
         Boolean = 1,
         Byte = 2,
         DateTime = 3,
@@ -204,7 +204,7 @@ public static class ContinuationToken
     /// <returns>A tuple containing the two deserialized values, or the default tuple when <paramref name="token"/> is <see langword="null"/> or empty.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the token contains types that don't match T1 or T2.</exception>
     /// <exception cref="FormatException">Thrown when the token is not valid Base64Url or contains malformed payload data.</exception>
-    public static (T1, T2) Parse<T1, T2>(string? token)
+    public static (T1?, T2?) Parse<T1, T2>(string? token)
     {
         if (string.IsNullOrEmpty(token))
             return default;
@@ -236,7 +236,7 @@ public static class ContinuationToken
     /// <returns>A tuple containing the three deserialized values, or the default tuple when <paramref name="token"/> is <see langword="null"/> or empty.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the token contains types that don't match T1, T2, or T3.</exception>
     /// <exception cref="FormatException">Thrown when the token is not valid Base64Url or contains malformed payload data.</exception>
-    public static (T1, T2, T3) Parse<T1, T2, T3>(string? token)
+    public static (T1?, T2?, T3?) Parse<T1, T2, T3>(string? token)
     {
         if (string.IsNullOrEmpty(token))
             return default;
@@ -265,81 +265,89 @@ public static class ContinuationToken
 
     private static int EstimateSize<T>(T value)
     {
-        if (typeof(T) == typeof(bool))
+        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        if (type != typeof(string) && value is null)
+            return 1;
+
+        if (type == typeof(bool))
             return 2;
 
-        if (typeof(T) == typeof(byte))
+        if (type == typeof(byte))
             return 2;
 
-        if (typeof(T) == typeof(DateTime))
+        if (type == typeof(DateTime))
             return 10;
 
-        if (typeof(T) == typeof(DateTimeOffset))
+        if (type == typeof(DateTimeOffset))
             return 11;
 
-        if (typeof(T) == typeof(decimal))
+        if (type == typeof(decimal))
             return 17;
 
-        if (typeof(T) == typeof(double))
+        if (type == typeof(double))
             return 9;
 
-        if (typeof(T) == typeof(Guid))
+        if (type == typeof(Guid))
             return 17;
 
-        if (typeof(T) == typeof(short))
+        if (type == typeof(short))
             return 3;
 
-        if (typeof(T) == typeof(int))
+        if (type == typeof(int))
             return 5;
 
-        if (typeof(T) == typeof(long))
+        if (type == typeof(long))
             return 9;
 
-        if (typeof(T) == typeof(string))
+        if (type == typeof(string))
         {
-            var text = Unsafe.As<T, string>(ref value) ?? string.Empty;
+            var text = (string?)(object?)value ?? string.Empty;
             return 5 + Encoding.UTF8.GetByteCount(text);
         }
 
-        throw new NotSupportedException($"Type {typeof(T).Name} not supported");
+        throw new NotSupportedException($"Type {type.Name} not supported");
     }
 
     private static int WriteValue<T>(Span<byte> buffer, T value)
     {
-        if (typeof(T) == typeof(bool))
-            return WriteBoolean(buffer, Unsafe.As<T, bool>(ref value));
+        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        if (type != typeof(string) && value is null)
+            return WriteNull(buffer);
 
-        if (typeof(T) == typeof(byte))
-            return WriteByte(buffer, Unsafe.As<T, byte>(ref value));
+        if (type == typeof(bool))
+            return WriteBoolean(buffer, (bool)(object)value!);
 
-        if (typeof(T) == typeof(DateTime))
-            return WriteDateTime(buffer, Unsafe.As<T, DateTime>(ref value));
+        if (type == typeof(byte))
+            return WriteByte(buffer, (byte)(object)value!);
 
-        if (typeof(T) == typeof(DateTimeOffset))
-            return WriteDateTimeOffset(buffer, Unsafe.As<T, DateTimeOffset>(ref value));
+        if (type == typeof(DateTime))
+            return WriteDateTime(buffer, (DateTime)(object)value!);
 
-        if (typeof(T) == typeof(decimal))
-            return WriteDecimal(buffer, Unsafe.As<T, decimal>(ref value));
+        if (type == typeof(DateTimeOffset))
+            return WriteDateTimeOffset(buffer, (DateTimeOffset)(object)value!);
 
-        if (typeof(T) == typeof(double))
-            return WriteDouble(buffer, Unsafe.As<T, double>(ref value));
+        if (type == typeof(decimal))
+            return WriteDecimal(buffer, (decimal)(object)value!);
 
-        if (typeof(T) == typeof(Guid))
-            return WriteGuid(buffer, Unsafe.As<T, Guid>(ref value));
+        if (type == typeof(double))
+            return WriteDouble(buffer, (double)(object)value!);
 
-        if (typeof(T) == typeof(short))
-            return WriteInt16(buffer, Unsafe.As<T, short>(ref value));
+        if (type == typeof(Guid))
+            return WriteGuid(buffer, (Guid)(object)value!);
 
-        if (typeof(T) == typeof(int))
-            return WriteInt32(buffer, Unsafe.As<T, int>(ref value));
+        if (type == typeof(short))
+            return WriteInt16(buffer, (short)(object)value!);
 
-        if (typeof(T) == typeof(long))
-            return WriteInt64(buffer, Unsafe.As<T, long>(ref value));
+        if (type == typeof(int))
+            return WriteInt32(buffer, (int)(object)value!);
 
-        if (typeof(T) == typeof(string))
-            return WriteString(buffer, Unsafe.As<T, string>(ref value));
+        if (type == typeof(long))
+            return WriteInt64(buffer, (long)(object)value!);
 
-        throw new NotSupportedException($"Type {typeof(T).Name} not supported");
+        if (type == typeof(string))
+            return WriteString(buffer, (string)(object)value!);
+
+        throw new NotSupportedException($"Type {type.Name} not supported");
     }
 
     private static T ReadValue<T>(ReadOnlySpan<byte> buffer, ref int position)
@@ -347,30 +355,34 @@ public static class ContinuationToken
         EnsureAvailable(buffer, position, 1);
 
         var marker = (TypeMarker)buffer[position++];
+        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
 
+        // Nullable<T> values are serialized with the same marker as their underlying type.
+        // The double cast boxes the concrete value first so it can be unboxed as either T or Nullable<T>.
         return marker switch
         {
-            TypeMarker.Boolean when typeof(T) == typeof(bool) => As<bool, T>(ReadBoolean(buffer, ref position)),
-            TypeMarker.Byte when typeof(T) == typeof(byte) => As<byte, T>(ReadByte(buffer, ref position)),
-            TypeMarker.DateTime when typeof(T) == typeof(DateTime) => As<DateTime, T>(ReadDateTime(buffer, ref position)),
-            TypeMarker.DateTimeOffset when typeof(T) == typeof(DateTimeOffset) => As<DateTimeOffset, T>(ReadDateTimeOffset(buffer, ref position)),
-            TypeMarker.Decimal when typeof(T) == typeof(decimal) => As<decimal, T>(ReadDecimal(buffer, ref position)),
-            TypeMarker.Double when typeof(T) == typeof(double) => As<double, T>(ReadDouble(buffer, ref position)),
-            TypeMarker.Guid when typeof(T) == typeof(Guid) => As<Guid, T>(ReadGuid(buffer, ref position)),
-            TypeMarker.Int16 when typeof(T) == typeof(short) => As<short, T>(ReadInt16(buffer, ref position)),
-            TypeMarker.Int32 when typeof(T) == typeof(int) => As<int, T>(ReadInt32(buffer, ref position)),
-            TypeMarker.Int64 when typeof(T) == typeof(long) => As<long, T>(ReadInt64(buffer, ref position)),
-            TypeMarker.String when typeof(T) == typeof(string) => As<string, T>(ReadString(buffer, ref position)),
-            _ => throw new InvalidOperationException($"Type mismatch or unsupported type"),
+            TypeMarker.Null when Nullable.GetUnderlyingType(typeof(T)) is not null => default!,
+            TypeMarker.Boolean when type == typeof(bool) => (T)(object)ReadBoolean(buffer, ref position),
+            TypeMarker.Byte when type == typeof(byte) => (T)(object)ReadByte(buffer, ref position),
+            TypeMarker.DateTime when type == typeof(DateTime) => (T)(object)ReadDateTime(buffer, ref position),
+            TypeMarker.DateTimeOffset when type == typeof(DateTimeOffset) => (T)(object)ReadDateTimeOffset(buffer, ref position),
+            TypeMarker.Decimal when type == typeof(decimal) => (T)(object)ReadDecimal(buffer, ref position),
+            TypeMarker.Double when type == typeof(double) => (T)(object)ReadDouble(buffer, ref position),
+            TypeMarker.Guid when type == typeof(Guid) => (T)(object)ReadGuid(buffer, ref position),
+            TypeMarker.Int16 when type == typeof(short) => (T)(object)ReadInt16(buffer, ref position),
+            TypeMarker.Int32 when type == typeof(int) => (T)(object)ReadInt32(buffer, ref position),
+            TypeMarker.Int64 when type == typeof(long) => (T)(object)ReadInt64(buffer, ref position),
+            TypeMarker.String when type == typeof(string) => (T)(object)ReadString(buffer, ref position),
+            _ => throw new InvalidOperationException("Type mismatch or unsupported type"),
         };
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static TTo As<TFrom, TTo>(TFrom value)
+    private static int WriteNull(Span<byte> buffer)
     {
-        return Unsafe.As<TFrom, TTo>(ref value);
-    }
+        buffer[0] = (byte)TypeMarker.Null;
 
+        return 1;
+    }
 
     private static int WriteInt32(Span<byte> buffer, int value)
     {
@@ -627,6 +639,7 @@ public static class ContinuationToken
 
         return value;
     }
+
 
     private static void EnsureAvailable(ReadOnlySpan<byte> buffer, int position, int count)
     {
