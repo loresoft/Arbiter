@@ -11,6 +11,11 @@
     <Project Path="src/Arbiter.Communication.Twilio/Arbiter.Communication.Twilio.csproj" Id="9b55db94-d979-45f0-8566-8e0c8059523e" />
     <Project Path="src/Arbiter.Communication/Arbiter.Communication.csproj" Id="8a6f4ddc-987c-4e96-9cc0-b9f03e149160" />
   </Folder>
+  <Folder Name="/OpenTelemetry/">
+    <Project Path="src/Arbiter.OpenTelemetry.Monitor/Arbiter.OpenTelemetry.Monitor.csproj" Id="ea3a3d00-2913-466e-85a2-c847d5da8757" />
+    <Project Path="src/Arbiter.OpenTelemetry.Server/Arbiter.OpenTelemetry.Server.csproj" Id="c50a1a3a-2a79-4cd1-83c4-5f3d6a1a6411" />
+    <Project Path="src/Arbiter.OpenTelemetry/Arbiter.OpenTelemetry.csproj" Id="909eab7b-2956-483a-87f8-0d9e6ee0fdca" />
+  </Folder>
   <Folder Name="/Samples/" Id="7881efe6-0fba-4ce6-a4ee-f6cc56395fc7" />
   <Folder Name="/Samples/EntityFramework/" Id="f36d2018-e642-4d30-a508-10bc237d649e">
     <File Path="samples/EntityFramework/src/Directory.Build.props" />
@@ -43,6 +48,7 @@
     <Project Path="test/Arbiter.Dispatcher.Client.Tests/Arbiter.Dispatcher.Client.Tests.csproj" Id="a27a225b-7be5-4fa8-9023-690f07312a86" />
     <Project Path="test/Arbiter.Mapping.Tests/Arbiter.Mapping.Tests.csproj" Id="c74c00ab-3fc8-44dc-87d3-a6e618f53c8f" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
+    <Project Path="test/Arbiter.OpenTelemetry.Monitor.Tests/Arbiter.OpenTelemetry.Monitor.Tests.csproj" />
     <Project Path="test/Arbiter.Services.Tests/Arbiter.Services.Tests.csproj" Id="f3d73b4c-09de-4369-b45a-eba1aac348ed" />
   </Folder>
   <Project Path="src/Arbiter.CommandQuery.Endpoints/Arbiter.CommandQuery.Endpoints.csproj" />

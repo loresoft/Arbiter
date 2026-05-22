@@ -9,17 +9,12 @@
   <ItemGroup>
     <PackageReference Include="AspNetCore.SecurityKey" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" />
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Arbiter.OpenTelemetry.Server\Arbiter.OpenTelemetry.Server.csproj" />
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />
   </ItemGroup>
 

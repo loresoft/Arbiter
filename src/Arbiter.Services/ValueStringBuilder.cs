@@ -139,6 +139,57 @@ public ref struct ValueStringBuilder
     }
 
     /// <summary>
+    /// Inserts a single character at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index at which to insert the character.</param>
+    /// <param name="value">The character to insert.</param>
+    /// <returns>The current <see cref="ValueStringBuilder"/> instance.</returns>
+    public ValueStringBuilder Insert(int index, char value)
+    {
+        ThrowIfDisposed();
+
+        if ((uint)index > (uint)_position)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        int required = _position + 1;
+        if (required > _buffer.Length)
+            Grow(required);
+
+        _buffer[index.._position].CopyTo(_buffer[(index + 1)..]);
+        _buffer[index] = value;
+        _position++;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Inserts the specified string at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index at which to insert the string.</param>
+    /// <param name="value">The string to insert.</param>
+    /// <returns>The current <see cref="ValueStringBuilder"/> instance.</returns>
+    public ValueStringBuilder Insert(int index, string? value)
+    {
+        ThrowIfDisposed();
+
+        if ((uint)index > (uint)_position)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        if (string.IsNullOrEmpty(value))
+            return this;
+
+        int required = _position + value.Length;
+        if (required > _buffer.Length)
+            Grow(required);
+
+        _buffer[index.._position].CopyTo(_buffer[(index + value.Length)..]);
+        value.AsSpan().CopyTo(_buffer[index..]);
+        _position += value.Length;
+
+        return this;
+    }
+
+    /// <summary>
     /// Appends the string representation of the specified value to the current instance.
     /// </summary>
     /// <remarks>

@@ -78,5 +78,6 @@ public class ProblemDetails
     /// In particular, complex types or collection types may not round-trip to the original type when using the built-in JSON or XML formatters.
     /// </remarks>
     [JsonExtensionData]
+    [IgnoreMember]
     public IDictionary<string, object?> Extensions { get; set; } = new Dictionary<string, object?>(StringComparer.Ordinal);
 }

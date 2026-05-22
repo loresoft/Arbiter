@@ -1,16 +1,10 @@
 using Arbiter.CommandQuery.Endpoints;
-using Arbiter.Dispatcher;
 using Arbiter.Dispatcher.Server;
-using Arbiter.Mediation;
+using Arbiter.OpenTelemetry.Server;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Identity.Web;
-
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 
 using Tracker.Extensions;
 using Tracker.Options;
@@ -45,59 +39,12 @@ public static class Program
         }
     }
 
-    private static void ConfigureLogging(WebApplicationBuilder builder)
+    private static void ConfigureLogging(IHostApplicationBuilder builder)
     {
-        // Per-category filters
-        builder.Logging
-            .AddFilter("Microsoft", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
-
-        builder.Logging.AddOpenTelemetry(logging =>
-        {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-        });
-
-        var otelBuilder = builder.Services.AddOpenTelemetry();
-
-        otelBuilder
-            .ConfigureResource(resource => resource
-                .AddService(
-                    serviceName: builder.Environment.ApplicationName,
-                    serviceVersion: ThisAssembly.FileVersion
-                )
-                .AddAttributes([
-                    new KeyValuePair<string, object>("deployment.environment", builder.Environment.EnvironmentName)
-                ])
-            );
-
-        otelBuilder
-            .WithMetrics(metrics =>
-                metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddSqlClientInstrumentation()
-                    .AddMeter(MediatorTelemetry.MeterName)
-            )
-            .WithTracing(tracing =>
-                tracing
-                    .AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddSqlClientInstrumentation()
-                    .AddSource(MediatorTelemetry.SourceName)
-                    .AddSource(DispatcherTelemetry.SourceName)
-            );
-
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-        if (useOtlpExporter)
-            otelBuilder.UseOtlpExporter();
-
+        builder.AddOpenTelemetry(options => options.BuildVersion = ThisAssembly.FileVersion);
     }
 
-    private static void ConfigureServices(WebApplicationBuilder builder)
+    private static void ConfigureServices(IHostApplicationBuilder builder)
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
@@ -141,8 +88,6 @@ public static class Program
             .AddResponseCompression(options =>
             {
                 options.EnableForHttps = true;
-                options.Providers.Add<BrotliCompressionProvider>();
-                options.Providers.Add<GzipCompressionProvider>();
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["image/svg+xml"]);
             });
 
