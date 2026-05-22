@@ -25,8 +25,8 @@
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.9.1" />
     <PackageVersion Include="MailKit" Version="4.16.0" />
     <PackageVersion Include="MediatR" Version="14.1.0" />
-    <PackageVersion Include="MessagePack" Version="3.1.4" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.87" />
+    <PackageVersion Include="MessagePack" Version="3.1.6" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.90" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.8" />
@@ -49,7 +49,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.6.0" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.6.0" />
-    <PackageVersion Include="Microsoft.Graph" Version="6.0.3" />
+    <PackageVersion Include="Microsoft.Graph" Version="6.1.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.9.0" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.1.2" />
@@ -74,7 +74,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.12.0" />
-    <PackageVersion Include="TUnit" Version="1.45.8" />
+    <PackageVersion Include="TUnit" Version="1.45.22" />
     <PackageVersion Include="Twilio" Version="7.14.9" />
     <PackageVersion Include="Verify.TUnit" Version="31.16.3" />
     <PackageVersion Include="YamlDotNet" Version="17.1.0" />
