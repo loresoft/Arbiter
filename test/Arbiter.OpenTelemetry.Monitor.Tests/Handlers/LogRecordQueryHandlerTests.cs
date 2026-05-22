@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Arbiter.OpenTelemetry.Monitor.Tests.Handlers;
 
+[Skip("Local Only")]
 [Category("LocalOnly")]
 public class LogRecordQueryHandlerTests
 {
