@@ -74,10 +74,10 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.12.0" />
-    <PackageVersion Include="TUnit" Version="1.45.22" />
+    <PackageVersion Include="TUnit" Version="1.45.29" />
     <PackageVersion Include="Twilio" Version="7.14.9" />
-    <PackageVersion Include="Verify.TUnit" Version="31.16.3" />
-    <PackageVersion Include="YamlDotNet" Version="17.1.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.17.0" />
+    <PackageVersion Include="YamlDotNet" Version="18.0.0" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">

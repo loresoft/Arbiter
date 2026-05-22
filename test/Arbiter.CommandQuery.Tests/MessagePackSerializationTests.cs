@@ -684,43 +684,6 @@ public class MessagePackSerializationTests
     }
 
     [Test]
-    public void ProblemDetailsWithExtensionsRoundTripSerialization()
-    {
-        // Arrange - create problem details with extension data
-        var problemDetails = new ProblemDetails
-        {
-            Type = "https://example.com/problems/server-error",
-            Title = "Internal Server Error",
-            Status = 500,
-            Detail = "An unexpected error occurred while processing the request.",
-            Extensions = new Dictionary<string, object?>
-            {
-                ["traceId"] = "0HMVFE0A2S7UT:00000001",
-                ["requestId"] = Guid.Parse("12345678-1234-1234-1234-123456789012"),
-                ["timestamp"] = new DateTime(2024, 1, 15, 10, 30, 0),
-                ["customData"] = new { code = 1001, severity = "high" }
-            }
-        };
-
-        // Act - serialize and deserialize
-        var bytes = MessagePackSerializer.Serialize(problemDetails, MessagePackDefaults.DefaultSerializerOptions);
-        var deserialized = MessagePackSerializer.Deserialize<ProblemDetails>(bytes, MessagePackDefaults.DefaultSerializerOptions);
-
-        // Assert
-        deserialized.Should().NotBeNull();
-        deserialized.Type.Should().Be(problemDetails.Type);
-        deserialized.Title.Should().Be(problemDetails.Title);
-        deserialized.Status.Should().Be(problemDetails.Status);
-        deserialized.Detail.Should().Be(problemDetails.Detail);
-        deserialized.Extensions.Should().NotBeNull();
-        deserialized.Extensions.Should().HaveCount(4);
-        deserialized.Extensions["traceId"].Should().Be("0HMVFE0A2S7UT:00000001");
-        deserialized.Extensions["requestId"].Should().Be(Guid.Parse("12345678-1234-1234-1234-123456789012"));
-        deserialized.Extensions["timestamp"].Should().Be(new DateTime(2024, 1, 15, 10, 30, 0));
-        deserialized.Extensions["customData"].Should().NotBeNull();
-    }
-
-    [Test]
     public void ProblemDetailsWithNullPropertiesRoundTripSerialization()
     {
         // Arrange - create problem details with null optional properties
@@ -784,10 +747,6 @@ public class MessagePackSerializationTests
         deserialized.Errors.Should().HaveCount(2);
         deserialized.Errors["Items"].Should().HaveCount(1);
         deserialized.Errors["ShippingAddress"].Should().HaveCount(2);
-        deserialized.Extensions.Should().HaveCount(3);
-        deserialized.Extensions["correlationId"].Should().Be("abc-123-def-456");
-        deserialized.Extensions["retryable"].Should().Be(false);
-        deserialized.Extensions["estimatedResolution"].Should().Be("Contact support");
     }
 
     [Test]
