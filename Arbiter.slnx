@@ -48,6 +48,7 @@
     <Project Path="test/Arbiter.Dispatcher.Client.Tests/Arbiter.Dispatcher.Client.Tests.csproj" Id="a27a225b-7be5-4fa8-9023-690f07312a86" />
     <Project Path="test/Arbiter.Mapping.Tests/Arbiter.Mapping.Tests.csproj" Id="c74c00ab-3fc8-44dc-87d3-a6e618f53c8f" />
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
+    <Project Path="test/Arbiter.Messaging.ServiceBus.Tests/Arbiter.Messaging.ServiceBus.Tests.csproj" Id="65e5b4e8-9c88-41ee-9487-80c378a18133" />
     <Project Path="test/Arbiter.OpenTelemetry.Monitor.Tests/Arbiter.OpenTelemetry.Monitor.Tests.csproj" />
     <Project Path="test/Arbiter.Services.Tests/Arbiter.Services.Tests.csproj" Id="f3d73b4c-09de-4369-b45a-eba1aac348ed" />
   </Folder>
@@ -61,5 +62,6 @@
   <Project Path="src/Arbiter.Mapping.Generators/Arbiter.Mapping.Generators.csproj" Id="f6265a63-6ba9-46f3-a6ea-8b6ba080487e" />
   <Project Path="src/Arbiter.Mapping/Arbiter.Mapping.csproj" Id="394985d4-860d-41b0-bc51-89995645d1cd" />
   <Project Path="src/Arbiter.Mediation/Arbiter.Mediation.csproj" />
+  <Project Path="src/Arbiter.Messaging.ServiceBus/Arbiter.Messaging.ServiceBus.csproj" Id="5e058d58-f563-461b-b0e5-efd7b67b699f" />
   <Project Path="src/Arbiter.Services/Arbiter.Services.csproj" Id="d25d1a52-81b3-4a16-9a77-415950b0cac3" />
 </Solution>
