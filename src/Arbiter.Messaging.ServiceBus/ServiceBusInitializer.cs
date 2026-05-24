@@ -76,8 +76,7 @@ public sealed class ServiceBusInitializer : IHostedService
         ServiceBusOptions option,
         CancellationToken cancellationToken)
     {
-        var connectionString = _serviceProvider.ResolveConnectionString(option.NameOrConnectionString);
-        var adminClient = new ServiceBusAdministrationClient(connectionString);
+        var adminClient = _serviceProvider.GetRequiredKeyedService<ServiceBusAdministrationClient>(option.ServiceKey);
 
         foreach (var queue in option.Queues)
             await InitializeQueue(adminClient, option, queue, cancellationToken).ConfigureAwait(false);

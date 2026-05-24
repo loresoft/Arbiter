@@ -1,4 +1,5 @@
 using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ public static class ServiceBusExtensions
         services.AddSingleton(options);
         services.TryAddKeyedSingleton(serviceName, options);
 
+        // register ServiceBusClient for general use, keyed by service name
         services.TryAddKeyedSingleton(
             serviceKey: serviceName,
             implementationFactory: (sp, _) =>
@@ -50,7 +52,17 @@ public static class ServiceBusExtensions
             }
         );
 
-        // register senders for queues and topics
+        // register ServiceBusAdministrationClient for management operations, keyed by service name
+        services.TryAddKeyedSingleton(
+            serviceKey: serviceName,
+            implementationFactory: (sp, _) =>
+            {
+                var connectionString = sp.ResolveConnectionString(options.NameOrConnectionString);
+                return new ServiceBusAdministrationClient(connectionString);
+            }
+        );
+
+        // register senders for queues and topics, keyed by queue/topic name for resolution
         foreach (var queue in options.Queues.Concat(options.Topics))
         {
             services.AddKeyedSingleton(queue, (sp, _) =>
