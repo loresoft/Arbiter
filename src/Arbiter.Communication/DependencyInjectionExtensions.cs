@@ -124,7 +124,10 @@ public static class DependencyInjectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddEmailServices(configureOptions);
-        services.TryAddSingleton<IEmailDeliveryService, TService>();
+
+        // register the delivery service as itself and as the interface for resolution
+        services.TryAddSingleton<TService>();
+        services.TryAddSingleton<IEmailDeliveryService>(sp => sp.GetRequiredService<TService>());
 
         return services;
     }
@@ -226,7 +229,10 @@ public static class DependencyInjectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSmsServices(configureOptions);
-        services.TryAddSingleton<ISmsDeliveryService, TService>();
+
+        // register the delivery service as itself and as the interface for resolution
+        services.TryAddSingleton<TService>();
+        services.TryAddSingleton<ISmsDeliveryService>(sp => sp.GetRequiredService<TService>());
 
         return services;
     }
