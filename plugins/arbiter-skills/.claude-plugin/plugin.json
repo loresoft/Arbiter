@@ -1,0 +1,13 @@
+{
+  "name": "arbiter-skills",
+  "version": "1.0.0",
+  "description": "Skills that teach Claude how to install, register, and use the Arbiter family of .NET libraries (Mediation, CommandQuery + EF/Mongo, Mapping, Endpoints/Mvc, Dispatcher, Communication, Services, OpenTelemetry, Messaging.ServiceBus).",
+  "author": {
+    "name": "LoreSoft",
+    "url": "https://github.com/loresoft"
+  },
+  "homepage": "https://github.com/loresoft/Arbiter",
+  "repository": "https://github.com/loresoft/Arbiter",
+  "license": "MIT",
+  "keywords": ["dotnet", "cqrs", "mediator", "blazor", "arbiter"]
+}

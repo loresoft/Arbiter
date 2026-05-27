@@ -1,0 +1,21 @@
+{
+  "name": "arbiter",
+  "owner": {
+    "name": "LoreSoft",
+    "url": "https://github.com/loresoft"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for the Arbiter .NET libraries — mediation, CQRS, mapping, Blazor dispatcher, communication, and more.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "arbiter-skills",
+      "source": "./plugins/arbiter-skills",
+      "description": "Skills that teach Claude how to install, register, and use the Arbiter family of .NET libraries (Mediation, CommandQuery + EF/Mongo, Mapping, Endpoints/Mvc, Dispatcher, Communication, Services, OpenTelemetry, Messaging.ServiceBus).",
+      "version": "1.0.0",
+      "category": "dotnet",
+      "tags": ["dotnet", "cqrs", "mediator", "blazor", "arbiter"]
+    }
+  ]
+}
