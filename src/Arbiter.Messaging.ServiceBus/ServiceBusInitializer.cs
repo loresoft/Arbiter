@@ -4,13 +4,14 @@ using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus;
 
 /// <summary>
 /// Initializes configured Azure Service Bus queues, topics, and subscriptions when the host starts.
 /// </summary>
-public sealed class ServiceBusInitializer : IHostedService
+public sealed partial class ServiceBusInitializer : IHostedService
 {
     private readonly ILogger<ServiceBusInitializer> _logger;
     private readonly IServiceProvider _serviceProvider;
@@ -37,26 +38,25 @@ public sealed class ServiceBusInitializer : IHostedService
     /// <returns>A task that represents the asynchronous start operation.</returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var options = _serviceProvider.GetServices<ServiceBusOptions>();
-        if (options?.Any() != true)
+        var registrations = _serviceProvider.GetServices<ServiceBusRegistration>();
+        if (registrations?.Any() != true)
         {
-            _logger.LogDebug("No Azure Service Bus resources configured for initialization.");
+            LogNoResourcesConfigured(_logger);
             return;
         }
 
-        foreach (var option in options)
+        var optionsMonitor = _serviceProvider.GetRequiredService<IOptionsMonitor<ServiceBusOptions>>();
+
+        foreach (var registration in registrations)
         {
+            var option = optionsMonitor.Get(registration.OptionsName);
             try
             {
                 await Initialize(option, cancellationToken).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing Azure Service Bus resources for '{NameOrConnectionString}': {ErrorMessage}", option.NameOrConnectionString, ex.Message);
+                LogErrorInitializingResources(_logger, ex, option.NameOrConnectionString);
             }
         }
     }
@@ -106,7 +106,7 @@ public sealed class ServiceBusInitializer : IHostedService
             EnableBatchedOperations = option.EnableBatchedOperations,
         };
 
-        _logger.LogInformation("Creating Queue '{QueueName}'", queue);
+        LogCreatingQueue(_logger, queue);
 
         try
         {
@@ -114,7 +114,7 @@ public sealed class ServiceBusInitializer : IHostedService
         }
         catch (RequestFailedException ex) when (ex.Status == 409)
         {
-            _logger.LogDebug(ex, "Queue '{QueueName}' already exists", queue);
+            LogQueueAlreadyExists(_logger, ex, queue);
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class ServiceBusInitializer : IHostedService
                 EnableBatchedOperations = option.EnableBatchedOperations,
             };
 
-            _logger.LogInformation("Creating Topic '{TopicName}'", topic);
+            LogCreatingTopic(_logger, topic);
 
             try
             {
@@ -143,7 +143,7 @@ public sealed class ServiceBusInitializer : IHostedService
             }
             catch (RequestFailedException ex) when (ex.Status == 409)
             {
-                _logger.LogDebug(ex, "Topic '{TopicName}' already exists", topic);
+                LogTopicAlreadyExists(_logger, ex, topic);
             }
         }
 
@@ -165,7 +165,7 @@ public sealed class ServiceBusInitializer : IHostedService
                 EnableBatchedOperations = option.EnableBatchedOperations,
             };
 
-            _logger.LogInformation("Creating Subscription '{SubscriptionName}' for Topic '{TopicName}'", subscriptionName, topic);
+            LogCreatingSubscription(_logger, subscriptionName, topic);
 
             try
             {
@@ -173,8 +173,33 @@ public sealed class ServiceBusInitializer : IHostedService
             }
             catch (RequestFailedException ex) when (ex.Status == 409)
             {
-                _logger.LogDebug(ex, "Subscription '{SubscriptionName}' for Topic '{TopicName}' already exists", subscriptionName, topic);
+                LogSubscriptionAlreadyExists(_logger, ex, subscriptionName, topic);
             }
         }
     }
+
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "No Azure Service Bus resources configured for initialization.")]
+    private static partial void LogNoResourcesConfigured(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error initializing Azure Service Bus resources for '{NameOrConnectionString}'")]
+    private static partial void LogErrorInitializingResources(ILogger logger, Exception exception, string nameOrConnectionString);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating Queue '{QueueName}'")]
+    private static partial void LogCreatingQueue(ILogger logger, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Queue '{QueueName}' already exists")]
+    private static partial void LogQueueAlreadyExists(ILogger logger, Exception exception, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating Topic '{TopicName}'")]
+    private static partial void LogCreatingTopic(ILogger logger, string topicName);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Topic '{TopicName}' already exists")]
+    private static partial void LogTopicAlreadyExists(ILogger logger, Exception exception, string topicName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating Subscription '{SubscriptionName}' for Topic '{TopicName}'")]
+    private static partial void LogCreatingSubscription(ILogger logger, string subscriptionName, string topicName);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Subscription '{SubscriptionName}' for Topic '{TopicName}' already exists")]
+    private static partial void LogSubscriptionAlreadyExists(ILogger logger, Exception exception, string subscriptionName, string topicName);
 }

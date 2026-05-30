@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus.Tests;
 
@@ -177,7 +178,7 @@ public class ServiceBusExtensionsTests
         services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
-            configure: options =>
+            configureBus: options =>
             {
                 options.AddQueue("orders");
                 options.AddTopic("events");
@@ -185,13 +186,13 @@ public class ServiceBusExtensionsTests
 
         var serviceProvider = services.BuildServiceProvider();
 
-        var allOptions = serviceProvider.GetServices<ServiceBusOptions>().ToList();
+        var options = serviceProvider
+            .GetRequiredService<IOptionsMonitor<ServiceBusOptions>>()
+            .Get("TestService");
 
-        allOptions.Should().HaveCount(1);
-
-        allOptions[0].ServiceKey.Should().Be("TestService");
-        allOptions[0].Queues.Should().Contain("orders");
-        allOptions[0].Topics.Should().Contain("events");
+        options.ServiceKey.Should().Be("TestService");
+        options.Queues.Should().Contain("orders");
+        options.Topics.Should().Contain("events");
     }
 
     [Test]
@@ -203,7 +204,7 @@ public class ServiceBusExtensionsTests
         services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
-            configure: options => options.AddQueue("orders"));
+            configureBus: options => options.AddQueue("orders"));
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -216,6 +217,32 @@ public class ServiceBusExtensionsTests
     }
 
     [Test]
+    public void AddServiceBus_ConfigureWithServices_AppliesNameSuffixFromServiceProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddSingleton(new EnvironmentMarker("Staging"));
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
+            configureBus: entities => entities.AddQueue("orders"),
+            configureOptions: options =>
+                options.WithNameSuffix(options.Services.GetRequiredService<EnvironmentMarker>().Name));
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var options = serviceProvider
+            .GetRequiredService<IOptionsMonitor<ServiceBusOptions>>()
+            .Get("TestService");
+
+        options.NameSuffix.Should().Be("Staging");
+        options.FormatName("orders").Should().Be("orders-Staging");
+    }
+
+    private sealed record EnvironmentMarker(string Name);
+
+    [Test]
     public void AddServiceBus_RegistersServiceBusInitializerHostedService()
     {
         var services = new ServiceCollection();
@@ -225,7 +252,7 @@ public class ServiceBusExtensionsTests
         services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
-            configure: options => { });
+            configureBus: options => { });
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -241,7 +268,7 @@ public class ServiceBusExtensionsTests
         var act = () => services!.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/",
-            configure: options => { });
+            configureBus: options => { });
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -255,21 +282,21 @@ public class ServiceBusExtensionsTests
         var act = () => services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: null!,
-            configure: options => { });
+            configureBus: options => { });
 
         act.Should().Throw<ArgumentException>();
 
         act = () => services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "",
-            configure: options => { });
+            configureBus: options => { });
 
         act.Should().Throw<ArgumentException>();
 
         act = () => services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "   ",
-            configure: options => { });
+            configureBus: options => { });
 
         act.Should().Throw<ArgumentException>();
     }
@@ -283,7 +310,7 @@ public class ServiceBusExtensionsTests
         var act = () => services.AddServiceBus(
             serviceName: "TestService",
             nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/",
-            configure: null!);
+            configureBus: null!);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -297,17 +324,14 @@ public class ServiceBusExtensionsTests
         services.AddServiceBus(
             serviceName: "Service1",
             nameOrConnectionString: "Endpoint=sb://test1.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
-            configure: options => options.AddQueue("queue1"));
+            configureBus: options => options.AddQueue("queue1"));
 
         services.AddServiceBus(
             serviceName: "Service2",
             nameOrConnectionString: "Endpoint=sb://test2.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=def",
-            configure: options => options.AddQueue("queue2"));
+            configureBus: options => options.AddQueue("queue2"));
 
         var serviceProvider = services.BuildServiceProvider();
-
-        var allOptions = serviceProvider.GetServices<ServiceBusOptions>().ToList();
-        allOptions.Should().HaveCount(2);
 
         var options1 = serviceProvider.GetKeyedService<ServiceBusOptions>("Service1");
         options1.Should().NotBeNull();

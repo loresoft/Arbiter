@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using TestHost.Abstracts;
@@ -15,10 +16,11 @@ public class TestApplication : TestHostApplication
         builder.Services.AddServiceBus(
             serviceName: "TestServiceBus",
             nameOrConnectionString: "AzureWebJobsServiceBus",
-            configure: options => options
+            configureBus: entities => entities
                 .AddQueue("test-queue")
-                .AddTopic("test-topic", "unit-test")
-                .WithNameSuffix("testing")
+                .AddTopic("test-topic", "unit-test"),
+            configureOptions: options =>
+                options.WithNameSuffix(options.Services.GetRequiredService<IHostEnvironment>().EnvironmentName)
         );
 
         base.ConfigureApplication(builder);
