@@ -46,13 +46,13 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run Test
-        run: dotnet test --no-build --configuration Release --treenode-filter "/*/*/*/*[Category!=LocalOnly]" -- --coverage
+        run: dotnet test --no-build --configuration Release --treenode-filter "/*/*/*/*[Category!=LocalOnly]" -- --coverage --coverage-output-format cobertura
 
       - name: Collect Coverage
         if: success()
         id: coverage
         run: |
-          FILES=$(find ${{github.workspace}} -name '*.coverage' -print | tr '\n' ' ')
+          FILES=$(find ${{github.workspace}} -name '*.cobertura.xml' -print | tr '\n' ' ')
           echo "files=$FILES" >> $GITHUB_OUTPUT
 
       - name: Report Coverage
