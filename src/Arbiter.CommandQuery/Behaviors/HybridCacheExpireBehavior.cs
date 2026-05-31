@@ -14,8 +14,6 @@ namespace Arbiter.CommandQuery.Behaviors;
 public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBase<TRequest, TResponse>
     where TRequest : class, IRequest<TResponse>, ICacheExpire
 {
-    private readonly HybridCache _hybridCache;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="HybridCacheExpireBehavior{TRequest, TResponse}"/> class.
     /// </summary>
@@ -29,8 +27,13 @@ public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBa
     {
         ArgumentNullException.ThrowIfNull(hybridCache);
 
-        _hybridCache = hybridCache;
+        HybridCache = hybridCache;
     }
+
+    /// <summary>
+    /// Gets the <see cref="HybridCache"/> used to expire cache entries.
+    /// </summary>
+    protected HybridCache HybridCache { get; }
 
     /// <inheritdoc />
     protected override async ValueTask<TResponse?> Process(
@@ -44,17 +47,31 @@ public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBa
         var response = await next(cancellationToken).ConfigureAwait(false);
 
         // expire cache
-        if (request is not ICacheExpire cacheRequest)
-            return response;
+        if (request is ICacheExpire cacheRequest)
+            await ExpireCache(cacheRequest, cancellationToken).ConfigureAwait(false);
+
+        return response;
+    }
+
+    /// <summary>
+    /// Removes the cache key and cache tags of the specified <paramref name="cacheRequest"/> from the local <see cref="HybridCache"/>.
+    /// </summary>
+    /// <param name="cacheRequest">The request describing the cache key and tags to expire.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A <see cref="ValueTask"/> that represents the asynchronous expire operation.</returns>
+    /// <exception cref="ArgumentNullException">When <paramref name="cacheRequest"/> is null</exception>
+    protected async ValueTask ExpireCache(ICacheExpire cacheRequest, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(cacheRequest);
 
         var cacheKey = cacheRequest.GetCacheKey();
         if (!string.IsNullOrEmpty(cacheKey))
-            await _hybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+            await HybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
 
-        var cacheTag = cacheRequest.GetCacheTag();
-        if (!string.IsNullOrEmpty(cacheTag))
-            await _hybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
-
-        return response;
+        foreach (var cacheTag in cacheRequest.GetCacheTags())
+        {
+            if (!string.IsNullOrEmpty(cacheTag))
+                await HybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

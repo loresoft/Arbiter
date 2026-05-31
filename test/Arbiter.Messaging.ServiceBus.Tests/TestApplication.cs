@@ -18,7 +18,8 @@ public class TestApplication : TestHostApplication
             nameOrConnectionString: "AzureWebJobsServiceBus",
             configureBus: entities => entities
                 .AddQueue("test-queue")
-                .AddTopic("test-topic", "unit-test"),
+                .AddTopic("test-topic", "unit-test")
+                .AddTopic("cache-expire-test", "cache-expire-sub"),
             configureOptions: options =>
                 options.WithNameSuffix(options.Services.GetRequiredService<IHostEnvironment>().EnvironmentName)
         );

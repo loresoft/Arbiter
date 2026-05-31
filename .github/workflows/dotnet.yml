@@ -46,7 +46,22 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run Test
-        run: dotnet test --no-build --configuration Release
+        run: dotnet test --no-build --configuration Release --treenode-filter "/*/*/*/*[Category!=LocalOnly]" -- --coverage
+
+      - name: Collect Coverage
+        if: success()
+        id: coverage
+        run: |
+          FILES=$(find ${{github.workspace}} -name '*.coverage' -print | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Report Coverage
+        if: success() && steps.coverage.outputs.files != ''
+        uses: coverallsapp/github-action@v2
+        continue-on-error: true
+        with:
+          files: ${{ steps.coverage.outputs.files }}
+          format: cobertura
 
       - name: Create Packages
         if: success() && github.event_name != 'pull_request'

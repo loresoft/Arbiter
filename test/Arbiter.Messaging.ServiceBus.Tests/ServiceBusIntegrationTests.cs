@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Arbiter.Messaging.ServiceBus.Tests;
 
 [Category("LocalOnly")]
-[Skip("Local Only")]
+[Property("Category", "LocalOnly")]
 public class ServiceBusIntegrationTests
 {
     [ClassDataSource<TestApplication>(Shared = SharedType.PerAssembly)]

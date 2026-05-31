@@ -1,3 +1,5 @@
+using Azure.Core;
+
 namespace Arbiter.Messaging.ServiceBus;
 
 /// <summary>
@@ -12,8 +14,17 @@ public sealed class ServiceBusOptions
 
     /// <summary>
     /// Gets or sets a Service Bus connection string, connection string name, or configuration key.
+    /// When <see cref="Credential" /> is provided, this value is the fully qualified Service Bus namespace
+    /// (for example, <c>my-namespace.servicebus.windows.net</c>).
     /// </summary>
     public string NameOrConnectionString { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the <see cref="TokenCredential" /> used for identity-based authentication.
+    /// When set, <see cref="NameOrConnectionString" /> is treated as the fully qualified Service Bus namespace.
+    /// When <see langword="null" />, connection-string based authentication is used.
+    /// </summary>
+    public TokenCredential? Credential { get; set; }
 
     /// <summary>
     /// Gets or sets the suffix appended to queue and topic names when formatting entity names.

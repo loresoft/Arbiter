@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="TestHost.Abstracts" />
     <PackageReference Include="TUnit" />
   </ItemGroup>

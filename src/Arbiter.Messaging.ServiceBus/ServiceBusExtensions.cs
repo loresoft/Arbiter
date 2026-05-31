@@ -1,9 +1,11 @@
+using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus;
@@ -35,38 +37,137 @@ public static class ServiceBusExtensions
         string nameOrConnectionString,
         Action<ServiceBusEntityBuilder> configureBus,
         Action<ServiceBusOptionsBuilder>? configureOptions = null)
+        => AddServiceBusCore(services, serviceName, nameOrConnectionString, credential: null, configureBus, configureOptions);
+
+    /// <summary>
+    /// Registers a named Azure Service Bus client using identity-based authentication, configured senders,
+    /// and resource initializer, with an additional configuration delegate that has access to the resolved
+    /// <see cref="IServiceProvider" />.
+    /// </summary>
+    /// <param name="services">The service collection to add registrations to.</param>
+    /// <param name="serviceName">The name used to register and resolve the <see cref="ServiceBusClient" />.</param>
+    /// <param name="fullyQualifiedNamespace">
+    /// The fully qualified Service Bus namespace (for example, <c>my-namespace.servicebus.windows.net</c>),
+    /// a configuration key, or a connection string name that resolves to one.
+    /// </param>
+    /// <param name="credential">The <see cref="TokenCredential" /> used to authenticate, such as <c>DefaultAzureCredential</c>.</param>
+    /// <param name="configureBus">
+    /// A delegate used to declare the queues and topics (with their subscriptions) to initialize and register senders for.
+    /// Queues and topics must be added here, as their names are required to register senders eagerly.
+    /// </param>
+    /// <param name="configureOptions">
+    /// An optional delegate used to configure runtime options (such as <see cref="ServiceBusOptions.NameSuffix" />)
+    /// using values resolved from the <see cref="IServiceProvider" />, for example the current environment name.
+    /// </param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    public static IServiceCollection AddServiceBus(
+        this IServiceCollection services,
+        object? serviceName,
+        string fullyQualifiedNamespace,
+        TokenCredential credential,
+        Action<ServiceBusEntityBuilder> configureBus,
+        Action<ServiceBusOptionsBuilder>? configureOptions = null)
+    {
+        ArgumentNullException.ThrowIfNull(credential);
+
+        return AddServiceBusCore(services, serviceName, fullyQualifiedNamespace, credential, configureBus, configureOptions);
+    }
+
+
+    /// <summary>
+    /// Registers a message processor for an Azure Service Bus queue.
+    /// </summary>
+    /// <typeparam name="TProcessor">The processor type deriving from <see cref="ServiceBusProcessorBase" />.</typeparam>
+    /// <param name="services">The service collection to add registrations to.</param>
+    /// <param name="serviceName">The name used to resolve the registered <see cref="ServiceBusClient" /> and options.</param>
+    /// <param name="queueName">The queue name to process messages from.</param>
+    /// <param name="configureProcessor">
+    /// An optional delegate used to configure the <see cref="ServiceBusProcessorOptions" /> (such as
+    /// <see cref="ServiceBusProcessorOptions.MaxConcurrentCalls" /> or <see cref="ServiceBusProcessorOptions.AutoCompleteMessages" />).
+    /// </param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    public static IServiceCollection AddServiceBusProcessor<TProcessor>(
+        this IServiceCollection services,
+        object? serviceName,
+        string queueName,
+        Action<ServiceBusProcessorOptions>? configureProcessor = null)
+        where TProcessor : ServiceBusProcessorBase
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentException.ThrowIfNullOrWhiteSpace(nameOrConnectionString);
-        ArgumentNullException.ThrowIfNull(configureBus);
+        ArgumentException.ThrowIfNullOrWhiteSpace(queueName);
 
-        // named options instance; senders, clients and the initializer all resolve options by this name
         var optionsName = serviceName?.ToString() ?? Options.DefaultName;
 
-        services
-            .AddOptions<ServiceBusOptions>(optionsName)
-            .Configure(options =>
-            {
-                options.ServiceKey = serviceName;
-                options.NameOrConnectionString = nameOrConnectionString;
-                configureBus.Invoke(new ServiceBusEntityBuilder(options));
-            })
-            .PostConfigure<IServiceProvider>((options, serviceProvider) =>
-                configureOptions?.Invoke(new ServiceBusOptionsBuilder(options, serviceProvider)));
+        // register the processor keyed by queue name, mirroring the sender keying scheme
+        services.TryAddKeyedSingleton(queueName, (sp, _) =>
+        {
+            var options = GetOptions(sp, optionsName);
 
-        // track the registration so the initializer can enumerate all configured Service Bus instances
-        services.AddSingleton(new ServiceBusRegistration(serviceName, optionsName));
+            // if NameSuffix is provided, append to queue name for processor resolution
+            var entityName = options.FormatName(queueName);
+            var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
 
-        // expose the configured options as a keyed service for direct resolution
-        services.TryAddKeyedSingleton(serviceName, (sp, _) => GetOptions(sp, optionsName));
+            var processorOptions = new ServiceBusProcessorOptions();
+            configureProcessor?.Invoke(processorOptions);
 
-        RegisterClients(services, serviceName, optionsName);
-        RegisterSenders(services, configureBus, serviceName, nameOrConnectionString, optionsName);
+            return serviceBusClient.CreateProcessor(entityName, processorOptions);
+        });
 
-        services.AddHostedService<ServiceBusInitializer>();
+        RegisterProcessor<TProcessor>(services, queueName);
 
         return services;
     }
+
+    /// <summary>
+    /// Registers a message processor for an Azure Service Bus topic subscription.
+    /// </summary>
+    /// <typeparam name="TProcessor">The processor type deriving from <see cref="ServiceBusProcessorBase" />.</typeparam>
+    /// <param name="services">The service collection to add registrations to.</param>
+    /// <param name="serviceName">The name used to resolve the registered <see cref="ServiceBusClient" /> and options.</param>
+    /// <param name="topicName">The topic name to process messages from.</param>
+    /// <param name="subscriptionName">The subscription name to process messages from.</param>
+    /// <param name="configureProcessor">
+    /// An optional delegate used to configure the <see cref="ServiceBusProcessorOptions" /> (such as
+    /// <see cref="ServiceBusProcessorOptions.MaxConcurrentCalls" /> or <see cref="ServiceBusProcessorOptions.AutoCompleteMessages" />).
+    /// </param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    public static IServiceCollection AddServiceBusProcessor<TProcessor>(
+        this IServiceCollection services,
+        object? serviceName,
+        string topicName,
+        string subscriptionName,
+        Action<ServiceBusProcessorOptions>? configureProcessor = null)
+        where TProcessor : ServiceBusProcessorBase
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(topicName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(subscriptionName);
+
+        var optionsName = serviceName?.ToString() ?? Options.DefaultName;
+
+        // composite key matches the "topic/subscription" structure of the processed entity
+        var processorKey = $"{topicName}/{subscriptionName}";
+
+        // register the processor keyed by the topic/subscription composite key
+        services.TryAddKeyedSingleton(processorKey, (sp, _) =>
+        {
+            var options = GetOptions(sp, optionsName);
+
+            // if NameSuffix is provided, append to topic name for processor resolution
+            var entityName = options.FormatName(topicName);
+            var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
+
+            var processorOptions = new ServiceBusProcessorOptions();
+            configureProcessor?.Invoke(processorOptions);
+
+            return serviceBusClient.CreateProcessor(entityName, subscriptionName, processorOptions);
+        });
+
+        RegisterProcessor<TProcessor>(services, processorKey);
+
+        return services;
+    }
+
 
     /// <summary>
     /// Resolves a connection string from either a direct connection string or a configuration key name.
@@ -101,11 +202,66 @@ public static class ServiceBusExtensions
     }
 
 
-    // resolve fully-configured options (including service-provider configuration) by name
+    private static IServiceCollection AddServiceBusCore(
+        IServiceCollection services,
+        object? serviceName,
+        string nameOrConnectionString,
+        TokenCredential? credential,
+        Action<ServiceBusEntityBuilder> configureBus,
+        Action<ServiceBusOptionsBuilder>? configureOptions)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(nameOrConnectionString);
+        ArgumentNullException.ThrowIfNull(configureBus);
+
+        // named options instance; senders, clients and the initializer all resolve options by this name
+        var optionsName = serviceName?.ToString() ?? Options.DefaultName;
+
+        // invoke the configure delegate once to capture the declared entities; the resulting
+        // names are reused for both options configuration and eager sender registration
+        var entityOptions = new ServiceBusOptions
+        {
+            ServiceKey = serviceName,
+            NameOrConnectionString = nameOrConnectionString,
+            Credential = credential,
+        };
+        configureBus.Invoke(new ServiceBusEntityBuilder(entityOptions));
+
+        services
+            .AddOptions<ServiceBusOptions>(optionsName)
+            .Configure(options =>
+            {
+                options.ServiceKey = serviceName;
+                options.NameOrConnectionString = nameOrConnectionString;
+                options.Credential = credential;
+                options.Queues = entityOptions.Queues;
+                options.Topics = entityOptions.Topics;
+                options.Subscriptions = entityOptions.Subscriptions;
+            })
+            .PostConfigure<IServiceProvider>((options, serviceProvider) =>
+                configureOptions?.Invoke(new ServiceBusOptionsBuilder(options, serviceProvider)));
+
+        // track the registration so the initializer can enumerate all configured Service Bus instances
+        services.AddSingleton(new ServiceBusRegistration(serviceName, optionsName));
+
+        // expose the configured options as a keyed service for direct resolution
+        services.TryAddKeyedSingleton(serviceName, (sp, _) => GetOptions(sp, optionsName));
+
+        RegisterClients(services, serviceName, optionsName);
+        RegisterSenders(services, entityOptions, optionsName);
+
+        services.AddHostedService<ServiceBusInitializer>();
+
+        return services;
+    }
+
     private static ServiceBusOptions GetOptions(IServiceProvider serviceProvider, string optionsName)
         => serviceProvider.GetRequiredService<IOptionsMonitor<ServiceBusOptions>>().Get(optionsName);
 
-    private static void RegisterClients(IServiceCollection services, object? serviceName, string optionsName)
+    private static void RegisterClients(
+        IServiceCollection services,
+        object? serviceName,
+        string optionsName)
     {
         // register ServiceBusClient for general use, keyed by service name
         services.TryAddKeyedSingleton(
@@ -114,6 +270,11 @@ public static class ServiceBusExtensions
             {
                 var options = GetOptions(sp, optionsName);
                 var connectionString = sp.ResolveConnectionString(options.NameOrConnectionString);
+
+                // identity-based authentication when a credential is configured
+                if (options.Credential is not null)
+                    return new ServiceBusClient(connectionString, options.Credential);
+
                 return new ServiceBusClient(connectionString);
             }
         );
@@ -125,6 +286,11 @@ public static class ServiceBusExtensions
             {
                 var options = GetOptions(sp, optionsName);
                 var connectionString = sp.ResolveConnectionString(options.NameOrConnectionString);
+
+                // identity-based authentication when a credential is configured
+                if (options.Credential is not null)
+                    return new ServiceBusAdministrationClient(connectionString, options.Credential);
+
                 return new ServiceBusAdministrationClient(connectionString);
             }
         );
@@ -132,22 +298,12 @@ public static class ServiceBusExtensions
 
     private static void RegisterSenders(
         IServiceCollection services,
-        Action<ServiceBusEntityBuilder> configure,
-        object? serviceName,
-        string nameOrConnectionString,
+        ServiceBusOptions entityOptions,
         string optionsName)
     {
-        // enumerate queue/topic names eagerly so senders can be registered keyed by base name;
-        // names are structural and must be set in the eager configure delegate
-        var nameOptions = new ServiceBusOptions
-        {
-            ServiceKey = serviceName,
-            NameOrConnectionString = nameOrConnectionString,
-        };
-        configure.Invoke(new ServiceBusEntityBuilder(nameOptions));
-
-        // register senders for queues and topics, keyed by queue/topic name for resolution
-        foreach (var queue in nameOptions.Queues.Concat(nameOptions.Topics))
+        // register senders for queues and topics, keyed by queue/topic name for resolution;
+        // names were captured from the single configure invocation in AddServiceBus
+        foreach (var queue in entityOptions.Queues.Concat(entityOptions.Topics))
         {
             services.AddKeyedSingleton(queue, (sp, _) =>
             {
@@ -156,8 +312,23 @@ public static class ServiceBusExtensions
                 // if NameSuffix is provided, append to queue/topic name for sender resolution
                 var queueName = options.FormatName(queue);
                 var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
+
                 return serviceBusClient.CreateSender(queueName);
             });
         }
+    }
+
+    private static void RegisterProcessor<TProcessor>(IServiceCollection services, object processorKey)
+        where TProcessor : ServiceBusProcessorBase
+    {
+        // register the processor as a singleton, resolving the keyed ServiceBusProcessor for this entity;
+        // the same instance is exposed as a hosted service so only one instance runs
+        services.TryAddSingleton(sp =>
+        {
+            var processor = sp.GetRequiredKeyedService<ServiceBusProcessor>(processorKey);
+            return ActivatorUtilities.CreateInstance<TProcessor>(sp, processor);
+        });
+
+        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<TProcessor>());
     }
 }

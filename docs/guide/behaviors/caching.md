@@ -122,6 +122,87 @@ public override string? GetCacheTag() => $"Products Category:{CategoryId}";
 public string? GetCacheTag() => $"Products Category:{CategoryId}";
 ```
 
+### Multiple Cache Tags
+
+`ICacheExpire` exposes `GetCacheTags()` for commands that need to expire more than one tag for a single change. The default implementation returns the single value from `GetCacheTag()`, so existing implementations continue to work without modification. Override `GetCacheTags()` to invalidate multiple tags at once:
+
+```csharp
+public record MoveProductCommand : PrincipalCommandBase<ProductReadModel>, ICacheExpire
+{
+    public MoveProductCommand(ClaimsPrincipal principal, int fromCategoryId, int toCategoryId)
+        : base(principal)
+    {
+        FromCategoryId = fromCategoryId;
+        ToCategoryId = toCategoryId;
+    }
+
+    public int FromCategoryId { get; }
+
+    public int ToCategoryId { get; }
+
+    public string? GetCacheKey() => null;
+
+    public string? GetCacheTag() => $"Products Category:{FromCategoryId}";
+
+    // expire both the source and destination category tags
+    public override IEnumerable<string> GetCacheTags() =>
+    [
+        $"Products Category:{FromCategoryId}",
+        $"Products Category:{ToCategoryId}",
+    ];
+}
+```
+
+### Distributed Cache Expiration over Azure Service Bus
+
+When the same application is hosted across multiple processes (for example, a load-balanced web farm or several independent services), each process keeps its own local `HybridCache` tier. The `Arbiter.Messaging.ServiceBus` package provides an opt-in feature that publishes cache expiration messages to a Service Bus topic so every subscribed process expires the matching entries.
+
+The feature is built on top of the local `HybridCacheExpireBehavior`:
+
+- The publisher behavior (`ServiceBusCacheExpireBehavior`) expires the local cache first, then publishes a lightweight `CacheExpireMessage` (cache key, tags, and a per-process `SourceId`) to the configured topic.
+- The subscriber processor (`CacheExpireProcessor`) receives messages from a topic subscription and expires the matching key and tags from its own local cache. Messages originating from the same process are skipped using the `SourceId`, since that process already expired its cache locally.
+
+The topic and subscription must be declared in the `AddServiceBus` configuration so the initializer provisions them and registers a sender for the topic:
+
+```csharp
+services.AddServiceBus(
+    serviceName: "Default",
+    nameOrConnectionString: "ServiceBus",
+    configureBus: bus => bus.AddTopic("cache-expire", "app-instance"));
+```
+
+Three extension methods opt in to the feature:
+
+```csharp
+// Publisher only: expire local cache and publish expiration messages
+services.AddServiceBusCacheExpirePublisher("cache-expire");
+
+// Subscriber only: receive expiration messages and expire local cache
+services.AddServiceBusCacheExpireSubscriber(
+    serviceName: "Default",
+    topicName: "cache-expire",
+    subscriptionName: "app-instance");
+
+// Both publisher and subscriber
+services.AddServiceBusCacheExpire(
+    serviceName: "Default",
+    topicName: "cache-expire",
+    subscriptionName: "app-instance");
+```
+
+Each process should use a unique topic subscription so it receives its own copy of every expiration message. The per-process `SourceId` defaults to a unique value, but can be set explicitly through the optional `configureOptions` delegate:
+
+```csharp
+services.AddServiceBusCacheExpire(
+    serviceName: "Default",
+    topicName: "cache-expire",
+    subscriptionName: "app-instance",
+    configureOptions: options => options.SourceId = Environment.MachineName);
+```
+
+> [!NOTE]
+> Distributed expiration complements, and does not replace, the shared distributed cache tier (such as Redis). It is most useful for expiring the fast local L1 cache in each process when data changes elsewhere.
+
 ## Configuration Options
 
 ### Hybrid Cache Configuration
