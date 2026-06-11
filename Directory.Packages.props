@@ -15,7 +15,7 @@
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.7.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Blazilla" Version="2.3.2" />
+    <PackageVersion Include="Blazilla" Version="2.4.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="7.2.0" />
