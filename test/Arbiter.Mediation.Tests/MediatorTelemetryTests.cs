@@ -36,11 +36,22 @@ public class MediatorTelemetryTests
         return (activities, listener);
     }
 
+    // Creates an ambient parent activity so assertions only inspect spans from the current test.
+    private static Activity StartTestActivity(string name)
+    {
+        var activity = new Activity($"{nameof(MediatorTelemetryTests)}.{name}");
+        activity.SetIdFormat(ActivityIdFormat.W3C);
+        activity.Start();
+
+        return activity;
+    }
+
     [Test]
     public async Task Send_CreatesTopLevelSpanWithCorrectAttributes()
     {
         var (activities, listener) = CreateListener();
         using var _ = listener;
+        using var testActivity = StartTestActivity(nameof(Send_CreatesTopLevelSpanWithCorrectAttributes));
 
         await using var provider = BuildProvider(services =>
         {
@@ -51,7 +62,9 @@ public class MediatorTelemetryTests
         var mediator = provider.GetRequiredService<IMediator>();
         await mediator.Send<TelemetryPing, Pong>(new TelemetryPing { Message = "Hello" });
 
-        var span = activities.FirstOrDefault(a => a.OperationName == $"{MediatorTelemetry.SendOperation} TelemetryPing");
+        var span = activities.FirstOrDefault(a =>
+            a.ParentSpanId == testActivity.SpanId &&
+            a.OperationName == $"{MediatorTelemetry.SendOperation} TelemetryPing");
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Ok);
         await Assert.That(span.Kind).IsEqualTo(ActivityKind.Internal);
@@ -65,6 +78,7 @@ public class MediatorTelemetryTests
     {
         var (activities, listener) = CreateListener();
         using var _ = listener;
+        using var testActivity = StartTestActivity(nameof(SendObject_CreatesSpanWithRequestTypeTag));
 
         await using var provider = BuildProvider(services =>
         {
@@ -78,7 +92,9 @@ public class MediatorTelemetryTests
         object request = new Ping { Message = "Hello" };
         await mediator.Send(request);
 
-        var span = activities.FirstOrDefault(a => a.OperationName.StartsWith(MediatorTelemetry.SendOperation));
+        var span = activities.FirstOrDefault(a =>
+            a.ParentSpanId == testActivity.SpanId &&
+            a.OperationName == $"{MediatorTelemetry.SendOperation} Ping");
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Ok);
         await Assert.That(span.OperationName).IsEqualTo($"{MediatorTelemetry.SendOperation} Ping");
@@ -90,6 +106,7 @@ public class MediatorTelemetryTests
     {
         var (activities, listener) = CreateListener();
         using var _ = listener;
+        using var testActivity = StartTestActivity(nameof(Send_OnException_SetsErrorStatusAndRecordsEvent));
 
         await using var provider = BuildProvider(services =>
             services.TryAddTransient<IRequestHandler<Ping, Pong>, PingExceptionHandler>());
@@ -99,7 +116,9 @@ public class MediatorTelemetryTests
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await mediator.Send<Ping, Pong>(new Ping { Message = "Throw" }));
 
-        var span = activities.FirstOrDefault(a => a.OperationName.StartsWith(MediatorTelemetry.SendOperation));
+        var span = activities.FirstOrDefault(a =>
+            a.ParentSpanId == testActivity.SpanId &&
+            a.OperationName == $"{MediatorTelemetry.SendOperation} Ping");
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Error);
         await Assert.That(span.GetTagItem("error.type")?.ToString()).IsEqualTo(typeof(InvalidOperationException).FullName);
@@ -117,6 +136,7 @@ public class MediatorTelemetryTests
     {
         var (activities, listener) = CreateListener();
         using var _ = listener;
+        using var testActivity = StartTestActivity(nameof(Publish_CreatesTopLevelSpanWithNotificationTag));
 
         await using var provider = BuildProvider(services =>
         {
@@ -127,7 +147,9 @@ public class MediatorTelemetryTests
         var mediator = provider.GetRequiredService<IMediator>();
         await mediator.Publish(new Pinged { Message = "Test" });
 
-        var span = activities.FirstOrDefault(a => a.OperationName.StartsWith(MediatorTelemetry.PublishOperation));
+        var span = activities.FirstOrDefault(a =>
+            a.ParentSpanId == testActivity.SpanId &&
+            a.OperationName == $"{MediatorTelemetry.PublishOperation} Pinged");
         await Assert.That(span).IsNotNull();
         await Assert.That(span!.Status).IsEqualTo(ActivityStatusCode.Ok);
         await Assert.That(span.GetTagItem(MediatorTelemetry.NotificationTypeTag)?.ToString()).IsEqualTo(typeof(Pinged).FullName);

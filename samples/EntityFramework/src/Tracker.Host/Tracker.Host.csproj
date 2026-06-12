@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.3.0">
+<Project Sdk="Aspire.AppHost.Sdk/13.4.3">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,6 +8,10 @@
     <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>ae704e9f-d42d-4e28-97ab-3459e3af48a9</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Tracker.Service\Tracker.Service.csproj" />
