@@ -68,6 +68,11 @@ public class EmailConfiguration
     public string? RecipientOverride { get; set; }
 
     /// <summary>
+    /// Gets or sets the prefix to be added to the subject of all outgoing emails. Used for testing purposes to easily identify emails sent from non-production environments.
+    /// </summary>
+    public string? SubjectPrefix { get; set; }
+
+    /// <summary>
     /// Gets or sets the application client ID used to authenticate email delivery.
     /// </summary>
     public string? ClientId { get; set; }

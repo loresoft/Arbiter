@@ -140,6 +140,9 @@ public partial class EmailTemplateService : IEmailTemplateService
                 return EmailResult.Fail("From address is not configured.");
             }
 
+            if (Options.Value.SubjectPrefix.HasValue())
+                subject = $"{Options.Value.SubjectPrefix} {subject}";
+
             var content = new EmailContent(subject, htmlBody, textBody);
             var message = new EmailMessage(localSenders, recipients, content);
 
