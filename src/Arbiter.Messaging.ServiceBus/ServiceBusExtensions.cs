@@ -1,11 +1,14 @@
 using Azure.Core;
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus;
@@ -71,6 +74,80 @@ public static class ServiceBusExtensions
         ArgumentNullException.ThrowIfNull(credential);
 
         return AddServiceBusCore(services, serviceName, fullyQualifiedNamespace, credential, configureBus, configureOptions);
+    }
+
+
+    /// <summary>
+    /// Adds an Azure Service Bus queue health check registration for a keyed Service Bus administration client and sender.
+    /// </summary>
+    /// <param name="health">The health check builder.</param>
+    /// <param name="serviceName">The key used to resolve the Service Bus administration client.</param>
+    /// <param name="queueName">The queue name and key used to resolve the Service Bus sender.</param>
+    /// <returns>The same <see cref="IHealthChecksBuilder" /> instance for chaining.</returns>
+    public static IHealthChecksBuilder AddServiceBus(
+        this IHealthChecksBuilder health,
+        string serviceName,
+        string queueName)
+    {
+        ArgumentNullException.ThrowIfNull(health);
+        ArgumentException.ThrowIfNullOrEmpty(serviceName);
+        ArgumentException.ThrowIfNullOrEmpty(queueName);
+
+        var healthCheckRegistration = new HealthCheckRegistration(
+            name: $"Service Bus Queue: '{queueName}'",
+            factory: sp =>
+            {
+                return new ServiceBusQueueHealthCheck(
+                    sp.GetRequiredService<ILogger<ServiceBusQueueHealthCheck>>(),
+                    sp.GetRequiredKeyedService<ServiceBusAdministrationClient>(serviceName),
+                    sp.GetRequiredKeyedService<ServiceBusSender>(queueName)
+                );
+            },
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["ServiceBus"]
+        );
+
+        health.Add(healthCheckRegistration);
+        return health;
+
+    }
+
+    /// <summary>
+    /// Adds an Azure Service Bus subscription health check registration for a keyed Service Bus administration client and topic sender.
+    /// </summary>
+    /// <param name="health">The health check builder.</param>
+    /// <param name="serviceName">The key used to resolve the Service Bus administration client.</param>
+    /// <param name="topicName">The topic name and key used to resolve the Service Bus sender.</param>
+    /// <param name="subscriptionName">The subscription name to monitor.</param>
+    /// <returns>The same <see cref="IHealthChecksBuilder" /> instance for chaining.</returns>
+    public static IHealthChecksBuilder AddServiceBus(
+        this IHealthChecksBuilder health,
+        string serviceName,
+        string topicName,
+        string subscriptionName)
+    {
+        ArgumentNullException.ThrowIfNull(health);
+        ArgumentException.ThrowIfNullOrEmpty(serviceName);
+        ArgumentException.ThrowIfNullOrEmpty(topicName);
+        ArgumentException.ThrowIfNullOrEmpty(subscriptionName);
+
+        var healthCheckRegistration = new HealthCheckRegistration(
+            name: $"Service Bus Subscription: '{subscriptionName}' on Topic: '{topicName}'",
+            factory: sp =>
+            {
+                return new ServiceBusSubscriptionHealthCheck(
+                    sp.GetRequiredService<ILogger<ServiceBusSubscriptionHealthCheck>>(),
+                    sp.GetRequiredKeyedService<ServiceBusAdministrationClient>(serviceName),
+                    sp.GetRequiredKeyedService<ServiceBusSender>(topicName),
+                    subscriptionName
+                );
+            },
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["ServiceBus"]
+        );
+
+        health.Add(healthCheckRegistration);
+        return health;
     }
 
 
@@ -255,7 +332,9 @@ public static class ServiceBusExtensions
         return services;
     }
 
-    private static ServiceBusOptions GetOptions(IServiceProvider serviceProvider, string optionsName)
+    private static ServiceBusOptions GetOptions(
+        IServiceProvider serviceProvider,
+        string optionsName)
         => serviceProvider.GetRequiredService<IOptionsMonitor<ServiceBusOptions>>().Get(optionsName);
 
     private static void RegisterClients(
@@ -269,13 +348,15 @@ public static class ServiceBusExtensions
             implementationFactory: (sp, _) =>
             {
                 var options = GetOptions(sp, optionsName);
-                var connectionString = sp.ResolveConnectionString(options.NameOrConnectionString);
+                var serviceBusConfiguration = sp.ResolveConnectionString(options.NameOrConnectionString);
 
-                // identity-based authentication when a credential is configured
-                if (options.Credential is not null)
-                    return new ServiceBusClient(connectionString, options.Credential);
+                if (IsConnectionString(serviceBusConfiguration))
+                    return new ServiceBusClient(serviceBusConfiguration);
 
-                return new ServiceBusClient(connectionString);
+                var fullyQualifiedNamespace = BuildFullyQualifiedNamespace(serviceBusConfiguration);
+                var credential = options.Credential ?? new DefaultAzureCredential();
+
+                return new ServiceBusClient(fullyQualifiedNamespace, credential);
             }
         );
 
@@ -285,15 +366,37 @@ public static class ServiceBusExtensions
             implementationFactory: (sp, _) =>
             {
                 var options = GetOptions(sp, optionsName);
-                var connectionString = sp.ResolveConnectionString(options.NameOrConnectionString);
+                var serviceBusConfiguration = sp.ResolveConnectionString(options.NameOrConnectionString);
 
-                // identity-based authentication when a credential is configured
-                if (options.Credential is not null)
-                    return new ServiceBusAdministrationClient(connectionString, options.Credential);
+                if (IsConnectionString(serviceBusConfiguration))
+                    return new ServiceBusAdministrationClient(serviceBusConfiguration);
 
-                return new ServiceBusAdministrationClient(connectionString);
+                var fullyQualifiedNamespace = BuildFullyQualifiedNamespace(serviceBusConfiguration);
+                var credential = options.Credential ?? new DefaultAzureCredential();
+
+                return new ServiceBusAdministrationClient(fullyQualifiedNamespace, credential);
             }
         );
+    }
+
+    private static string BuildFullyQualifiedNamespace(string serviceBusConfiguration)
+    {
+        if (Uri.TryCreate(serviceBusConfiguration, UriKind.Absolute, out var serviceBusUri))
+            return serviceBusUri.Host;
+
+        serviceBusConfiguration = serviceBusConfiguration.Trim().TrimEnd('/');
+
+        return serviceBusConfiguration.Contains('.', StringComparison.Ordinal)
+            ? serviceBusConfiguration
+            : $"{serviceBusConfiguration}.servicebus.windows.net";
+    }
+
+    private static bool IsConnectionString(string serviceBusConfiguration)
+    {
+        return serviceBusConfiguration.Contains("Endpoint=", StringComparison.OrdinalIgnoreCase)
+            || serviceBusConfiguration.Contains("SharedAccessKeyName=", StringComparison.OrdinalIgnoreCase)
+            || serviceBusConfiguration.Contains("SharedAccessKey=", StringComparison.OrdinalIgnoreCase)
+            || serviceBusConfiguration.Contains("UseDevelopmentEmulator=true", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void RegisterSenders(
@@ -318,7 +421,9 @@ public static class ServiceBusExtensions
         }
     }
 
-    private static void RegisterProcessor<TProcessor>(IServiceCollection services, object processorKey)
+    private static void RegisterProcessor<TProcessor>(
+        IServiceCollection services,
+        object processorKey)
         where TProcessor : ServiceBusProcessorBase
     {
         // register the processor as a singleton, resolving the keyed ServiceBusProcessor for this entity;

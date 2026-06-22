@@ -190,7 +190,7 @@ public class ObjectPool<T> where T : class
         var item = _item;
 
         // Try to get from the single-item cache first
-        if (item != null && Interlocked.CompareExchange(ref _item, null, item) == item)
+        if (item != null && Interlocked.CompareExchange(ref _item, value: null, item) == item)
             return item;
 
         // no object available, so go get a brand new one
@@ -291,7 +291,7 @@ public class ObjectPool<T> where T : class
         }
 
         // Try to store in the single-item cache first
-        if (_item == null && Interlocked.CompareExchange(ref _item, item, null) == null)
+        if (_item == null && Interlocked.CompareExchange(ref _item, item, comparand: null) == null)
             return;
 
         // If the cache is full, we need to drop the item
@@ -345,6 +345,49 @@ public class ObjectPool<T> where T : class
         finally
         {
             // Ensure the object is returned to the pool
+            Return(pooled);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously executes a function with a pooled object and automatically returns it to the pool.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result returned by the asynchronous function.</typeparam>
+    /// <param name="factory">
+    /// An asynchronous function that accepts a pooled object and returns a task containing the result.
+    /// The function is executed with an object retrieved from the pool, which is automatically returned
+    /// after execution completes.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the value returned
+    /// by the provided function after executing with the pooled object.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="factory"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// This method provides an asynchronous equivalent of <see cref="Use{TResult}(Func{T, TResult})"/>.
+    /// The pooled object is always returned to the pool, even if the asynchronous operation fails.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// string result = await StringBuilder.Pool.UseAsync(async sb =>
+    /// {
+    ///     await Task.Delay(10);
+    ///     sb.Append("Hello async");
+    ///     return sb.ToString();
+    /// });
+    /// </code>
+    /// </example>
+    public async ValueTask<TResult> UseAsync<TResult>(Func<T, ValueTask<TResult>> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        var pooled = Get();
+        try
+        {
+            return await factory(pooled).ConfigureAwait(false);
+        }
+        finally
+        {
             Return(pooled);
         }
     }

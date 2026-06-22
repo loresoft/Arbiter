@@ -1,3 +1,7 @@
+using Azure.Core;
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -243,6 +247,48 @@ public class ServiceBusExtensionsTests
     private sealed record EnvironmentMarker(string Name);
 
     [Test]
+    public void AddServiceBus_RegistersClientsFromNamespaceUri()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            fullyQualifiedNamespace: "sb://test.servicebus.windows.net/",
+            credential: new TestTokenCredential(),
+            configureBus: options => options.AddQueue("orders"));
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var serviceBusClient = serviceProvider.GetRequiredKeyedService<ServiceBusClient>("TestService");
+        var administrationClient = serviceProvider.GetRequiredKeyedService<ServiceBusAdministrationClient>("TestService");
+
+        serviceBusClient.FullyQualifiedNamespace.Should().Be("test.servicebus.windows.net");
+        administrationClient.Should().NotBeNull();
+    }
+
+    [Test]
+    public void AddServiceBus_RegistersClientsFromShortNamespace()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            fullyQualifiedNamespace: "test",
+            credential: new TestTokenCredential(),
+            configureBus: options => options.AddQueue("orders"));
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var serviceBusClient = serviceProvider.GetRequiredKeyedService<ServiceBusClient>("TestService");
+        var administrationClient = serviceProvider.GetRequiredKeyedService<ServiceBusAdministrationClient>("TestService");
+
+        serviceBusClient.FullyQualifiedNamespace.Should().Be("test.servicebus.windows.net");
+        administrationClient.Should().NotBeNull();
+    }
+
+    [Test]
     public void AddServiceBus_RegistersServiceBusInitializerHostedService()
     {
         var services = new ServiceCollection();
@@ -340,5 +386,14 @@ public class ServiceBusExtensionsTests
         var options2 = serviceProvider.GetKeyedService<ServiceBusOptions>("Service2");
         options2.Should().NotBeNull();
         options2!.Queues.Should().Contain("queue2");
+    }
+
+    private sealed class TestTokenCredential : TokenCredential
+    {
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => new("token", DateTimeOffset.UtcNow.AddMinutes(30));
+
+        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => ValueTask.FromResult(new AccessToken("token", DateTimeOffset.UtcNow.AddMinutes(30)));
     }
 }
