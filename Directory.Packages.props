@@ -14,7 +14,7 @@
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.7.1" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Blazilla" Version="2.4.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
