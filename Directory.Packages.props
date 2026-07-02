@@ -28,7 +28,7 @@
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="MediatR" Version="14.1.0" />
     <PackageVersion Include="MessagePack" Version="3.1.7" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.108" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.117" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.9" />
@@ -53,7 +53,7 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.7.0" />
     <PackageVersion Include="Microsoft.Graph" Version="6.2.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.10.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.12.0" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.2.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
@@ -66,7 +66,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.16.0" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.3.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.4" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.8" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
@@ -77,10 +77,10 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.12.0" />
-    <PackageVersion Include="TUnit" Version="1.56.25" />
+    <PackageVersion Include="TUnit" Version="1.58.0" />
     <PackageVersion Include="Twilio" Version="7.14.9" />
     <PackageVersion Include="Verify.TUnit" Version="31.20.0" />
-    <PackageVersion Include="YamlDotNet" Version="18.0.0" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
