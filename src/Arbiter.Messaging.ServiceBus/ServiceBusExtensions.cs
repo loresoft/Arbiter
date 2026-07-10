@@ -1,14 +1,17 @@
+using Arbiter.Mediation;
+using Arbiter.Queue;
+
 using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
+using MessagePack;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus;
@@ -40,7 +43,13 @@ public static class ServiceBusExtensions
         string nameOrConnectionString,
         Action<ServiceBusEntityBuilder> configureBus,
         Action<ServiceBusOptionsBuilder>? configureOptions = null)
-        => AddServiceBusCore(services, serviceName, nameOrConnectionString, credential: null, configureBus, configureOptions);
+        => AddServiceBusCore(
+            services,
+            serviceName,
+            nameOrConnectionString,
+            credential: null,
+            configureBus,
+            configureOptions);
 
     /// <summary>
     /// Registers a named Azure Service Bus client using identity-based authentication, configured senders,
@@ -71,83 +80,16 @@ public static class ServiceBusExtensions
         Action<ServiceBusEntityBuilder> configureBus,
         Action<ServiceBusOptionsBuilder>? configureOptions = null)
     {
+        ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(credential);
 
-        return AddServiceBusCore(services, serviceName, fullyQualifiedNamespace, credential, configureBus, configureOptions);
-    }
-
-
-    /// <summary>
-    /// Adds an Azure Service Bus queue health check registration for a keyed Service Bus administration client and sender.
-    /// </summary>
-    /// <param name="health">The health check builder.</param>
-    /// <param name="serviceName">The key used to resolve the Service Bus administration client.</param>
-    /// <param name="queueName">The queue name and key used to resolve the Service Bus sender.</param>
-    /// <returns>The same <see cref="IHealthChecksBuilder" /> instance for chaining.</returns>
-    public static IHealthChecksBuilder AddServiceBus(
-        this IHealthChecksBuilder health,
-        string serviceName,
-        string queueName)
-    {
-        ArgumentNullException.ThrowIfNull(health);
-        ArgumentException.ThrowIfNullOrEmpty(serviceName);
-        ArgumentException.ThrowIfNullOrEmpty(queueName);
-
-        var healthCheckRegistration = new HealthCheckRegistration(
-            name: $"Service Bus Queue: '{queueName}'",
-            factory: sp =>
-            {
-                return new ServiceBusQueueHealthCheck(
-                    sp.GetRequiredService<ILogger<ServiceBusQueueHealthCheck>>(),
-                    sp.GetRequiredKeyedService<ServiceBusAdministrationClient>(serviceName),
-                    sp.GetRequiredKeyedService<ServiceBusSender>(queueName)
-                );
-            },
-            failureStatus: HealthStatus.Unhealthy,
-            tags: ["ServiceBus"]
-        );
-
-        health.Add(healthCheckRegistration);
-        return health;
-
-    }
-
-    /// <summary>
-    /// Adds an Azure Service Bus subscription health check registration for a keyed Service Bus administration client and topic sender.
-    /// </summary>
-    /// <param name="health">The health check builder.</param>
-    /// <param name="serviceName">The key used to resolve the Service Bus administration client.</param>
-    /// <param name="topicName">The topic name and key used to resolve the Service Bus sender.</param>
-    /// <param name="subscriptionName">The subscription name to monitor.</param>
-    /// <returns>The same <see cref="IHealthChecksBuilder" /> instance for chaining.</returns>
-    public static IHealthChecksBuilder AddServiceBus(
-        this IHealthChecksBuilder health,
-        string serviceName,
-        string topicName,
-        string subscriptionName)
-    {
-        ArgumentNullException.ThrowIfNull(health);
-        ArgumentException.ThrowIfNullOrEmpty(serviceName);
-        ArgumentException.ThrowIfNullOrEmpty(topicName);
-        ArgumentException.ThrowIfNullOrEmpty(subscriptionName);
-
-        var healthCheckRegistration = new HealthCheckRegistration(
-            name: $"Service Bus Subscription: '{subscriptionName}' on Topic: '{topicName}'",
-            factory: sp =>
-            {
-                return new ServiceBusSubscriptionHealthCheck(
-                    sp.GetRequiredService<ILogger<ServiceBusSubscriptionHealthCheck>>(),
-                    sp.GetRequiredKeyedService<ServiceBusAdministrationClient>(serviceName),
-                    sp.GetRequiredKeyedService<ServiceBusSender>(topicName),
-                    subscriptionName
-                );
-            },
-            failureStatus: HealthStatus.Unhealthy,
-            tags: ["ServiceBus"]
-        );
-
-        health.Add(healthCheckRegistration);
-        return health;
+        return AddServiceBusCore(
+            services,
+            serviceName,
+            fullyQualifiedNamespace,
+            credential,
+            configureBus,
+            configureOptions);
     }
 
 
@@ -176,19 +118,9 @@ public static class ServiceBusExtensions
         var optionsName = serviceName?.ToString() ?? Options.DefaultName;
 
         // register the processor keyed by queue name, mirroring the sender keying scheme
-        services.TryAddKeyedSingleton(queueName, (sp, _) =>
-        {
-            var options = GetOptions(sp, optionsName);
-
-            // if NameSuffix is provided, append to queue name for processor resolution
-            var entityName = options.FormatName(queueName);
-            var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
-
-            var processorOptions = new ServiceBusProcessorOptions();
-            configureProcessor?.Invoke(processorOptions);
-
-            return serviceBusClient.CreateProcessor(entityName, processorOptions);
-        });
+        services.TryAddKeyedSingleton(
+            serviceKey: queueName,
+            implementationFactory: (sp, _) => CreateProcessor(sp, optionsName, queueName, configureProcessor));
 
         RegisterProcessor<TProcessor>(services, queueName);
 
@@ -241,6 +173,73 @@ public static class ServiceBusExtensions
         });
 
         RegisterProcessor<TProcessor>(services, processorKey);
+
+        return services;
+    }
+
+
+    /// <summary>
+    /// Registers a Service Bus backed background queue for mediator requests.
+    /// </summary>
+    /// <param name="services">The service collection to add registrations to.</param>
+    /// <param name="serviceName">The name used to resolve the registered <see cref="ServiceBusClient" /> and options.</param>
+    /// <param name="queueName">The queue name used to store background requests.</param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    public static IServiceCollection AddServiceBusBackgroundQueue(
+        this IServiceCollection services,
+        object? serviceName,
+        string queueName)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(queueName);
+
+        var optionsName = serviceName?.ToString() ?? Options.DefaultName;
+
+        services.TryAddKeyedSingleton(
+            serviceKey: queueName,
+            implementationFactory: (sp, _) => CreateSender(sp, optionsName, queueName));
+
+        services.TryAddSingleton<IBackgroundQueue>(sp =>
+        {
+            var sender = sp.GetRequiredKeyedService<ServiceBusSender>(queueName);
+            var options = sp.GetService<MessagePackSerializerOptions>();
+
+            return new ServiceBusBackgroundQueue(sender, options);
+        });
+
+        services.TryAddSingleton<ServiceBusBackgroundService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers a Service Bus processor for background mediator requests stored in a queue.
+    /// </summary>
+    /// <param name="services">The service collection to add registrations to.</param>
+    /// <param name="serviceName">The name used to resolve the registered <see cref="ServiceBusClient" /> and options.</param>
+    /// <param name="queueName">The queue name to process background requests from.</param>
+    /// <param name="configureProcessor">An optional delegate used to configure the Service Bus processor.</param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    public static IServiceCollection AddServiceBusBackgroundProcessor(
+        this IServiceCollection services,
+        object? serviceName,
+        string queueName,
+        Action<ServiceBusProcessorOptions>? configureProcessor = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentException.ThrowIfNullOrWhiteSpace(queueName);
+
+        services.AddMediator();
+        services.TryAddSingleton<ServiceBusBackgroundService>();
+
+        var optionsName = serviceName?.ToString() ?? Options.DefaultName;
+
+        // register the processor keyed by queue name, mirroring the sender keying scheme
+        services.TryAddKeyedSingleton(
+            serviceKey: queueName,
+            implementationFactory: (sp, _) => CreateProcessor(sp, optionsName, queueName, configureProcessor));
+
+        RegisterProcessor<ServiceBusBackgroundProcessor>(services, queueName);
 
         return services;
     }
@@ -332,10 +331,12 @@ public static class ServiceBusExtensions
         return services;
     }
 
+
     private static ServiceBusOptions GetOptions(
         IServiceProvider serviceProvider,
         string optionsName)
         => serviceProvider.GetRequiredService<IOptionsMonitor<ServiceBusOptions>>().Get(optionsName);
+
 
     private static void RegisterClients(
         IServiceCollection services,
@@ -379,6 +380,36 @@ public static class ServiceBusExtensions
         );
     }
 
+    private static void RegisterSenders(
+        IServiceCollection services,
+        ServiceBusOptions entityOptions,
+        string optionsName)
+    {
+        // register senders for queues and topics, keyed by queue/topic name for resolution;
+        // names were captured from the single configure invocation in AddServiceBus
+        foreach (var queue in entityOptions.Queues.Concat(entityOptions.Topics))
+        {
+            services.TryAddKeyedSingleton(queue, (sp, _) => CreateSender(sp, optionsName, queue));
+        }
+    }
+
+    private static void RegisterProcessor<TProcessor>(
+        IServiceCollection services,
+        object processorKey)
+        where TProcessor : ServiceBusProcessorBase
+    {
+        // register the processor as a singleton, resolving the keyed ServiceBusProcessor for this entity;
+        // the same instance is exposed as a hosted service so only one instance runs
+        services.TryAddSingleton(sp =>
+        {
+            var processor = sp.GetRequiredKeyedService<ServiceBusProcessor>(processorKey);
+            return ActivatorUtilities.CreateInstance<TProcessor>(sp, processor);
+        });
+
+        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<TProcessor>());
+    }
+
+
     private static string BuildFullyQualifiedNamespace(string serviceBusConfiguration)
     {
         if (Uri.TryCreate(serviceBusConfiguration, UriKind.Absolute, out var serviceBusUri))
@@ -399,41 +430,37 @@ public static class ServiceBusExtensions
             || serviceBusConfiguration.Contains("UseDevelopmentEmulator=true", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void RegisterSenders(
-        IServiceCollection services,
-        ServiceBusOptions entityOptions,
-        string optionsName)
+
+    private static ServiceBusSender CreateSender(
+        IServiceProvider services,
+        string optionsName,
+        string queueName)
     {
-        // register senders for queues and topics, keyed by queue/topic name for resolution;
-        // names were captured from the single configure invocation in AddServiceBus
-        foreach (var queue in entityOptions.Queues.Concat(entityOptions.Topics))
-        {
-            services.AddKeyedSingleton(queue, (sp, _) =>
-            {
-                var options = GetOptions(sp, optionsName);
+        var options = GetOptions(services, optionsName);
 
-                // if NameSuffix is provided, append to queue/topic name for sender resolution
-                var queueName = options.FormatName(queue);
-                var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
+        // if NameSuffix is provided, append to queue/topic name for sender resolution
+        var name = options.FormatName(queueName);
+        var serviceBusClient = services.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
 
-                return serviceBusClient.CreateSender(queueName);
-            });
-        }
+        return serviceBusClient.CreateSender(name);
     }
 
-    private static void RegisterProcessor<TProcessor>(
-        IServiceCollection services,
-        object processorKey)
-        where TProcessor : ServiceBusProcessorBase
+    private static ServiceBusProcessor CreateProcessor(
+        IServiceProvider services,
+        string optionsName,
+        string queueName,
+        Action<ServiceBusProcessorOptions>? configureProcessor = null)
     {
-        // register the processor as a singleton, resolving the keyed ServiceBusProcessor for this entity;
-        // the same instance is exposed as a hosted service so only one instance runs
-        services.TryAddSingleton(sp =>
-        {
-            var processor = sp.GetRequiredKeyedService<ServiceBusProcessor>(processorKey);
-            return ActivatorUtilities.CreateInstance<TProcessor>(sp, processor);
-        });
+        var options = GetOptions(services, optionsName);
 
-        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<TProcessor>());
+        // if NameSuffix is provided, append to queue/topic name for processor resolution
+        var name = options.FormatName(queueName);
+
+        var serviceBusClient = services.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
+
+        var processorOptions = new ServiceBusProcessorOptions();
+        configureProcessor?.Invoke(processorOptions);
+
+        return serviceBusClient.CreateProcessor(name, processorOptions);
     }
 }

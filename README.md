@@ -97,6 +97,7 @@ public class UserController : ControllerBase
 | Library                                        | Package                                                                                                                                     | Description                                                       |
 | :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------- |
 | [Arbiter.Mediation](#arbitermediation)         | [![Arbiter.Mediation](https://img.shields.io/nuget/v/Arbiter.Mediation.svg)](https://www.nuget.org/packages/Arbiter.Mediation/)             | Lightweight and extensible implementation of the Mediator pattern |
+| [Arbiter.Queue](#arbiterqueue)                 | [![Arbiter.Queue](https://img.shields.io/nuget/v/Arbiter.Queue.svg)](https://www.nuget.org/packages/Arbiter.Queue/)                         | Background request queue for mediator commands                    |
 | [Arbiter.CommandQuery](#arbitercommandquery)   | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)    | Base package for Commands, Queries and Behaviors                  |
 | [Arbiter.Mapping](#arbitermapping)             | [![Arbiter.Mapping](https://img.shields.io/nuget/v/Arbiter.Mapping.svg)](https://www.nuget.org/packages/Arbiter.Mapping/)                   | Source-generated, compile-time object mapping                     |
 | [Arbiter.Services](#arbiterservices)           | [![Arbiter.Services](https://img.shields.io/nuget/v/Arbiter.Services.svg)](https://www.nuget.org/packages/Arbiter.Services/)                | Utility services for CSV, encryption, caching, and tokens         |
@@ -270,6 +271,23 @@ services.AddOpenTelemetry()
         .AddConsoleExporter()
     );
 ```
+
+### Arbiter.Queue
+
+Background request queue for mediator commands. Queued work is represented as an `IRequest<Unit>` and processed through `IMediator`, so request handlers and pipeline behaviors continue to apply.
+
+```bash
+dotnet add package Arbiter.Queue
+```
+
+```csharp
+services.AddBackgroundQueue();
+services.AddTransient<IRequestHandler<SendWelcomeEmail, Unit>, SendWelcomeEmailHandler>();
+
+await backgroundQueue.Enqueue(new SendWelcomeEmail(userId), cancellationToken);
+```
+
+`Arbiter.Messaging.ServiceBus` also provides a durable Service Bus-backed `IBackgroundQueue` implementation through `AddServiceBusBackgroundQueue(...)`. `ServiceBusBackgroundQueue` enqueues serialized mediator requests, and `ServiceBusBackgroundService` processes those requests from either the hosted `AddServiceBusBackgroundProcessor(...)` worker or an Azure Functions Service Bus trigger.
 
 ### Arbiter.CommandQuery
 

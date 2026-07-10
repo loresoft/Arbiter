@@ -16,8 +16,6 @@ namespace Arbiter.Messaging.ServiceBus;
 public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposable, IAsyncDisposable
 {
     private readonly ServiceBusProcessor _processor;
-    private readonly ILogger _logger;
-
     private bool _disposed;
     private bool _handlersAttached;
 
@@ -35,7 +33,7 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
         ArgumentNullException.ThrowIfNull(logger);
 
         _processor = processor;
-        _logger = logger;
+        Logger = logger;
     }
 
 
@@ -49,6 +47,11 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
     /// </summary>
     protected string EntityPath => _processor.EntityPath;
 
+    /// <summary>
+    /// Gets the logger used to write processing messages.
+    /// </summary>
+    protected ILogger Logger { get; }
+
 
     /// <summary>
     /// Starts processing messages from the configured entity.
@@ -61,7 +64,7 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
         _processor.ProcessErrorAsync += OnProcessErrorAsync;
         _handlersAttached = true;
 
-        LogStartingProcessor(_logger, _processor.EntityPath);
+        LogStartingProcessor(Logger, _processor.EntityPath);
 
         await _processor.StartProcessingAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -73,7 +76,7 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
     /// <returns>A task that represents the asynchronous stop operation.</returns>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        LogStoppingProcessor(_logger, _processor.EntityPath);
+        LogStoppingProcessor(Logger, _processor.EntityPath);
 
         try
         {
@@ -107,7 +110,7 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
     {
         ArgumentNullException.ThrowIfNull(args);
 
-        LogProcessingError(_logger, args.Exception, args.EntityPath, args.ErrorSource);
+        LogProcessingError(Logger, args.Exception, args.EntityPath, args.ErrorSource);
 
         return Task.CompletedTask;
     }
@@ -137,7 +140,7 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
     {
         await DisposeAsyncCore().ConfigureAwait(false);
 
-        Dispose(false);
+        Dispose(disposing: false);
         GC.SuppressFinalize(this);
     }
 

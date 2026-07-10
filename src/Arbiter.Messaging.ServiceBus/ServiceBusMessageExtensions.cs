@@ -58,7 +58,7 @@ public static class ServiceBusMessageExtensions
     /// <param name="messagePackOptions">The MessagePack serializer options to use, or <see langword="null" /> to use the default options.</param>
     /// <param name="cancellationToken">A token used to cancel the deserialization operation.</param>
     /// <returns>The deserialized message.</returns>
-    public static TMessage ReadFromMessagePack<TMessage>(
+    public static TMessage? ReadFromMessagePack<TMessage>(
         this ServiceBusReceivedMessage message,
         MessagePackSerializerOptions? messagePackOptions = null,
         CancellationToken cancellationToken = default)
@@ -67,7 +67,14 @@ public static class ServiceBusMessageExtensions
 
         messagePackOptions ??= MessagePackDefaults.DefaultSerializerOptions;
 
-        return MessagePackSerializer.Deserialize<TMessage>(message.Body.ToMemory(), messagePackOptions, cancellationToken);
+        var typeName = message.Subject;
+        Type requestType = Type.GetType(typeName, throwOnError: false, ignoreCase: true)
+            ?? typeof(TMessage);
+
+        var buffer = message.Body.ToMemory();
+        var result = MessagePackSerializer.Deserialize(requestType, buffer, messagePackOptions, cancellationToken);
+
+        return result == null ? default : (TMessage)result;
     }
 
     /// <summary>
@@ -112,7 +119,7 @@ public static class ServiceBusMessageExtensions
     /// <param name="args">The event arguments containing the received message.</param>
     /// <param name="messagePackOptions">The MessagePack serializer options to use, or <see langword="null" /> to use the default options.</param>
     /// <returns>The deserialized message.</returns>
-    public static TMessage ReadFromMessagePack<TMessage>(
+    public static TMessage? ReadFromMessagePack<TMessage>(
         this ProcessMessageEventArgs args,
         MessagePackSerializerOptions? messagePackOptions = null)
     {

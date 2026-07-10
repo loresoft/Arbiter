@@ -5,6 +5,8 @@ items:
     href: patterns.md
   - name: Mediation
     href: mediation.md
+  - name: Background Queue
+    href: queue.md
   - name: Command Query
     href: commandQuery.md
 

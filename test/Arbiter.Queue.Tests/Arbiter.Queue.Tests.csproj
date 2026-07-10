@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="TestHost.Abstracts" />
+    <PackageReference Include="TUnit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Arbiter.Queue\Arbiter.Queue.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Arbiter.Mediation" />
+    <Using Include="Arbiter.Queue" />
+    <Using Include="AwesomeAssertions" />
+  </ItemGroup>
+
+</Project>

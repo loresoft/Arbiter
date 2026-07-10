@@ -2,6 +2,8 @@ using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 
+using Arbiter.Queue;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -386,6 +388,68 @@ public class ServiceBusExtensionsTests
         var options2 = serviceProvider.GetKeyedService<ServiceBusOptions>("Service2");
         options2.Should().NotBeNull();
         options2!.Queues.Should().Contain("queue2");
+    }
+
+    [Test]
+    public void AddServiceBusBackgroundQueue_RegistersBackgroundQueueAndProcessor()
+    {
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddLogging();
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            fullyQualifiedNamespace: "test",
+            credential: new TestTokenCredential(),
+            configureBus: options => options.AddQueue("background-work"));
+
+        services.AddServiceBusBackgroundQueue(
+            serviceName: "TestService",
+            queueName: "background-work");
+
+        services.AddServiceBusBackgroundProcessor(
+            serviceName: "TestService",
+            queueName: "background-work");
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var queue = serviceProvider.GetRequiredService<IBackgroundQueue>();
+        var sender = serviceProvider.GetRequiredKeyedService<ServiceBusSender>("background-work");
+        var processor = serviceProvider.GetRequiredKeyedService<ServiceBusProcessor>("background-work");
+        var serviceBusOptions = serviceProvider.GetRequiredKeyedService<ServiceBusOptions>("TestService");
+        var hostedServices = serviceProvider.GetServices<IHostedService>().ToArray();
+
+        queue.Should().BeOfType<ServiceBusBackgroundQueue>();
+        sender.Should().NotBeNull();
+        processor.Should().NotBeNull();
+        serviceBusOptions.Queues.Should().Contain("background-work");
+        hostedServices.Should().Contain(hs => hs is ServiceBusBackgroundProcessor);
+    }
+
+    [Test]
+    public void AddServiceBusBackgroundQueue_ThrowsForNullOrWhiteSpaceQueueName()
+    {
+        var services = new ServiceCollection();
+
+        var act = () => services.AddServiceBusBackgroundQueue(
+            serviceName: "TestService",
+            queueName: null!);
+
+        act.Should().Throw<ArgumentException>();
+
+        act = () => services.AddServiceBusBackgroundQueue(
+            serviceName: "TestService",
+            queueName: "");
+
+        act.Should().Throw<ArgumentException>();
+
+        act = () => services.AddServiceBusBackgroundQueue(
+            serviceName: "TestService",
+            queueName: "   ");
+
+        act.Should().Throw<ArgumentException>();
     }
 
     private sealed class TestTokenCredential : TokenCredential

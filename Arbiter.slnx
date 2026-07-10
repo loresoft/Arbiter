@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="src/Arbiter.Queue/Arbiter.Queue.csproj" />
   <Folder Name="/Azure/">
     <Project Path="src/Arbiter.Functions/Arbiter.Functions.csproj" Id="e27fe094-75ef-48d4-aef0-410a3a79c823" />
     <Project Path="src/Arbiter.Messaging.ServiceBus/Arbiter.Messaging.ServiceBus.csproj" Id="5e058d58-f563-461b-b0e5-efd7b67b699f" />
@@ -55,6 +56,7 @@
     <Project Path="test/Arbiter.Mediation.Tests/Arbiter.Mediation.Tests.csproj" />
     <Project Path="test/Arbiter.Messaging.ServiceBus.Tests/Arbiter.Messaging.ServiceBus.Tests.csproj" Id="65e5b4e8-9c88-41ee-9487-80c378a18133" />
     <Project Path="test/Arbiter.OpenTelemetry.Monitor.Tests/Arbiter.OpenTelemetry.Monitor.Tests.csproj" />
+    <Project Path="test/Arbiter.Queue.Tests/Arbiter.Queue.Tests.csproj" />
     <Project Path="test/Arbiter.Services.Tests/Arbiter.Services.Tests.csproj" Id="f3d73b4c-09de-4369-b45a-eba1aac348ed" />
     <Project Path="test/Arbiter.Storage.Blobs.Tests/Arbiter.Storage.Blobs.Tests.csproj" />
   </Folder>
