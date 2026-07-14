@@ -5,7 +5,7 @@ description: Background request queues for mediator commands
 
 # Background Queue
 
-`Arbiter.Queue` provides a background queue abstraction for mediator requests. Queued work is represented as an `IRequest<Unit>` and processed through `IMediator`, so existing request handlers and pipeline behaviors still apply.
+`Arbiter.Queue` provides a background queue abstraction for mediator requests. Queued work is represented as an `IRequest` and processed through `IMediator`, so existing request handlers and pipeline behaviors still apply.
 
 ## In-process Queue
 
