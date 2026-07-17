@@ -53,20 +53,20 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.8.0" />
     <PackageVersion Include="Microsoft.Graph" Version="6.2.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.13.1" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.13.2" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.2.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.15.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.16.0" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
     <PackageVersion Include="Rocks" Version="10.3.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.12" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.15" />
     <PackageVersion Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="starkbank-ecdsa" Version="1.3.3" />
@@ -77,9 +77,9 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.0" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.13.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.13.0" />
-    <PackageVersion Include="TUnit" Version="1.60.0" />
+    <PackageVersion Include="TUnit" Version="1.61.0" />
     <PackageVersion Include="Twilio" Version="7.14.9" />
-    <PackageVersion Include="Verify.TUnit" Version="31.24.2" />
+    <PackageVersion Include="Verify.TUnit" Version="31.24.3" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
