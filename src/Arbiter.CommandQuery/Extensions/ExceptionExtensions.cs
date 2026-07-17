@@ -54,7 +54,7 @@ public static class ExceptionExtensions
 
                 problemDetails.Title = "One or more validation errors occurred.";
                 problemDetails.Status = (int)HttpStatusCode.BadRequest;
-                problemDetails.Extensions.Add("errors", errors);
+                problemDetails.Errors = errors;
                 break;
 
             case DomainException domainException:
@@ -66,7 +66,7 @@ public static class ExceptionExtensions
                 problemDetails.Status = domainException.StatusCode;
 
                 if (domainException.Errors != null)
-                    problemDetails.Extensions.Add("errors", domainException.Errors);
+                    problemDetails.Errors = domainException.Errors;
 
                 break;
             default:
@@ -81,8 +81,7 @@ public static class ExceptionExtensions
         var baseException = workingException.GetBaseException();
 
         problemDetails.Detail = baseException.Message;
-        problemDetails.Extensions.Add("message", workingException.Message);
-        problemDetails.Extensions.Add("exception", workingException.ToString());
+        problemDetails.Exception = workingException.ToString();
 
         return problemDetails;
     }

@@ -1,5 +1,5 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Models;
-using Arbiter.Health.Commands;
 using Arbiter.Health.Handlers;
 using Arbiter.Health.HealthChecks;
 using Arbiter.Mediation;

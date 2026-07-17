@@ -1,12 +1,11 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
-using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Models;
 
 using MessagePack;
 
-namespace Arbiter.Health.Commands;
+namespace Arbiter.CommandQuery.Commands;
 
 /// <summary>
 /// Represents a command that requests a health report for the current system.

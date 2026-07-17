@@ -1,6 +1,6 @@
+using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Handlers;
 using Arbiter.CommandQuery.Models;
-using Arbiter.Health.Commands;
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;

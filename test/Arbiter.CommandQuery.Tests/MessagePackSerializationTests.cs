@@ -724,12 +724,6 @@ public class MessagePackSerializationTests
             {
                 ["Items"] = ["At least one item is required."],
                 ["ShippingAddress"] = ["Invalid postal code.", "State is required."]
-            },
-            Extensions = new Dictionary<string, object?>
-            {
-                ["correlationId"] = "abc-123-def-456",
-                ["retryable"] = false,
-                ["estimatedResolution"] = "Contact support"
             }
         };
 
@@ -766,10 +760,7 @@ public class MessagePackSerializationTests
         deserialized.Status.Should().BeNull();
         deserialized.Detail.Should().BeNull();
         deserialized.Instance.Should().BeNull();
-        deserialized.Errors.Should().NotBeNull();
-        deserialized.Errors.Should().BeEmpty();
-        deserialized.Extensions.Should().NotBeNull();
-        deserialized.Extensions.Should().BeEmpty();
+        deserialized.Errors.Should().BeNull();
     }
 
     // Helper class for testing complex type serialization
