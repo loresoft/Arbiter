@@ -3,11 +3,14 @@ using System.Collections.Frozen;
 namespace Arbiter.Services;
 
 /// <summary>
-/// File extension to media type mapping. Lookups are case-insensitive and accept an extension
-/// with or without a leading dot, a bare file name, a full path, or a
-/// URL (any query string or fragment suffix after the extension is ignored).
+/// Maps common file extensions to media types and media types to canonical file extensions.
 /// </summary>
 /// <remarks>
+/// <para>
+/// Lookups are case-insensitive and accept an extension with or without a leading dot,
+/// a bare file name, a full path, or a URL. Any query string or fragment suffix after
+/// the extension is ignored.
+/// </para>
 /// <para>
 /// On .NET 9 and later, lookups use <see cref="FrozenDictionary{TKey, TValue}"/> alternate
 /// lookup support for <see cref="ReadOnlySpan{T}"/> keys to avoid allocating lookup strings.
@@ -347,10 +350,10 @@ public static class MediaTypeMapping
     /// <summary>
     /// Gets the media type for an extension, file name, path, or URL
     /// ("png", ".png", "a.png", @"C:\a.png", "https://x.com/a.png?v=2").
-    /// Returns <see cref="DefaultMediaType"/> when unknown.
+    /// Returns <see cref="Application.OctetStream"/> when unknown.
     /// </summary>
     /// <param name="name">The extension, file name, path, or URL to resolve.</param>
-    /// <returns>The matching media type, or <see cref="DefaultMediaType"/> when no mapping exists.</returns>
+    /// <returns>The matching media type, or <see cref="Application.OctetStream"/> when no mapping exists.</returns>
     public static string GetMediaType(ReadOnlySpan<char> name)
     {
         var extension = NormalizeExtension(name);
