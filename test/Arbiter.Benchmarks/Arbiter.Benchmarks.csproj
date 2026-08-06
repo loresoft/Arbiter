@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,11 +11,6 @@
 
   <ItemGroup>
     <Compile Remove="Services\GuidBenchmark.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Suppress AutoMapper advisory, set the max depth for mappings as a remediation -->
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
   </ItemGroup>
 
   <ItemGroup>
