@@ -42,6 +42,9 @@ public static class TokenService
     private static ReadOnlySpan<byte> HeaderJson => "{\"alg\":\"HS256\",\"typ\":\"JWT\"}"u8;
     private static readonly string HeaderEncoded = Base64Url.EncodeToString(HeaderJson);
 
+    // maximum number of bytes to stack allocate before renting from the array pool
+    private const int StackThreshold = 256;
+
     /// <summary>
     /// The default key size, in bytes, for cryptographic operations.
     /// </summary>
@@ -53,6 +56,16 @@ public static class TokenService
     public const int DefaultKeySize = 32;
 
     /// <summary>
+    /// The default security code size, in bytes, used when generating short verification codes.
+    /// </summary>
+    /// <remarks>
+    /// This constant represents a 16 bytes (128 bits) code size, which provides sufficient entropy
+    /// for short-lived verification or confirmation codes.
+    /// </remarks>
+    /// <seealso cref="GenerateCode(int)"/>
+    public const int DefaultCodeSize = 16;
+
+    /// <summary>
     /// Represents the buffer time, in seconds, to account for clock skew in time-sensitive operations.
     /// </summary>
     /// <remarks>
@@ -61,6 +74,65 @@ public static class TokenService
     /// </remarks>
     /// <seealso cref="ValidateToken(string, string, out string?)"/>
     public const int ClockSkewSeconds = 30;
+
+
+    /// <summary>
+    /// Generates a cryptographically secure random code, encoded as a Base62 string.
+    /// </summary>
+    /// <param name="keySize">The size of the code in bytes. Defaults to <see cref="DefaultCodeSize"/> (128 bits).</param>
+    /// <returns>A Base62-encoded string representing the generated code.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keySize"/> is less than or equal to zero.</exception>
+    /// <remarks>
+    /// Base62 encoding is used so the resulting code contains only alphanumeric characters,
+    /// making it safe to include in URLs and easy for users to enter manually.
+    /// </remarks>
+    public static string GenerateCode(int keySize = DefaultCodeSize)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(keySize);
+
+        Span<byte> keyBytes = stackalloc byte[keySize];
+        RandomNumberGenerator.Fill(keyBytes);
+
+        return Base62.EncodeToString(keyBytes);
+    }
+
+    /// <summary>
+    /// Computes a SHA-256 hash of the specified code, encoded as a Base64Url string.
+    /// </summary>
+    /// <param name="code">The value to hash.</param>
+    /// <returns>A Base64Url-encoded string representing the SHA-256 hash of <paramref name="code"/>.</returns>
+    /// <remarks>
+    /// Intended for hashing high-entropy values, such as codes produced by <see cref="GenerateCode(int)"/>,
+    /// so they can be stored without retaining the original value. This is not a password hashing algorithm.
+    /// </remarks>
+    /// <seealso cref="GenerateCode(int)"/>
+    public static string HashCode(ReadOnlySpan<char> code)
+    {
+        int byteCount = Encoding.UTF8.GetByteCount(code);
+
+        byte[]? rented = null;
+
+        // stack allocate for small inputs, otherwise rent from the shared pool
+        Span<byte> source = byteCount <= StackThreshold
+            ? stackalloc byte[StackThreshold]
+            : (rented = ArrayPool<byte>.Shared.Rent(byteCount));
+
+        try
+        {
+            int written = Encoding.UTF8.GetBytes(code, source);
+
+            Span<byte> hashBytes = stackalloc byte[SHA256.HashSizeInBytes];
+            SHA256.HashData(source[..written], hashBytes);
+
+            return Base64Url.EncodeToString(hashBytes);
+        }
+        finally
+        {
+            if (rented is not null)
+                ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+        }
+    }
+
 
     /// <summary>
     /// Generates a cryptographically secure random key, encoded as a Base64Url string.

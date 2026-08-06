@@ -125,6 +125,8 @@ public static class Base62
         int charCount = GetEncodedLength(source.Length);
 
         char[]? rented = null;
+
+        // stack allocate for small inputs, otherwise rent from the shared pool
         Span<char> buffer = charCount <= StackThreshold
             ? stackalloc char[StackThreshold]
             : (rented = ArrayPool<char>.Shared.Rent(charCount));

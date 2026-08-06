@@ -1,4 +1,6 @@
 using System.Buffers.Text;
+using System.Security.Cryptography;
+using System.Text;
 
 using Arbiter.Services;
 
@@ -334,5 +336,160 @@ public class TokenServiceTests
 
         // Assert
         isValid.Should().BeFalse();
+    }
+
+    [Test]
+    public void GenerateCodeReturnsAlphanumericString()
+    {
+        // Act
+        string code = TokenService.GenerateCode();
+
+        // Assert
+        code.Should().NotBeNullOrWhiteSpace();
+        code.Should().MatchRegex("^[0-9A-Za-z]+$");
+    }
+
+    [Test]
+    public void GenerateCodeReturnsUniqueValues()
+    {
+        // Act
+        string first = TokenService.GenerateCode();
+        string second = TokenService.GenerateCode();
+
+        // Assert
+        first.Should().NotBe(second);
+    }
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(16)]
+    [Arguments(32)]
+    [Arguments(512)]
+    public void GenerateCodeWithKeySizeReturnsValue(int keySize)
+    {
+        // Act
+        string code = TokenService.GenerateCode(keySize);
+
+        // Assert
+        code.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Test]
+    [Arguments(0)]
+    [Arguments(-1)]
+    public void GenerateCodeThrowsWhenKeySizeIsNotPositive(int keySize)
+    {
+        // Act
+        Action act = () => TokenService.GenerateCode(keySize);
+
+        // Assert
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public void HashCodeReturnsSameHashForSameInput()
+    {
+        // Arrange
+        const string code = "test-code";
+
+        // Act
+        string first = TokenService.HashCode(code);
+        string second = TokenService.HashCode(code);
+
+        // Assert
+        first.Should().Be(second);
+    }
+
+    [Test]
+    public void HashCodeReturnsDifferentHashForDifferentInput()
+    {
+        // Act
+        string first = TokenService.HashCode("test-code");
+        string second = TokenService.HashCode("test-cade");
+
+        // Assert
+        first.Should().NotBe(second);
+    }
+
+    [Test]
+    public void HashCodeReturnsBase64UrlEncodedSha256()
+    {
+        // Arrange
+        const string code = "test-code";
+        var expected = Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+        // Act
+        string hash = TokenService.HashCode(code);
+
+        // Assert
+        hash.Should().Be(expected);
+    }
+
+    [Test]
+    public void HashCodeReturnsEmptyInputHash()
+    {
+        // Arrange
+        var expected = Base64Url.EncodeToString(SHA256.HashData([]));
+
+        // Act
+        string hash = TokenService.HashCode(string.Empty);
+
+        // Assert
+        hash.Should().Be(expected);
+    }
+
+    [Test]
+    public void HashCodeHandlesInputLargerThanStackThreshold()
+    {
+        // Arrange, exceeds the 256 byte stack allocation threshold
+        var code = new string('a', 1024);
+        var expected = Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+        // Act
+        string hash = TokenService.HashCode(code);
+
+        // Assert
+        hash.Should().Be(expected);
+    }
+
+    [Test]
+    public void HashCodeHandlesMultiByteCharacters()
+    {
+        // Arrange, each character encodes to multiple UTF-8 bytes
+        var code = new string('\u00e9', 200);
+        var expected = Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+        // Act
+        string hash = TokenService.HashCode(code);
+
+        // Assert
+        hash.Should().Be(expected);
+    }
+
+    [Test]
+    public void HashCodeAcceptsSpanSlice()
+    {
+        // Arrange
+        const string code = "prefix-test-code";
+        var expected = TokenService.HashCode("test-code");
+
+        // Act
+        string hash = TokenService.HashCode(code.AsSpan(7));
+
+        // Assert
+        hash.Should().Be(expected);
+    }
+
+    [Test]
+    public void HashCodeOfGeneratedCodeIsStable()
+    {
+        // Arrange
+        string code = TokenService.GenerateCode();
+
+        // Act
+        string hash = TokenService.HashCode(code);
+
+        // Assert
+        hash.Should().Be(TokenService.HashCode(code));
     }
 }
