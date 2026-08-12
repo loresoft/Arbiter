@@ -27,6 +27,18 @@ public static class EndpointRouteExtensions
     }
 
     /// <summary>
+    /// Adds diagnostics endpoint routes to the specified service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    public static IServiceCollection AddDiagnosticRoutes(this IServiceCollection services)
+    {
+        services.AddSingleton<IEndpointRoute, DiagnosticsEndpoint>();
+        return services;
+    }
+
+
+    /// <summary>
     /// Maps route endpoints to the specified route builder. Uses service provider to get list of <see cref="IEndpointRoute"/> instances.
     /// </summary>
     /// <param name="endpoints">The <see cref="IEndpointRouteBuilder"/> to add the route to.</param>

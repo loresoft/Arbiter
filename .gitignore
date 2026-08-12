@@ -408,3 +408,4 @@ FodyWeavers.xsd
 *.log
 _site
 /.idea
+*.txt

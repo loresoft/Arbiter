@@ -1,0 +1,23 @@
+@baseAddress = https://localhost:7003
+@apiKey = 681a501ea926338477bd580b
+
+###
+GET {{baseAddress}}/api/config-debugger
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+###
+GET {{baseAddress}}/api/health-check
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+
+###
+GET {{baseAddress}}/api/claims-check
+X-API-KEY: {{apiKey}}
+Accept: application/json
+
+###
+GET {{baseAddress}}/api/cache-clear
+X-API-KEY: {{apiKey}}
+Accept: application/json

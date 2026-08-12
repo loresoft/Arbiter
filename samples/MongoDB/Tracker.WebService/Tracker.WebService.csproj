@@ -32,4 +32,13 @@
     <ProjectReference Include="..\..\..\src\Arbiter.CommandQuery.MongoDB\Arbiter.CommandQuery.MongoDB.csproj" />
   </ItemGroup>
 
+  <!-- Disable compile-time OpenAPI XML generator -->
+  <!-- Temporary workaround for issue with OpenAPI source generator -->
+  <!-- https://github.com/dotnet/aspnetcore/issues/64378 -->
+  <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Microsoft.AspNetCore.OpenApi.SourceGenerators.dll'" />
+    </ItemGroup>
+  </Target>
+
 </Project>

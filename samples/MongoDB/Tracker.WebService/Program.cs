@@ -112,7 +112,8 @@ public static class Program
             );
 
         services
-            .AddEndpointRoutes();
+            .AddEndpointRoutes()
+            .AddDiagnosticRoutes();
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions());

@@ -71,7 +71,8 @@ public static class Program
             .AddOpenApi(options => options.AddDocumentTransformer<SecurityKeyDocumentTransformer>());
 
         services
-            .AddEndpointRoutes();
+            .AddEndpointRoutes()
+            .AddDiagnosticRoutes();
 
         services
             .AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
