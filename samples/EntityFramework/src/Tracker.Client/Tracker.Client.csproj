@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazilla" />
+    <PackageReference Include="Humanizer" />
     <PackageReference Include="LoreSoft.Blazor.Controls" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />

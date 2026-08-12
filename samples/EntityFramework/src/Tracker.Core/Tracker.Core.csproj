@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.EntityFramework\Arbiter.CommandQuery.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Health\Arbiter.Health.csproj" />
     <ProjectReference Include="..\..\..\..\src\Arbiter.Mapping.Generators\Arbiter.Mapping.Generators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

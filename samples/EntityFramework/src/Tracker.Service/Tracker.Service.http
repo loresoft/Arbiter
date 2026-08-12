@@ -37,3 +37,15 @@ X-API-KEY: {{apiKey}}
   "name": "Updated Priority",
   "description": "Updated description for the priority"
 }
+
+### Health Check
+
+GET {{baseUrl}}/health-check
+Accept: application/json
+X-API-KEY: {{apiKey}}
+
+### Configuration Debugger
+
+GET {{baseUrl}}/config-debugger
+Accept: application/json
+X-API-KEY: {{apiKey}}

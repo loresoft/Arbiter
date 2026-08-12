@@ -180,18 +180,23 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
     }
 
     /// <summary>
-    /// Clears cached entries by invalidating all cache tags.
+    /// Clears cached entries by invalidating the specified cache tags, or all tags when none are specified.
     /// </summary>
     /// <param name="hybridCache">The configured hybrid cache instance.</param>
+    /// <param name="tags">The cache tags to invalidate. When empty, all cache entries are invalidated.</param>
     /// <param name="user">The current user principal.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating whether the cache was cleared.</returns>
     private async Task<IResult> CacheClear(
         [FromServices] HybridCache? hybridCache = null,
+        [FromQuery(Name = "tag")] string[]? tags = null,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Cache clear requested by {UserName}", user?.Identity?.Name ?? "anonymous");
+        _logger.LogInformation(
+            "Cache clear requested by {UserName} for tags: {Tags}",
+            user?.Identity?.Name ?? "anonymous",
+            tags != null ? string.Join(", ", tags) : "all");
 
         try
         {
@@ -201,7 +206,12 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
                 return TypedResults.NoContent();
             }
 
-            await hybridCache.RemoveByTagAsync("*", cancellationToken).ConfigureAwait(false);
+            // no tags specified, clear everything using the wildcard tag
+            var cacheTags = tags?.Where(t => !string.IsNullOrWhiteSpace(t)).ToArray();
+            if (cacheTags is null || cacheTags.Length == 0)
+                cacheTags = ["*"];
+
+            await hybridCache.RemoveByTagAsync(cacheTags, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok("Cache cleared by request");
         }

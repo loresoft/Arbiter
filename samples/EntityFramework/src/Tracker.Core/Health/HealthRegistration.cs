@@ -1,3 +1,5 @@
+using Arbiter.Health;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -10,6 +12,8 @@ public static class HealthRegistration
     [RegisterServices]
     public static void Register(IServiceCollection services)
     {
+        services.AddHealthServices();
+
         var health = services.AddHealthChecks();
 
         //default liveness check to ensure app is responsive

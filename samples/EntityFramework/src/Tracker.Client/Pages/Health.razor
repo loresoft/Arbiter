@@ -1,0 +1,96 @@
+@page "/health"
+
+@using Arbiter.CommandQuery.Commands
+@using Arbiter.CommandQuery.Models
+@using Arbiter.Dispatcher.Client
+@using Humanizer
+
+<PageTitle>Health Check</PageTitle>
+
+<div class="container-fluid">
+    <LoadingBlock IsLoading="HealthReport == null">
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th class="table-secondary">Overall Status</th>
+                    <td>
+                        <IconSelector Name="@HealthReport?.Status" />
+                        @HealthReport?.Status
+                    </td>
+                    <th class="table-secondary">Total Duration</th>
+                    <td>@HealthReport?.TotalDuration?.Humanize()</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered table-hover">
+            <colgroup>
+                <col style="width: 30px" />
+                <col style="" />
+                <col style="width: 120px" />
+                <col style="width: 180px" />
+                <col style="" />
+                <col style="width: 170px" />
+            </colgroup>
+            <thead>
+                <tr class="table-secondary">
+                    <th scope="col"></th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tags</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var healthEntiry in HealthReport?.Entries ?? [])
+                {
+                    <tr>
+                        <td class="text-center">
+                            <IconSelector Name="@healthEntiry.Status" />
+                        </td>
+                        <td>@healthEntiry.Key</td>
+                        <td>@healthEntiry.Status</td>
+                        <td>@healthEntiry.Tags?.Humanize(",")</td>
+                        <td>
+                            @healthEntiry.Description
+                            @healthEntiry.Message
+                        </td>
+                        <td>
+                            @healthEntiry.Duration?.Humanize()
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </LoadingBlock>
+</div>
+
+@code {
+    [Inject]
+    public NotificationService NotificationService { get; set; } = null!;
+
+    [Inject]
+    public IDispatcher Dispatcher { get; set; } = null!;
+
+    protected HealthReportModel? HealthReport { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var command = new HealthCheckCommand(null);
+            var result = await Dispatcher.Send(command);
+
+            HealthReport = result;
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError(ex);
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
