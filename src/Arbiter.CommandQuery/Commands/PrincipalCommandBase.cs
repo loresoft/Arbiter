@@ -33,7 +33,7 @@ namespace Arbiter.CommandQuery.Commands;
 /// Console.WriteLine($"User Name: {result?.Name}");
 /// </code>
 /// </example>
-public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal, IResponseType
+public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IRequestPrincipal, IResponseType, IRequestContext
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrincipalCommandBase{TResponse}"/> class.
@@ -83,6 +83,25 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     [IgnoreMember]
     public string? ActivatedBy { get; private set; }
 
+    /// <summary>
+    /// Gets the IP address the request originated from.
+    /// </summary>
+    /// <value>
+    /// The client IP address, or <see langword="null"/> when it is not available.
+    /// </value>
+    [JsonIgnore]
+    [IgnoreMember]
+    public string? IpAddress { get; private set; }
+
+    /// <summary>
+    /// Gets the user agent reported by the client that issued the request.
+    /// </summary>
+    /// <value>
+    /// The client user agent, or <see langword="null"/> when it is not available.
+    /// </value>
+    [JsonIgnore]
+    [IgnoreMember]
+    public string? UserAgent { get; private set; }
 
     /// <summary>
     /// Applies the specified <see cref="ClaimsPrincipal"/> to the command.
@@ -96,7 +115,19 @@ public abstract record PrincipalCommandBase<TResponse> : IRequest<TResponse>, IR
     }
 
     /// <summary>
+    /// Applies the specified request information to the command.
+    /// </summary>
+    /// <param name="ipAddress">The IP address the request originated from; may be <see langword="null"/>.</param>
+    /// <param name="userAgent">The user agent reported by the client; may be <see langword="null"/>.</param>
+    void IRequestContext.ApplyContext(string? ipAddress, string? userAgent)
+    {
+        IpAddress = ipAddress;
+        UserAgent = userAgent;
+    }
+
+    /// <summary>
     /// Gets the type of the response returned by the command.
     /// </summary>
     Type IResponseType.ResponseType => typeof(TResponse);
+
 }

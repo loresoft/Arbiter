@@ -72,10 +72,8 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// This method adds endpoints for:
     /// <list type="bullet">
     /// <item><description>GET {id} - Retrieve an entity by ID</description></item>
-    /// <item><description>GET page - Retrieve a paged result of entities</description></item>
-    /// <item><description>POST page - Retrieve a paged result of entities using a query object</description></item>
-    /// <item><description>GET (root) - Retrieve a list of entities by query</description></item>
-    /// <item><description>POST query - Retrieve a list of entities using a select object</description></item>
+    /// <item><description>GET (root) - Retrieve a paged result of entities using query string parameters</description></item>
+    /// <item><description>POST query - Retrieve a paged result of entities using a query object</description></item>
     /// </list>
     /// </remarks>
     protected virtual void MapGroup(RouteGroupBuilder group)
@@ -105,6 +103,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// <summary>
     /// Retrieves a single entity by its identifier using the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="id">The identifier of the entity to retrieve.</param>
     /// <param name="user">The current security claims principal.</param>
@@ -113,6 +112,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the entity or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> GetQuery(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
         ClaimsPrincipal? user = default,
@@ -121,6 +121,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
         try
         {
             var command = new EntityIdentifierQuery<TKey, TReadModel>(user, id);
+            command.ApplyContext(httpContext);
 
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
@@ -138,6 +139,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// <summary>
     /// Retrieves a paged result of entities using query string parameters.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="q">The raw query expression.</param>
     /// <param name="sort">The sort expression.</param>
@@ -149,6 +151,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// An awaitable task returning either <see cref="EntityPagedResult{TListModel}"/> with the paged result or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<EntityPagedResult<TListModel>>, ProblemHttpResult>> GetPagedQuery(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromQuery] string? q = null,
         [FromQuery] string? sort = null,
@@ -163,6 +166,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
             entityQuery.AddSort(sort);
 
             var command = new EntityPagedQuery<TListModel>(user, entityQuery);
+            command.ApplyContext(httpContext);
 
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
@@ -180,6 +184,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// <summary>
     /// Retrieves a paged result of entities using a posted <see cref="EntityQuery"/> object.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="entityQuery">The entity query specifying filter, sort, and pagination.</param>
     /// <param name="user">The current security claims principal.</param>
@@ -188,6 +193,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
     /// An awaitable task returning either <see cref="EntityPagedResult{TListModel}"/> with the paged result or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<EntityPagedResult<TListModel>>, ProblemHttpResult>> PostPagedQuery(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromBody] EntityQuery entityQuery,
         ClaimsPrincipal? user = default,
@@ -196,6 +202,7 @@ public abstract partial class EntityQueryEndpointBase<TKey, TListModel, TReadMod
         try
         {
             var command = new EntityPagedQuery<TListModel>(user, entityQuery);
+            command.ApplyContext(httpContext);
 
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 

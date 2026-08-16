@@ -123,11 +123,13 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
     /// <summary>
     /// Executes the health check command and returns the current health report.
     /// </summary>
+    /// <param name="httpContext">The HTTP context containing the connection and header information.</param>
     /// <param name="mediator">The mediator used to dispatch the health check command.</param>
     /// <param name="user">The current user principal.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A health report result or problem details when an error occurs.</returns>
     private async Task<Results<Ok<HealthReportModel>, ProblemHttpResult>> HealthCheck(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
@@ -137,6 +139,8 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         try
         {
             var command = new HealthCheckCommand(user);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);

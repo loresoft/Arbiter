@@ -118,6 +118,15 @@ public partial class DispatcherEndpoint
             if (request is IRequestPrincipal requestPrincipal)
                 requestPrincipal.ApplyPrincipal(user);
 
+            // Apply current request context if supported
+            if (request is IRequestContext requestContext)
+            {
+                requestContext.ApplyContext(
+                    httpRequest.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    httpRequest.Headers.UserAgent.ToString()
+                );
+            }
+
             var response = await mediator
                 .Send(request, cancellationToken)
                 .ConfigureAwait(false);

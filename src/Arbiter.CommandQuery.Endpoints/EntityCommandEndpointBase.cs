@@ -97,6 +97,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// <summary>
     /// Retrieves an entity for update by its identifier using the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="id">The identifier of the entity to retrieve.</param>
     /// <param name="user">The current security claims principal.</param>
@@ -105,6 +106,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// An awaitable task returning either <see cref="Ok{TUpdateModel}"/> with the update model or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TUpdateModel>, ProblemHttpResult>> GetUpdateQuery(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
         ClaimsPrincipal? user = default,
@@ -113,6 +115,8 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
         try
         {
             var command = new EntityIdentifierQuery<TKey, TUpdateModel>(user, id);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
@@ -129,6 +133,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// <summary>
     /// Creates a new entity using the provided create model and the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="createModel">The model containing data for the new entity.</param>
     /// <param name="user">The current security claims principal.</param>
@@ -137,6 +142,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the created entity or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> CreateCommand(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromBody] TCreateModel createModel,
         ClaimsPrincipal? user = default,
@@ -145,6 +151,8 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
         try
         {
             var command = new EntityCreateCommand<TCreateModel, TReadModel>(user, createModel);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
@@ -161,6 +169,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// <summary>
     /// Updates an existing entity using the provided update model and the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="id">The identifier of the entity to update.</param>
     /// <param name="updateModel">The model containing updated data for the entity.</param>
@@ -170,6 +179,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the updated entity or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> UpdateCommand(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
         [FromBody] TUpdateModel updateModel,
@@ -179,6 +189,8 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
         try
         {
             var command = new EntityUpdateCommand<TKey, TUpdateModel, TReadModel>(user, id, updateModel);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
@@ -195,6 +207,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// <summary>
     /// Applies a JSON patch document to an existing entity using the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="id">The identifier of the entity to patch.</param>
     /// <param name="jsonPatch">The JSON patch document describing the changes.</param>
@@ -204,6 +217,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the patched entity or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> PatchCommand(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
         [FromBody] JsonPatchDocument jsonPatch,
@@ -213,6 +227,8 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
         try
         {
             var command = new EntityPatchCommand<TKey, TReadModel>(user, id, jsonPatch);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
@@ -229,6 +245,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// <summary>
     /// Deletes an existing entity by its identifier using the mediator service.
     /// </summary>
+    /// <param name="httpContext">The current <see cref="HttpContext"/> used to apply request context information.</param>
     /// <param name="mediator">The <see cref="IMediator"/> to send the request to.</param>
     /// <param name="id">The identifier of the entity to delete.</param>
     /// <param name="user">The current security claims principal.</param>
@@ -237,6 +254,7 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
     /// An awaitable task returning either <see cref="Ok{TReadModel}"/> with the deleted entity or <see cref="ProblemHttpResult"/> on error.
     /// </returns>
     protected virtual async Task<Results<Ok<TReadModel>, ProblemHttpResult>> DeleteCommand(
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         [FromRoute] TKey id,
         ClaimsPrincipal? user = default,
@@ -245,6 +263,8 @@ public abstract partial class EntityCommandEndpointBase<TKey, TListModel, TReadM
         try
         {
             var command = new EntityDeleteCommand<TKey, TReadModel>(user, id);
+            command.ApplyContext(httpContext);
+
             var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return TypedResults.Ok(result);
