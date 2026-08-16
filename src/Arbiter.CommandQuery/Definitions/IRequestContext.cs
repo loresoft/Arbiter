@@ -4,7 +4,13 @@ namespace Arbiter.CommandQuery.Definitions;
 /// Defines contextual information about the current request, such as the originating
 /// IP address and user agent.
 /// </summary>
-public interface IRequestContext
+/// <remarks>
+/// Implementations are typically populated once per request, before the request is dispatched,
+/// by calling <see cref="ApplyContext(string?, string?)"/>. Values are informational and may be
+/// absent when the transport does not provide them.
+/// </remarks>
+/// <seealso cref="IRequestPrincipal"/>
+public interface IRequestContext : IRequestPrincipal
 {
     /// <summary>
     /// Gets the IP address the request originated from.
@@ -23,5 +29,8 @@ public interface IRequestContext
     /// </summary>
     /// <param name="ipAddress">The IP address the request originated from; may be <see langword="null"/>.</param>
     /// <param name="userAgent">The user agent reported by the client; may be <see langword="null"/>.</param>
+    /// <remarks>
+    /// After this method returns, <see cref="IpAddress"/> and <see cref="UserAgent"/> reflect the supplied values.
+    /// </remarks>
     void ApplyContext(string? ipAddress, string? userAgent);
 }
