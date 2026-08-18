@@ -2,7 +2,7 @@ using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.AspNetCore.Http;
 
-namespace Arbiter.CommandQuery.Endpoints;
+namespace Arbiter.Dispatcher.Server;
 
 /// <summary>
 /// Extension methods for populating an <see cref="IRequestContext"/> from an <see cref="HttpContext"/>.

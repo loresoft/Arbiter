@@ -64,19 +64,19 @@ public partial class DispatcherEndpoint
     /// Supports both JSON and MessagePack serialization based on the Content-Type header.
     /// Defaults to JSON when no Content-Type header is specified.
     /// </summary>
-    /// <param name="context">The HTTP context for the current request.</param>
+    /// <param name="httpContext">The HTTP context for the current request.</param>
     /// <param name="mediator">The mediator instance used to send the deserialized request.</param>
     /// <param name="user">The claims principal representing the current user. Applied to requests that implement <see cref="IRequestPrincipal"/>.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>An <see cref="IResult"/> containing the mediator response or problem details.</returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "<Pending>")]
     private async Task<IResult> Send(
-        HttpContext context,
+        HttpContext httpContext,
         [FromServices] IMediator mediator,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        var httpRequest = context.Request;
+        var httpRequest = httpContext.Request;
 
         // Determine the content type early (default to JSON)
         var contentType = httpRequest.ContentType ?? MediaTypeNames.Application.Json;
@@ -105,8 +105,8 @@ public partial class DispatcherEndpoint
             activity?.SetTag(DispatcherTelemetry.RequestTypeTag, requestType.FullName);
 
             var request = (isJson)
-                ? await ReadJsonBody(context, requestType, cancellationToken).ConfigureAwait(false)
-                : await ReadMessagePack(context, requestType, cancellationToken).ConfigureAwait(false);
+                ? await ReadJsonBody(httpContext, requestType, cancellationToken).ConfigureAwait(false)
+                : await ReadMessagePack(httpContext, requestType, cancellationToken).ConfigureAwait(false);
 
             if (request == null)
             {
@@ -120,12 +120,7 @@ public partial class DispatcherEndpoint
 
             // Apply current request context if supported
             if (request is IRequestContext requestContext)
-            {
-                requestContext.ApplyContext(
-                    httpRequest.HttpContext.Connection.RemoteIpAddress?.ToString(),
-                    httpRequest.Headers.UserAgent.ToString()
-                );
-            }
+                requestContext.ApplyContext(httpContext);
 
             var response = await mediator
                 .Send(request, cancellationToken)
@@ -133,7 +128,7 @@ public partial class DispatcherEndpoint
 
             if (response == null)
             {
-                context.Response.StatusCode = StatusCodes.Status204NoContent;
+                httpContext.Response.StatusCode = StatusCodes.Status204NoContent;
                 return Results.Empty;
             }
 
