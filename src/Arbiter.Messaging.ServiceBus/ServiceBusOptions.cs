@@ -73,6 +73,69 @@ public sealed class ServiceBusOptions
     /// </summary>
     public bool EnableBatchedOperations { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets the idle duration after which a created subscription is automatically deleted.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to <see cref="TimeSpan.MaxValue" />, which never auto-deletes. Set a finite value when each
+    /// application instance creates its own uniquely named subscription, so subscriptions abandoned by restarted
+    /// or scaled-in instances are reclaimed instead of accumulating against the namespace subscription limit.
+    /// The minimum value supported by Azure Service Bus is five minutes.
+    /// </remarks>
+    public TimeSpan AutoDeleteOnIdle { get; set; } = TimeSpan.MaxValue;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether created queues and subscriptions require sessions.
+    /// </summary>
+    /// <remarks>
+    /// Enable for ordered, session-based processing. This value can only be applied when the entity is created;
+    /// existing entities are not modified.
+    /// </remarks>
+    public bool RequiresSession { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether created queues and topics detect duplicate messages.
+    /// </summary>
+    /// <remarks>
+    /// Duplicates are detected using the message identifier within <see cref="DuplicateDetectionHistoryTimeWindow" />.
+    /// This value can only be applied when the entity is created; existing entities are not modified.
+    /// </remarks>
+    public bool RequiresDuplicateDetection { get; set; }
+
+    /// <summary>
+    /// Gets or sets the time window used for duplicate detection when <see cref="RequiresDuplicateDetection" /> is enabled.
+    /// </summary>
+    /// <remarks>
+    /// Azure Service Bus supports values between 20 seconds and 7 days.
+    /// </remarks>
+    public TimeSpan DuplicateDetectionHistoryTimeWindow { get; set; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Gets or sets the maximum size, in megabytes, of created queues and topics.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to 1024 MB. This value can only be applied when the entity is created; existing entities are not modified.
+    /// </remarks>
+    public long MaxSizeInMegabytes { get; set; } = 1024;
+
+    /// <summary>
+    /// Gets or sets the maximum message size, in kilobytes, for created queues and topics.
+    /// </summary>
+    /// <remarks>
+    /// Supported only by Premium namespaces. Leave <see langword="null" /> for Standard namespaces, where setting a
+    /// value causes entity creation to fail.
+    /// </remarks>
+    public long? MaxMessageSizeInKilobytes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether created queues and topics are partitioned.
+    /// </summary>
+    /// <remarks>
+    /// Partitioning increases throughput and availability. This value can only be applied when the entity is created;
+    /// existing entities are not modified.
+    /// </remarks>
+    public bool EnablePartitioning { get; set; }
+
 
     /// <summary>
     /// Sets the default message time-to-live for created entities.
@@ -132,6 +195,83 @@ public sealed class ServiceBusOptions
     public ServiceBusOptions WithEnableBatchedOperations(bool enableBatchedOperations)
     {
         EnableBatchedOperations = enableBatchedOperations;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the idle duration after which a created subscription is automatically deleted.
+    /// </summary>
+    /// <param name="autoDeleteOnIdle">The idle duration before automatic deletion. Must be at least five minutes.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(autoDeleteOnIdle, TimeSpan.FromMinutes(5));
+
+        AutoDeleteOnIdle = autoDeleteOnIdle;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets whether created queues and subscriptions require sessions.
+    /// </summary>
+    /// <param name="requiresSession">A value indicating whether sessions are required.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithRequiresSession(bool requiresSession = true)
+    {
+        RequiresSession = requiresSession;
+        return this;
+    }
+
+    /// <summary>
+    /// Enables duplicate detection for created queues and topics using the specified history time window.
+    /// </summary>
+    /// <param name="duplicateDetectionHistoryTimeWindow">The duplicate detection history time window. Must be between 20 seconds and 7 days.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithDuplicateDetection(TimeSpan duplicateDetectionHistoryTimeWindow)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(duplicateDetectionHistoryTimeWindow, TimeSpan.FromSeconds(20));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(duplicateDetectionHistoryTimeWindow, TimeSpan.FromDays(7));
+
+        RequiresDuplicateDetection = true;
+        DuplicateDetectionHistoryTimeWindow = duplicateDetectionHistoryTimeWindow;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the maximum size, in megabytes, of created queues and topics.
+    /// </summary>
+    /// <param name="maxSizeInMegabytes">The maximum entity size in megabytes.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxSizeInMegabytes, 1);
+
+        MaxSizeInMegabytes = maxSizeInMegabytes;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the maximum message size, in kilobytes, for created queues and topics. Premium namespaces only.
+    /// </summary>
+    /// <param name="maxMessageSizeInKilobytes">The maximum message size in kilobytes, or <see langword="null" /> to use the namespace default.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithMaxMessageSizeInKilobytes(long? maxMessageSizeInKilobytes)
+    {
+        if (maxMessageSizeInKilobytes is { } size)
+            ArgumentOutOfRangeException.ThrowIfLessThan(size, 1, nameof(maxMessageSizeInKilobytes));
+
+        MaxMessageSizeInKilobytes = maxMessageSizeInKilobytes;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets whether created queues and topics are partitioned.
+    /// </summary>
+    /// <param name="enablePartitioning">A value indicating whether partitioning is enabled.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithEnablePartitioning(bool enablePartitioning = true)
+    {
+        EnablePartitioning = enablePartitioning;
         return this;
     }
 

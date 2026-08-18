@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using MessagePack;
+
 namespace Arbiter.Messaging.ServiceBus.Cache;
 
 /// <summary>
@@ -9,6 +11,7 @@ namespace Arbiter.Messaging.ServiceBus.Cache;
 /// The message is published when a command expires the local cache and is received by other applications so they can
 /// remove the matching key and tags from their own <see cref="Microsoft.Extensions.Caching.Hybrid.HybridCache"/>.
 /// </remarks>
+[MessagePackObject(true)]
 public sealed record CacheExpireMessage
 {
     /// <summary>

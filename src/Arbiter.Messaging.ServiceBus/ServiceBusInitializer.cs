@@ -97,14 +97,7 @@ public sealed partial class ServiceBusInitializer : IHostedService
         if (queueExists.Value)
             return;
 
-        var options = new CreateQueueOptions(queue)
-        {
-            DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
-            MaxDeliveryCount = option.MaxDeliveryCount,
-            LockDuration = option.LockDuration,
-            DeadLetteringOnMessageExpiration = option.DeadLetteringOnMessageExpiration,
-            EnableBatchedOperations = option.EnableBatchedOperations,
-        };
+        var options = CreateQueueOptions(option, queue);
 
         LogCreatingQueue(_logger, queue);
 
@@ -129,11 +122,7 @@ public sealed partial class ServiceBusInitializer : IHostedService
         var topicExists = await adminClient.TopicExistsAsync(topic, cancellationToken).ConfigureAwait(false);
         if (!topicExists.Value)
         {
-            var topicOptions = new CreateTopicOptions(topic)
-            {
-                DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
-                EnableBatchedOperations = option.EnableBatchedOperations,
-            };
+            var topicOptions = CreateTopicOptions(option, topic);
 
             LogCreatingTopic(_logger, topic);
 
@@ -156,14 +145,7 @@ public sealed partial class ServiceBusInitializer : IHostedService
             if (subscriptionExists.Value)
                 continue;
 
-            var subscriptionOptions = new CreateSubscriptionOptions(topic, subscriptionName)
-            {
-                DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
-                MaxDeliveryCount = option.MaxDeliveryCount,
-                LockDuration = option.LockDuration,
-                DeadLetteringOnMessageExpiration = option.DeadLetteringOnMessageExpiration,
-                EnableBatchedOperations = option.EnableBatchedOperations,
-            };
+            var subscriptionOptions = CreateSubscriptionOptions(option, topic, subscriptionName);
 
             LogCreatingSubscription(_logger, subscriptionName, topic);
 
@@ -176,6 +158,71 @@ public sealed partial class ServiceBusInitializer : IHostedService
                 LogSubscriptionAlreadyExists(_logger, ex, subscriptionName, topic);
             }
         }
+    }
+
+
+    private static CreateQueueOptions CreateQueueOptions(
+        ServiceBusOptions option,
+        string queue)
+    {
+        var options = new CreateQueueOptions(queue)
+        {
+            DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
+            MaxDeliveryCount = option.MaxDeliveryCount,
+            LockDuration = option.LockDuration,
+            DeadLetteringOnMessageExpiration = option.DeadLetteringOnMessageExpiration,
+            EnableBatchedOperations = option.EnableBatchedOperations,
+            RequiresSession = option.RequiresSession,
+            RequiresDuplicateDetection = option.RequiresDuplicateDetection,
+            MaxSizeInMegabytes = option.MaxSizeInMegabytes,
+            EnablePartitioning = option.EnablePartitioning,
+        };
+
+        if (option.RequiresDuplicateDetection)
+            options.DuplicateDetectionHistoryTimeWindow = option.DuplicateDetectionHistoryTimeWindow;
+
+        if (option.MaxMessageSizeInKilobytes is { } maxMessageSize)
+            options.MaxMessageSizeInKilobytes = maxMessageSize;
+        return options;
+    }
+
+    private static CreateSubscriptionOptions CreateSubscriptionOptions(
+        ServiceBusOptions option,
+        string topic,
+        string subscriptionName)
+    {
+        return new CreateSubscriptionOptions(topic, subscriptionName)
+        {
+            DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
+            MaxDeliveryCount = option.MaxDeliveryCount,
+            LockDuration = option.LockDuration,
+            DeadLetteringOnMessageExpiration = option.DeadLetteringOnMessageExpiration,
+            EnableBatchedOperations = option.EnableBatchedOperations,
+            AutoDeleteOnIdle = option.AutoDeleteOnIdle,
+            RequiresSession = option.RequiresSession,
+        };
+    }
+
+    private static CreateTopicOptions CreateTopicOptions(
+        ServiceBusOptions option,
+        string topic)
+    {
+        var topicOptions = new CreateTopicOptions(topic)
+        {
+            DefaultMessageTimeToLive = option.DefaultMessageTimeToLive,
+            EnableBatchedOperations = option.EnableBatchedOperations,
+            RequiresDuplicateDetection = option.RequiresDuplicateDetection,
+            MaxSizeInMegabytes = option.MaxSizeInMegabytes,
+            EnablePartitioning = option.EnablePartitioning,
+        };
+
+        if (option.RequiresDuplicateDetection)
+            topicOptions.DuplicateDetectionHistoryTimeWindow = option.DuplicateDetectionHistoryTimeWindow;
+
+        if (option.MaxMessageSizeInKilobytes is { } maxMessageSize)
+            topicOptions.MaxMessageSizeInKilobytes = maxMessageSize;
+
+        return topicOptions;
     }
 
 
