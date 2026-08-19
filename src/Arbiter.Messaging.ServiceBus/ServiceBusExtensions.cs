@@ -33,8 +33,9 @@ public static class ServiceBusExtensions
     /// Queues and topics must be added here, as their names are required to register senders eagerly.
     /// </param>
     /// <param name="configureOptions">
-    /// An optional delegate used to configure runtime options (such as <see cref="ServiceBusOptions.NameSuffix" />)
-    /// using values resolved from the <see cref="IServiceProvider" />, for example the current environment name.
+    /// An optional delegate used to configure runtime options (such as <see cref="ServiceBusOptions.NameSuffix" />
+    /// or <see cref="ServiceBusOptions.SubscriptionSuffix" />) using values resolved from the
+    /// <see cref="IServiceProvider" />, for example the current environment name.
     /// </param>
     /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
     public static IServiceCollection AddServiceBus(
@@ -68,8 +69,9 @@ public static class ServiceBusExtensions
     /// Queues and topics must be added here, as their names are required to register senders eagerly.
     /// </param>
     /// <param name="configureOptions">
-    /// An optional delegate used to configure runtime options (such as <see cref="ServiceBusOptions.NameSuffix" />)
-    /// using values resolved from the <see cref="IServiceProvider" />, for example the current environment name.
+    /// An optional delegate used to configure runtime options (such as <see cref="ServiceBusOptions.NameSuffix" />
+    /// or <see cref="ServiceBusOptions.SubscriptionSuffix" />) using values resolved from the
+    /// <see cref="IServiceProvider" />, for example the current environment name.
     /// </param>
     /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
     public static IServiceCollection AddServiceBus(
@@ -164,12 +166,16 @@ public static class ServiceBusExtensions
 
             // if NameSuffix is provided, append to topic name for processor resolution
             var entityName = options.FormatName(topicName);
+
+            // if SubscriptionSuffix is provided, append to subscription name for processor resolution
+            var subscription = options.FormatSubscription(subscriptionName);
+
             var serviceBusClient = sp.GetRequiredKeyedService<ServiceBusClient>(options.ServiceKey);
 
             var processorOptions = new ServiceBusProcessorOptions();
             configureProcessor?.Invoke(processorOptions);
 
-            return serviceBusClient.CreateProcessor(entityName, subscriptionName, processorOptions);
+            return serviceBusClient.CreateProcessor(entityName, subscription, processorOptions);
         });
 
         RegisterProcessor<TProcessor>(services, processorKey);

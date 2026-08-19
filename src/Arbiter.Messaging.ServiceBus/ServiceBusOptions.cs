@@ -31,6 +31,15 @@ public sealed class ServiceBusOptions
     /// </summary>
     public string? NameSuffix { get; set; }
 
+    /// <summary>
+    /// Gets or sets the suffix appended to subscription names when formatting subscription names.
+    /// </summary>
+    /// <remarks>
+    /// This suffix is independent of <see cref="NameSuffix" />. When <see langword="null" /> or blank,
+    /// subscription names are used as-is.
+    /// </remarks>
+    public string? SubscriptionSuffix { get; set; }
+
 
     /// <summary>
     /// Gets or sets the queue names to initialize and register senders for.
@@ -286,6 +295,17 @@ public sealed class ServiceBusOptions
         return this;
     }
 
+    /// <summary>
+    /// Sets the suffix appended to subscription names when formatting subscription names.
+    /// </summary>
+    /// <param name="subscriptionSuffix">The subscription name suffix to append.</param>
+    /// <returns>The current <see cref="ServiceBusOptions" /> instance for chaining.</returns>
+    public ServiceBusOptions WithSubscriptionSuffix(string? subscriptionSuffix)
+    {
+        SubscriptionSuffix = subscriptionSuffix;
+        return this;
+    }
+
 
     /// <summary>
     /// Adds a queue to initialize and register a sender for.
@@ -340,6 +360,22 @@ public sealed class ServiceBusOptions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(baseName);
 
-        return string.IsNullOrWhiteSpace(NameSuffix) ? baseName : $"{baseName}-{NameSuffix}";
+        return FormatName(baseName, NameSuffix);
     }
+
+    /// <summary>
+    /// Formats a subscription name by appending the configured subscription suffix when one is provided.
+    /// </summary>
+    /// <param name="baseName">The base subscription name.</param>
+    /// <returns>The formatted subscription name.</returns>
+    public string FormatSubscription(string baseName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(baseName);
+
+        return FormatName(baseName, SubscriptionSuffix);
+    }
+
+
+    private static string FormatName(string baseName, string? suffix)
+        => string.IsNullOrWhiteSpace(suffix) ? baseName : $"{baseName}-{suffix}";
 }

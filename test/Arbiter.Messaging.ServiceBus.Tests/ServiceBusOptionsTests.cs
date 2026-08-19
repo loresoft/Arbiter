@@ -9,6 +9,7 @@ public class ServiceBusOptionsTests
 
         options.ServiceKey.Should().BeNull();
         options.NameSuffix.Should().BeNull();
+        options.SubscriptionSuffix.Should().BeNull();
         options.Queues.Should().NotBeNull();
         options.Queues.Should().BeEmpty();
         options.Topics.Should().NotBeNull();
@@ -145,6 +146,40 @@ public class ServiceBusOptionsTests
     }
 
     [Test]
+    public void WithSubscriptionSuffix_SetsValueAndReturnsInstance()
+    {
+        var options = new ServiceBusOptions();
+        var suffix = "instance1";
+
+        var result = options.WithSubscriptionSuffix(suffix);
+
+        result.Should().BeSameAs(options);
+
+        options.SubscriptionSuffix.Should().Be(suffix);
+    }
+
+    [Test]
+    public void WithSubscriptionSuffix_SupportsNullSubscriptionSuffix()
+    {
+        var options = new ServiceBusOptions { SubscriptionSuffix = "instance1" };
+
+        var result = options.WithSubscriptionSuffix(null);
+
+        result.Should().BeSameAs(options);
+        options.SubscriptionSuffix.Should().BeNull();
+    }
+
+    [Test]
+    public void WithSubscriptionSuffix_DoesNotChangeNameSuffix()
+    {
+        var options = new ServiceBusOptions();
+
+        options.WithSubscriptionSuffix("instance1");
+
+        options.NameSuffix.Should().BeNull();
+    }
+
+    [Test]
     public void AddQueue_AddsQueueToCollection()
     {
         var options = new ServiceBusOptions();
@@ -272,12 +307,81 @@ public class ServiceBusOptionsTests
     }
 
     [Test]
+    public void FormatSubscriptionName_ReturnsBaseNameWhenNoSuffix()
+    {
+        var options = new ServiceBusOptions();
+        var baseName = "subscription1";
+
+        var result = options.FormatSubscription(baseName);
+
+        result.Should().Be(baseName);
+    }
+
+    [Test]
+    [Arguments("")]
+    [Arguments("   ")]
+    public void FormatSubscriptionName_ReturnsBaseNameWhenSuffixIsBlank(string suffix)
+    {
+        var options = new ServiceBusOptions { SubscriptionSuffix = suffix };
+
+        var result = options.FormatSubscription("subscription1");
+
+        result.Should().Be("subscription1");
+    }
+
+    [Test]
+    public void FormatSubscriptionName_AppendsHyphenAndSuffixWhenSet()
+    {
+        var options = new ServiceBusOptions { SubscriptionSuffix = "instance1" };
+
+        var result = options.FormatSubscription("subscription1");
+
+        result.Should().Be("subscription1-instance1");
+    }
+
+    [Test]
+    public void FormatSubscriptionName_IgnoresNameSuffix()
+    {
+        var options = new ServiceBusOptions { NameSuffix = "dev" };
+
+        var result = options.FormatSubscription("subscription1");
+
+        result.Should().Be("subscription1");
+    }
+
+    [Test]
+    public void FormatName_IgnoresSubscriptionSuffix()
+    {
+        var options = new ServiceBusOptions { SubscriptionSuffix = "instance1" };
+
+        var result = options.FormatName("orders");
+
+        result.Should().Be("orders");
+    }
+
+    [Test]
+    public void FormatSubscriptionName_ThrowsForNullOrWhiteSpace()
+    {
+        var options = new ServiceBusOptions();
+
+        var act = () => options.FormatSubscription(null!);
+        act.Should().Throw<ArgumentException>();
+
+        act = () => options.FormatSubscription("");
+        act.Should().Throw<ArgumentException>();
+
+        act = () => options.FormatSubscription("   ");
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Test]
     public void FluentChaining_WorksCorrectly()
     {
         var options = new ServiceBusOptions();
 
         var result = options
             .WithNameSuffix("prod")
+            .WithSubscriptionSuffix("instance1")
             .WithDefaultMessageTimeToLive(TimeSpan.FromDays(30))
             .WithMaxDeliveryCount(10)
             .WithLockDuration(TimeSpan.FromMinutes(3))
@@ -290,6 +394,7 @@ public class ServiceBusOptionsTests
         result.Should().BeSameAs(options);
 
         options.NameSuffix.Should().Be("prod");
+        options.SubscriptionSuffix.Should().Be("instance1");
         options.DefaultMessageTimeToLive.Should().Be(TimeSpan.FromDays(30));
         options.MaxDeliveryCount.Should().Be(10);
         options.LockDuration.Should().Be(TimeSpan.FromMinutes(3));

@@ -200,6 +200,18 @@ services.AddServiceBusCacheExpire(
     configureOptions: options => options.SourceId = Environment.MachineName);
 ```
 
+To keep the subscription name unique per process or per environment without changing the declared name, set `ServiceBusOptions.SubscriptionSuffix`. The suffix is appended to subscription names as `<subscription>-<suffix>` when subscriptions are provisioned and when processors are created. It is independent of `NameSuffix`, which applies only to queue and topic names:
+
+```csharp
+services.AddServiceBus(
+    serviceName: "Default",
+    nameOrConnectionString: "ServiceBus",
+    configureBus: bus => bus.AddTopic("cache-expire", "app-instance"),
+    configureOptions: options => options
+        .WithNameSuffix("dev")                          // topic becomes "cache-expire-dev"
+        .WithSubscriptionSuffix(Environment.MachineName)); // subscription becomes "app-instance-<machine>"
+```
+
 > [!NOTE]
 > Distributed expiration complements, and does not replace, the shared distributed cache tier (such as Redis). It is most useful for expiring the fast local L1 cache in each process when data changes elsewhere.
 

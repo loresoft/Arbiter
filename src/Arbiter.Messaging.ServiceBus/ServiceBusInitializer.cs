@@ -141,13 +141,15 @@ public sealed partial class ServiceBusInitializer : IHostedService
 
         foreach (var subscriptionName in subscriptions)
         {
-            var subscriptionExists = await adminClient.SubscriptionExistsAsync(topic, subscriptionName, cancellationToken).ConfigureAwait(false);
+            var subscription = option.FormatSubscription(subscriptionName);
+
+            var subscriptionExists = await adminClient.SubscriptionExistsAsync(topic, subscription, cancellationToken).ConfigureAwait(false);
             if (subscriptionExists.Value)
                 continue;
 
-            var subscriptionOptions = CreateSubscriptionOptions(option, topic, subscriptionName);
+            var subscriptionOptions = CreateSubscriptionOptions(option, topic, subscription);
 
-            LogCreatingSubscription(_logger, subscriptionName, topic);
+            LogCreatingSubscription(_logger, subscription, topic);
 
             try
             {
@@ -155,7 +157,7 @@ public sealed partial class ServiceBusInitializer : IHostedService
             }
             catch (RequestFailedException ex) when (ex.Status == 409)
             {
-                LogSubscriptionAlreadyExists(_logger, ex, subscriptionName, topic);
+                LogSubscriptionAlreadyExists(_logger, ex, subscription, topic);
             }
         }
     }

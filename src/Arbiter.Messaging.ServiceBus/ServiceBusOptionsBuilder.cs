@@ -39,6 +39,17 @@ public sealed class ServiceBusOptionsBuilder
     }
 
     /// <summary>
+    /// Sets the suffix appended to subscription names when formatting subscription names.
+    /// </summary>
+    /// <param name="subscriptionSuffix">The subscription name suffix to append.</param>
+    /// <returns>The current <see cref="ServiceBusOptionsBuilder" /> instance for chaining.</returns>
+    public ServiceBusOptionsBuilder WithSubscriptionSuffix(string? subscriptionSuffix)
+    {
+        _options.WithSubscriptionSuffix(subscriptionSuffix);
+        return this;
+    }
+
+    /// <summary>
     /// Sets the default message time-to-live for created entities.
     /// </summary>
     /// <param name="timeToLive">The default message time-to-live.</param>

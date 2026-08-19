@@ -17,7 +17,6 @@ public sealed class ServiceBusBackgroundProcessor(
     : ServiceBusProcessorBase(processor, logger)
 {
     /// <inheritdoc />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "<Pending>")]
     protected override async Task ProcessMessageAsync(ProcessMessageEventArgs args)
     {
         ArgumentNullException.ThrowIfNull(args);
