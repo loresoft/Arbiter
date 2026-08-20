@@ -251,4 +251,26 @@ public static class StringExtensions
                 ArrayPool<char>.Shared.Return(rentedArray);
         }
     }
+
+    /// <summary>
+    /// Converts a string to a <see cref="Uri"/> object. If the string is not a well-formed
+    /// absolute URI, it prepends the specified default scheme (e.g., "https") to the string
+    /// before creating the <see cref="Uri"/>.
+    /// </summary>
+    /// <param name="baseUri">The input string to be converted to a <see cref="Uri"/>.</param>
+    /// <param name="defaultScheme">The default scheme to prepend if the input string is not a well-formed absolute URI. Defaults to "https".</param>
+    /// <returns>A <see cref="Uri"/> object representing the input string, or null if the input string is null or empty.</returns>
+    [return: NotNullIfNotNull(nameof(baseUri))]
+    public static Uri? ToUri(
+        this string? baseUri,
+        string defaultScheme = "https")
+    {
+        if (string.IsNullOrEmpty(baseUri))
+            return null;
+
+        if (Uri.IsWellFormedUriString(baseUri, UriKind.Absolute))
+            return new Uri(baseUri);
+
+        return new Uri(defaultScheme + Uri.SchemeDelimiter + baseUri, UriKind.Absolute);
+    }
 }

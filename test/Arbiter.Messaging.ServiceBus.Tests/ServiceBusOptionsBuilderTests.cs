@@ -23,7 +23,7 @@ public class ServiceBusOptionsBuilderTests
         var options = new ServiceBusOptions { SubscriptionSuffix = "instance1" };
         var builder = CreateBuilder(options);
 
-        var result = builder.WithSubscriptionSuffix(null);
+        var result = builder.WithSubscriptionSuffix((string?)null);
 
         result.Should().BeSameAs(builder);
 

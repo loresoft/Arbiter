@@ -23,6 +23,7 @@ Arbiter (https://github.com/loresoft/Arbiter) is a family of small .NET librarie
 | CSV, encryption, caching, tokens, URL builder | `Arbiter.Services` | `arbiter-services` |
 | OpenTelemetry tracing/metrics for Arbiter | `Arbiter.OpenTelemetry` + `.Server` / `.Monitor` | `arbiter-opentelemetry` |
 | Azure Service Bus integration | `Arbiter.Messaging.ServiceBus` | `arbiter-messaging-servicebus` |
+| Azure Web PubSub integration | `Arbiter.Messaging.WebPubSub` | `arbiter-messaging-webpubsub` |
 
 ## Typical layered setup
 

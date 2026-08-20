@@ -13,6 +13,8 @@
     <PackageVersion Include="Azure.Communication.Sms" Version="1.0.2" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.2" />
+    <PackageVersion Include="Azure.Messaging.WebPubSub" Version="1.6.0" />
+    <PackageVersion Include="Azure.Messaging.WebPubSub.Client" Version="1.0.0" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.7.1" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />

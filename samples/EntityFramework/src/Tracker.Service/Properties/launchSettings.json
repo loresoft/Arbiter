@@ -8,7 +8,10 @@
       "launchUrl": "scalar/v1",
       "applicationUrl": "https://localhost:7180;http://localhost:5085",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_SERVICE_NAME": "Tracker.Service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://127.0.0.1:18889",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc"
       }
     }
   }

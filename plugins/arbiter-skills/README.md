@@ -31,6 +31,7 @@ When installed, Claude auto-loads the relevant skill based on what you're asking
 | `arbiter-services` | CSV, AES encryption, cache tagging, token service, URL builder |
 | `arbiter-opentelemetry` | Tracing/metrics with `MediatorTelemetry`, server + monitor packages |
 | `arbiter-messaging-servicebus` | Azure Service Bus integration |
+| `arbiter-messaging-webpubsub` | Azure Web PubSub integration |
 
 ## Authoring conventions
 

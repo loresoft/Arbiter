@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Sample",
+    "Projects": [
+      {
+        "Path": "samples\\EntityFramework\\src\\Tracker.Service\\Tracker.Service.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "samples\\EntityFramework\\src\\Tracker.Web\\Tracker.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

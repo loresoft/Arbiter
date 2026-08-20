@@ -215,6 +215,62 @@ services.AddServiceBus(
 > [!NOTE]
 > Distributed expiration complements, and does not replace, the shared distributed cache tier (such as Redis). It is most useful for expiring the fast local L1 cache in each process when data changes elsewhere.
 
+### Distributed Cache Expiration over Azure Web PubSub
+
+The `Arbiter.Messaging.WebPubSub` package provides the same distributed expiration feature over Azure Web PubSub. Unlike Service Bus, Web PubSub hubs and groups are ephemeral, so no per-process subscription has to be provisioned or cleaned up.
+
+- The publisher behavior (`WebPubSubCacheExpireBehavior`) expires the local cache first, then delegates a `CacheExpireMessage` to `CacheExpirePublisher`, which derives from the reusable `WebPubSubPublisherBase` and publishes to the configured hub group.
+- The subscriber processor (`CacheExpireProcessor`) connects to the hub as a hosted service, joins the group, and expires the matching key and tags from its own local cache. Messages stamped with the same `SourceId` are skipped.
+
+The hub and group are declared in the `AddWebPubSub` configuration so a service client is registered for the hub:
+
+```csharp
+services.AddWebPubSub(
+    serviceName: "Default",
+    nameOrConnectionString: "WebPubSub",
+    configureHubs: hubs => hubs.AddHub("cacheExpire", "app-instance"));
+```
+
+The same three registration methods are available:
+
+```csharp
+// Publisher only: expire local cache and publish expiration messages
+services.AddWebPubSubCacheExpirePublisher(
+    serviceName: "Default",
+    hubName: "cacheExpire",
+    groupName: "app-instance");
+
+// Subscriber only: receive expiration messages and expire local cache
+services.AddWebPubSubCacheExpireSubscriber(
+    serviceName: "Default",
+    hubName: "cacheExpire",
+    groupName: "app-instance");
+
+// Both publisher and subscriber
+services.AddWebPubSubCacheExpire(
+    serviceName: "Default",
+    hubName: "cacheExpire",
+    groupName: "app-instance");
+```
+
+Use `WebPubSubOptions.NameSuffix` to scope hub names per environment and `WebPubSubOptions.GroupSuffix` to scope group names per process:
+
+```csharp
+services.AddWebPubSub(
+    serviceName: "Default",
+    nameOrConnectionString: "WebPubSub",
+    configureHubs: hubs => hubs.AddHub("cacheExpire", "app-instance"),
+    configureOptions: options => options
+        .WithNameSuffix("dev")                      // hub becomes "cacheExpire_dev"
+        .WithGroupSuffix(Environment.MachineName)); // group becomes "app-instance-<machine>"
+```
+
+> [!NOTE]
+> Hub names must match `^[A-Za-z][A-Za-z0-9_`,.[\]]{0,127}$`, so the hub suffix is appended with an underscore. Group names have no such restriction and use a hyphen.
+
+> [!WARNING]
+> Web PubSub does not persist messages. Expiration messages published while a subscriber is disconnected are never delivered, so a disconnected process can keep a stale local cache entry until its normal expiration elapses. Use Service Bus when guaranteed delivery is required.
+
 ## Configuration Options
 
 ### Hybrid Cache Configuration
