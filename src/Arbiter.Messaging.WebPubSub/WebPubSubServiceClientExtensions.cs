@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -30,16 +31,30 @@ public static class WebPubSubServiceClientExtensions
         ArgumentNullException.ThrowIfNull(serviceClient);
         ArgumentNullException.ThrowIfNull(message);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonOptions);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToAllOperation);
 
-        await serviceClient
-            .SendToAllAsync(
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonOptions);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToAllAsync(
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -61,16 +76,30 @@ public static class WebPubSubServiceClientExtensions
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonTypeInfo);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToAllOperation);
 
-        await serviceClient
-            .SendToAllAsync(
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonTypeInfo);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToAllAsync(
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -94,17 +123,32 @@ public static class WebPubSubServiceClientExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(groupName);
         ArgumentNullException.ThrowIfNull(message);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonOptions);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToGroupOperation,
+            groupName: groupName);
 
-        await serviceClient
-            .SendToGroupAsync(
-                group: groupName,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonOptions);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToGroupAsync(
+                    group: groupName,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -129,17 +173,32 @@ public static class WebPubSubServiceClientExtensions
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonTypeInfo);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToGroupOperation,
+            groupName: groupName);
 
-        await serviceClient
-            .SendToGroupAsync(
-                group: groupName,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonTypeInfo);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToGroupAsync(
+                    group: groupName,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -163,17 +222,31 @@ public static class WebPubSubServiceClientExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(message);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonOptions);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToUserOperation);
 
-        await serviceClient
-            .SendToUserAsync(
-                userId: userId,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonOptions);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToUserAsync(
+                    userId: userId,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -198,17 +271,31 @@ public static class WebPubSubServiceClientExtensions
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonTypeInfo);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToUserOperation);
 
-        await serviceClient
-            .SendToUserAsync(
-                userId: userId,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonTypeInfo);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToUserAsync(
+                    userId: userId,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -232,17 +319,32 @@ public static class WebPubSubServiceClientExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionId);
         ArgumentNullException.ThrowIfNull(message);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonOptions);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToConnectionOperation,
+            connectionId: connectionId);
 
-        await serviceClient
-            .SendToConnectionAsync(
-                connectionId: connectionId,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonOptions);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToConnectionAsync(
+                    connectionId: connectionId,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -267,16 +369,90 @@ public static class WebPubSubServiceClientExtensions
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonTypeInfo);
-        var content = RequestContent.Create(bytes);
-        var context = new RequestContext { CancellationToken = cancellationToken };
+        using var activity = StartSendActivity(
+            serviceClient: serviceClient,
+            messageType: typeof(TMessage),
+            operationName: WebPubSubTelemetry.SendToConnectionOperation,
+            connectionId: connectionId);
 
-        await serviceClient
-            .SendToConnectionAsync(
-                connectionId: connectionId,
-                content: content,
-                contentType: ContentType.ApplicationJson,
-                context: context)
-            .ConfigureAwait(false);
+        try
+        {
+            var content = SerializeMessage(message, jsonTypeInfo);
+            var context = new RequestContext { CancellationToken = cancellationToken };
+
+            var response = await serviceClient
+                .SendToConnectionAsync(
+                    connectionId: connectionId,
+                    content: content,
+                    contentType: ContentType.ApplicationJson,
+                    context: context)
+                .ConfigureAwait(false);
+
+            RecordResponse(activity, response);
+        }
+        catch (Exception ex)
+        {
+            WebPubSubTelemetry.RecordException(activity, ex);
+            throw;
+        }
+    }
+
+    private static RequestContent SerializeMessage<TMessage>(
+        TMessage message,
+        JsonSerializerOptions? jsonOptions)
+    {
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonOptions);
+        return RequestContent.Create(bytes);
+    }
+
+    private static RequestContent SerializeMessage<TMessage>(
+        TMessage message,
+        JsonTypeInfo<TMessage> jsonTypeInfo)
+    {
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, jsonTypeInfo);
+        return RequestContent.Create(bytes);
+    }
+
+    private static void RecordResponse(
+        Activity? activity,
+        Response response)
+    {
+        if (activity is null)
+            return;
+
+        var code = response.IsError ? ActivityStatusCode.Error : ActivityStatusCode.Ok;
+        var description = response.IsError ? response.ReasonPhrase : null;
+
+        activity.SetTag("http.response.status_code", response.Status);
+        activity.SetStatus(code, description);
+    }
+
+    private static Activity? StartSendActivity(
+        WebPubSubServiceClient serviceClient,
+        Type messageType,
+        string operationName,
+        string? groupName = null,
+        string? connectionId = null)
+    {
+        var hubName = serviceClient.Hub;
+
+        var activity = WebPubSubTelemetry.Source.StartActivity(
+            operationName,
+            ActivityKind.Producer);
+
+        if (activity is null)
+            return null;
+
+        var contextName = groupName ?? connectionId ?? hubName;
+        activity.DisplayName = $"{operationName} {contextName}";
+
+        activity.SetTag(WebPubSubTelemetry.MessagingSystemTag, "azure.webpubsub");
+        activity.SetTag(WebPubSubTelemetry.DestinationNameTag, hubName);
+        activity.SetTag(WebPubSubTelemetry.DestinationGroupTag, groupName);
+        activity.SetTag(WebPubSubTelemetry.DestinationConnectionIdTag, connectionId);
+        activity.SetTag(WebPubSubTelemetry.OperationTypeTag, "send");
+        activity.SetTag(WebPubSubTelemetry.MessageTypeTag, messageType.FullName);
+
+        return activity;
     }
 }

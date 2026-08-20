@@ -99,7 +99,11 @@ public static class HostApplicationBuilderExtensions
                     .AddAspNetCoreInstrumentation(options => options.Filter = context => ShouldTraceRequest(context, serverOptions))
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
-                    .AddSource("Arbiter.Mediation", "Arbiter.Dispatcher");
+                    .AddSource(
+                        "Arbiter.Mediation",
+                        "Arbiter.Dispatcher",
+                        "Arbiter.Messaging.ServiceBus",
+                        "Arbiter.Messaging.WebPubSub");
 
                 // allow for additional custom configuration of tracing
                 configureTracing?.Invoke(tracing);

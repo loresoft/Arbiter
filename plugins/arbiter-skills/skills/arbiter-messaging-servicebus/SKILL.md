@@ -69,7 +69,8 @@ The hosted Service Bus listener starts automatically with the host; one subscrip
 
 - The default subscription name comes from `ServiceBusOptions` — override per type if you run multiple consumers.
 - For request/response over Service Bus, map a `IRequest<TResponse>` to a queue; the listener will reply on the session/reply-to.
-- Combine with `arbiter-opentelemetry` to get end-to-end traces from publisher → consumer.
+- Register `ServiceBusTelemetry.SourceName` with OpenTelemetry, or use `Arbiter.OpenTelemetry.Server`, to collect
+  Arbiter producer/consumer spans. Azure Service Bus SDK spans remain authoritative for transport and trace-context propagation.
 
 ## Reference
 

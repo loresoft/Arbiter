@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -35,24 +36,36 @@ public static class ServiceBusSenderExtensions
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(message);
 
-        var bufferWriter = new ArrayBufferWriter<byte>();
-        using var writer = new Utf8JsonWriter(bufferWriter);
+        var messageId = Guid.NewGuid().ToString("N");
+        using var activity = StartSendActivity(sender, typeof(TMessage), messageId);
 
-        JsonSerializer.Serialize(writer, message, jsonOptions);
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-        var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
-        var serviceMessage = new ServiceBusMessage(body)
+        try
         {
-            MessageId = Guid.NewGuid().ToString("N"),
-            ContentType = System.Net.Mime.MediaTypeNames.Application.Json,
-            Subject = typeof(TMessage).GetPortableName(),
-        };
+            var bufferWriter = new ArrayBufferWriter<byte>();
+            using var writer = new Utf8JsonWriter(bufferWriter);
 
-        await sender
-            .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            JsonSerializer.Serialize(writer, message, jsonOptions);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
+            var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
+            var serviceMessage = new ServiceBusMessage(body)
+            {
+                MessageId = messageId,
+                ContentType = System.Net.Mime.MediaTypeNames.Application.Json,
+                Subject = typeof(TMessage).GetPortableName(),
+            };
+
+            await sender
+                .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception ex)
+        {
+            ServiceBusTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -74,24 +87,36 @@ public static class ServiceBusSenderExtensions
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        var bufferWriter = new ArrayBufferWriter<byte>();
-        using var writer = new Utf8JsonWriter(bufferWriter);
+        var messageId = Guid.NewGuid().ToString("N");
+        using var activity = StartSendActivity(sender, typeof(TMessage), messageId);
 
-        JsonSerializer.Serialize(writer, message, jsonTypeInfo);
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-        var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
-        var serviceMessage = new ServiceBusMessage(body)
+        try
         {
-            MessageId = Guid.NewGuid().ToString("N"),
-            ContentType = System.Net.Mime.MediaTypeNames.Application.Json,
-            Subject = typeof(TMessage).GetPortableName(),
-        };
+            var bufferWriter = new ArrayBufferWriter<byte>();
+            using var writer = new Utf8JsonWriter(bufferWriter);
 
-        await sender
-            .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            JsonSerializer.Serialize(writer, message, jsonTypeInfo);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
+            var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
+            var serviceMessage = new ServiceBusMessage(body)
+            {
+                MessageId = messageId,
+                ContentType = System.Net.Mime.MediaTypeNames.Application.Json,
+                Subject = typeof(TMessage).GetPortableName(),
+            };
+
+            await sender
+                .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception ex)
+        {
+            ServiceBusTelemetry.RecordException(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -112,26 +137,62 @@ public static class ServiceBusSenderExtensions
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(message);
 
-        messagePackOptions ??= MessagePackDefaults.DefaultSerializerOptions;
-
-        // use actual type of the message for serialization and naming
+        var messageId = Guid.NewGuid().ToString("N");
         var messageType = message.GetType();
-        var messageName = messageType.GetPortableName();
+        using var activity = StartSendActivity(sender, messageType, messageId);
 
-        var bufferWriter = new ArrayBufferWriter<byte>();
-
-        MessagePackSerializer.Serialize(messageType, bufferWriter, message, messagePackOptions, cancellationToken);
-
-        var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
-        var serviceMessage = new ServiceBusMessage(body)
+        try
         {
-            MessageId = Guid.NewGuid().ToString("N"),
-            ContentType = MessagePackDefaults.MessagePackContentType,
-            Subject = messageName,
-        };
+            messagePackOptions ??= MessagePackDefaults.DefaultSerializerOptions;
 
-        await sender
-            .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            // use actual type of the message for serialization and naming
+            var messageName = messageType.GetPortableName();
+
+            var bufferWriter = new ArrayBufferWriter<byte>();
+
+            MessagePackSerializer.Serialize(messageType, bufferWriter, message, messagePackOptions, cancellationToken);
+
+            var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
+            var serviceMessage = new ServiceBusMessage(body)
+            {
+                MessageId = messageId,
+                ContentType = MessagePackDefaults.MessagePackContentType,
+                Subject = messageName,
+            };
+
+            await sender
+                .SendMessageAsync(serviceMessage, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception ex)
+        {
+            ServiceBusTelemetry.RecordException(activity, ex);
+            throw;
+        }
+    }
+
+    private static Activity? StartSendActivity(
+        ServiceBusSender sender,
+        Type messageType,
+        string messageId)
+    {
+        var activity = ServiceBusTelemetry.Source.StartActivity(
+            ServiceBusTelemetry.SendOperation,
+            ActivityKind.Producer);
+
+        if (activity is null)
+            return activity;
+
+        activity.DisplayName = $"{ServiceBusTelemetry.SendOperation} {sender.EntityPath}";
+
+        activity.SetTag(ServiceBusTelemetry.MessagingSystemTag, "servicebus");
+        activity.SetTag(ServiceBusTelemetry.DestinationNameTag, sender.EntityPath);
+        activity.SetTag(ServiceBusTelemetry.OperationTypeTag, "send");
+        activity.SetTag(ServiceBusTelemetry.MessageIdTag, messageId);
+        activity.SetTag(ServiceBusTelemetry.MessageTypeTag, messageType.FullName);
+
+        return activity;
     }
 }

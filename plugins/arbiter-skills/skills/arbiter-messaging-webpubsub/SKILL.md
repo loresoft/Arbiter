@@ -109,6 +109,8 @@ services.AddWebPubSubCacheExpire(
 - Hub names must match `` ^[A-Za-z][A-Za-z0-9_`,.[\]]{0,127}$ `` — `WebPubSubOptions.NameSuffix` is appended with an underscore. `GroupSuffix` uses a hyphen.
 - Web PubSub does not persist messages and has no dead-letter queue; messages published while a listener is disconnected are lost. Use `Arbiter.Messaging.ServiceBus` when guaranteed delivery is required.
 - Malformed payloads are logged and dropped by `CacheExpireProcessor`.
+- Register `WebPubSubTelemetry.SourceName` with OpenTelemetry, or use `Arbiter.OpenTelemetry.Server`, to collect
+  producer and consumer spans.
 
 ## Reference
 

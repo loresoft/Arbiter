@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Azure.Messaging.WebPubSub.Clients;
 
 using Microsoft.Extensions.Hosting;
@@ -189,11 +191,56 @@ public abstract partial class WebPubSubProcessorBase : IHostedService, IDisposab
     }
 
 
-    private Task OnGroupMessageReceivedAsync(WebPubSubGroupMessageEventArgs args)
-        => ProcessGroupMessageAsync(args);
+    private async Task OnGroupMessageReceivedAsync(WebPubSubGroupMessageEventArgs args)
+    {
+        using var activity = WebPubSubTelemetry.Source.StartActivity(
+            WebPubSubTelemetry.ProcessGroupOperation,
+            ActivityKind.Consumer);
 
-    private Task OnServerMessageReceivedAsync(WebPubSubServerMessageEventArgs args)
-        => ProcessServerMessageAsync(args);
+        if (activity is not null)
+            activity.DisplayName = $"{WebPubSubTelemetry.ProcessGroupOperation} {args.Message.Group}";
+
+        activity?.SetTag(WebPubSubTelemetry.MessagingSystemTag, "azure.webpubsub");
+        activity?.SetTag(WebPubSubTelemetry.DestinationNameTag, _context.HubName);
+        activity?.SetTag(WebPubSubTelemetry.DestinationGroupTag, args.Message.Group);
+        activity?.SetTag(WebPubSubTelemetry.OperationTypeTag, "process");
+
+        try
+        {
+            await ProcessGroupMessageAsync(args).ConfigureAwait(false);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception exception)
+        {
+            WebPubSubTelemetry.RecordException(activity, exception);
+            throw;
+        }
+    }
+
+    private async Task OnServerMessageReceivedAsync(WebPubSubServerMessageEventArgs args)
+    {
+        using var activity = WebPubSubTelemetry.Source.StartActivity(
+            WebPubSubTelemetry.ProcessServerOperation,
+            ActivityKind.Consumer);
+
+        if (activity is not null)
+            activity.DisplayName = $"{WebPubSubTelemetry.ProcessServerOperation} {_context.HubName}";
+
+        activity?.SetTag(WebPubSubTelemetry.MessagingSystemTag, "azure.webpubsub");
+        activity?.SetTag(WebPubSubTelemetry.DestinationNameTag, _context.HubName);
+        activity?.SetTag(WebPubSubTelemetry.OperationTypeTag, "process");
+
+        try
+        {
+            await ProcessServerMessageAsync(args).ConfigureAwait(false);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception exception)
+        {
+            WebPubSubTelemetry.RecordException(activity, exception);
+            throw;
+        }
+    }
 
     private Task OnConnectedAsync(WebPubSubConnectedEventArgs args)
     {

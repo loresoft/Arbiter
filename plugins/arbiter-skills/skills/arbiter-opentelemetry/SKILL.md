@@ -10,7 +10,7 @@ Three packages, layered:
 | Package | Purpose |
 | --- | --- |
 | `Arbiter.OpenTelemetry`        | Shared models + the `MediatorTelemetry` ActivitySource/Meter names |
-| `Arbiter.OpenTelemetry.Server` | One-call `AddOpenTelemetry` extension for ASP.NET Core hosts, pre-wires the mediator source |
+| `Arbiter.OpenTelemetry.Server` | One-call `AddOpenTelemetry` extension for ASP.NET Core hosts, pre-wires mediator and messaging sources |
 | `Arbiter.OpenTelemetry.Monitor`| `AddLogQuery` — exposes telemetry log queries via the CQRS pipeline |
 
 ## Manual wiring (any host)
@@ -22,12 +22,17 @@ dotnet add package OpenTelemetry.Extensions.Hosting
 
 ```csharp
 using Arbiter.Mediation;
+using Arbiter.Messaging.ServiceBus;
+using Arbiter.Messaging.WebPubSub;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 services.AddOpenTelemetry()
     .WithTracing(t => t
-        .AddSource(MediatorTelemetry.SourceName)
+        .AddSource(
+            MediatorTelemetry.SourceName,
+            ServiceBusTelemetry.SourceName,
+            WebPubSubTelemetry.SourceName)
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter())
     .WithMetrics(m => m
@@ -36,7 +41,8 @@ services.AddOpenTelemetry()
         .AddOtlpExporter());
 ```
 
-`MediatorTelemetry.SourceName` and `MediatorTelemetry.MeterName` are the only names you need — every Arbiter mediator activity/metric is emitted on them.
+Register the source constants for the Arbiter packages used by the application. Messaging packages use BCL
+`ActivitySource` instrumentation and do not require an OpenTelemetry SDK dependency.
 
 ## One-call wiring (ASP.NET Core)
 
@@ -57,7 +63,8 @@ builder.AddOpenTelemetry(
 );
 ```
 
-The extension auto-adds the mediator source/meter, ASP.NET Core instrumentation, and an exporter (OTLP by default; honor `OTEL_*` env vars).
+The extension auto-adds the mediator source/meter, Service Bus and Web PubSub sources, ASP.NET Core instrumentation,
+and an exporter when `OTEL_EXPORTER_OTLP_ENDPOINT` is configured.
 
 ## Log query API
 

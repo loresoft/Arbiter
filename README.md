@@ -258,10 +258,15 @@ The mediator provides built-in support for OpenTelemetry tracing and metrics:
 
 ```csharp
 using Arbiter.Mediation;
+using Arbiter.Messaging.ServiceBus;
+using Arbiter.Messaging.WebPubSub;
 
 services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
-        .AddSource(MediatorTelemetry.SourceName)
+        .AddSource(
+            MediatorTelemetry.SourceName,
+            ServiceBusTelemetry.SourceName,
+            WebPubSubTelemetry.SourceName)
         .AddAspNetCoreInstrumentation()
         .AddConsoleExporter()
     )
@@ -271,6 +276,11 @@ services.AddOpenTelemetry()
         .AddConsoleExporter()
     );
 ```
+
+`Arbiter.OpenTelemetry.Server` registers these messaging sources automatically. Service Bus uses the Azure SDK's
+native transport propagation. Web PubSub logical-message propagation is opt-in because it uses a versioned JSON
+envelope; enable it with `configureOptions: options => options.WithTraceContextPropagation()` only when all
+publishers and consumers understand that wire format. Baggage and message bodies are not added to telemetry.
 
 ### Arbiter.Queue
 

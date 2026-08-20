@@ -75,11 +75,40 @@ public static class CommandQueryExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddEntityHybridCacheQueryBehavior();
+        services.AddEntityHybridCacheExpireBehavior();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the hybrid cache query behavior to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    public static IServiceCollection AddEntityHybridCacheQueryBehavior(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HybridCacheQueryBehavior<,>));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the hybrid cache expiration behavior to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    public static IServiceCollection AddEntityHybridCacheExpireBehavior(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(HybridCacheExpireBehavior<,>));
 
         return services;
     }
+
 
     /// <summary>
     /// Adds MessagePack options to the service collection.

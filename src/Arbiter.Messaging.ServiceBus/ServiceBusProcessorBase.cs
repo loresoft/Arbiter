@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Azure.Messaging.ServiceBus;
 
 using Microsoft.Extensions.Hosting;
@@ -116,8 +118,37 @@ public abstract partial class ServiceBusProcessorBase : IHostedService, IDisposa
     }
 
 
-    private Task OnProcessMessageAsync(ProcessMessageEventArgs args)
-        => ProcessMessageAsync(args);
+    private async Task OnProcessMessageAsync(ProcessMessageEventArgs args)
+    {
+        using var activity = ServiceBusTelemetry.Source.StartActivity(
+            ServiceBusTelemetry.ProcessOperation,
+            ActivityKind.Consumer);
+
+        if (activity is not null)
+            activity.DisplayName = $"{ServiceBusTelemetry.ProcessOperation} {_processor.EntityPath}";
+
+        activity?.SetTag(ServiceBusTelemetry.MessagingSystemTag, "servicebus");
+        activity?.SetTag(ServiceBusTelemetry.DestinationNameTag, _processor.EntityPath);
+        activity?.SetTag(ServiceBusTelemetry.OperationTypeTag, "process");
+        activity?.SetTag(ServiceBusTelemetry.MessageIdTag, args.Message.MessageId);
+        activity?.SetTag(ServiceBusTelemetry.MessageTypeTag, args.Message.Subject);
+
+        try
+        {
+            await ProcessMessageAsync(args).ConfigureAwait(false);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (OperationCanceledException) when (args.CancellationToken.IsCancellationRequested)
+        {
+            activity?.SetTag("arbiter.operation.cancelled", true);
+            throw;
+        }
+        catch (Exception exception)
+        {
+            ServiceBusTelemetry.RecordException(activity, exception);
+            throw;
+        }
+    }
 
     private Task OnProcessErrorAsync(ProcessErrorEventArgs args)
         => ProcessErrorAsync(args);

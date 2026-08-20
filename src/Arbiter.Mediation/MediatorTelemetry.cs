@@ -84,16 +84,16 @@ public static class MediatorTelemetry
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
         activity.SetTag("error.type", exception.GetType().FullName);
 
-        activity.AddEvent(
-            new ActivityEvent(
-                name: "exception",
-                tags: new ActivityTagsCollection
-                {
-                    { "exception.type", exception.GetType().FullName },
-                    { "exception.message", exception.Message },
-                    { "exception.stacktrace", exception.ToString() },
-                }
-            )
+        ActivityEvent errorEvent = new(
+            name: "exception",
+            tags: new ActivityTagsCollection
+            {
+                { "exception.type", exception.GetType().FullName },
+                { "exception.message", exception.Message },
+                { "exception.stacktrace", exception.ToString() },
+            }
         );
+
+        activity.AddEvent(errorEvent);
     }
 }
