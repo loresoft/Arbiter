@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Arbiter.CommandQuery.Endpoints\Arbiter.CommandQuery.Endpoints.csproj" />
     <ProjectReference Include="..\..\..\..\src\Arbiter.Dispatcher.Server\Arbiter.Dispatcher.Server.csproj" />
-    <ProjectReference Include="..\..\..\..\src\Arbiter.Messaging.WebPubSub\Arbiter.Messaging.WebPubSub.csproj" />
     <ProjectReference Include="..\..\..\..\src\Arbiter.OpenTelemetry.Server\Arbiter.OpenTelemetry.Server.csproj" />
     <ProjectReference Include="..\Tracker.Client\Tracker.Client.csproj" />
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />

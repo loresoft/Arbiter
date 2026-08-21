@@ -34,7 +34,9 @@ public sealed class WebPubSubOptionsBuilder
     /// <returns>The current <see cref="WebPubSubOptionsBuilder" /> instance for chaining.</returns>
     public WebPubSubOptionsBuilder WithHubSuffix(string? nameSuffix)
     {
-        _options.WithHubSuffix(nameSuffix);
+        if (nameSuffix != null)
+            _options.WithHubSuffix(nameSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -49,7 +51,10 @@ public sealed class WebPubSubOptionsBuilder
         ArgumentNullException.ThrowIfNull(factory);
 
         var nameSuffix = factory(Services);
-        _options.WithHubSuffix(nameSuffix);
+
+        if (nameSuffix != null)
+            _options.WithHubSuffix(nameSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -60,7 +65,9 @@ public sealed class WebPubSubOptionsBuilder
     /// <returns>The current <see cref="WebPubSubOptionsBuilder" /> instance for chaining.</returns>
     public WebPubSubOptionsBuilder WithGroupSuffix(string? groupSuffix)
     {
-        _options.WithGroupSuffix(groupSuffix);
+        if (groupSuffix != null)
+            _options.WithGroupSuffix(groupSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -75,7 +82,10 @@ public sealed class WebPubSubOptionsBuilder
         ArgumentNullException.ThrowIfNull(factory);
 
         var groupSuffix = factory(Services);
-        _options.WithGroupSuffix(groupSuffix);
+
+        if (groupSuffix != null)
+            _options.WithGroupSuffix(groupSuffix.ToLowerInvariant());
+
         return this;
     }
 

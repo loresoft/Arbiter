@@ -74,8 +74,10 @@ public static class Program
 
         services
             .AddTrackerShared()
+            .AddTrackerClient("Server");
+
+        builder
             .AddTrackerCore()
-            .AddTrackerClient("Server")
             .AddTrackerWeb();
 
         services
@@ -87,29 +89,6 @@ public static class Program
 
         services
             .AddResponseCompression(options => options.EnableForHttps = true);
-
-        //services
-        //    .AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("RedisConnection"));
-
-        // distributed cache expiration; only enabled when a Web PubSub connection is configured.
-        // when disabled, the HybridCacheExpireBehavior registered by AddTrackerShared still expires the local cache.
-        var webPubSubConnection = configuration.GetConnectionString("WebPubSub");
-        if (!string.IsNullOrWhiteSpace(webPubSubConnection))
-        {
-            services
-                .AddWebPubSub(
-                    serviceName: "Tracker",
-                    nameOrConnectionString: webPubSubConnection,
-                    configureHubs: hubs => hubs.AddHub("tracker", "cache-expire"),
-                    configureOptions: options => options
-                        .WithGroupSuffix(builder.Environment.EnvironmentName));
-
-            services
-                .AddWebPubSubCacheExpire(
-                    serviceName: "Tracker",
-                    hubName: "tracker",
-                    groupName: "cache-expire");
-        }
 
         services
             .Configure<EnvironmentOptions>(options => options.EnvironmentName = builder.Environment.EnvironmentName);

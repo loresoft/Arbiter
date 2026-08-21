@@ -242,8 +242,8 @@ public class ServiceBusExtensionsTests
             .GetRequiredService<IOptionsMonitor<ServiceBusOptions>>()
             .Get("TestService");
 
-        options.NameSuffix.Should().Be("Staging");
-        options.FormatName("orders").Should().Be("orders-Staging");
+        options.NameSuffix.Should().Be("staging");
+        options.FormatName("orders").Should().Be("orders-staging");
     }
 
     private sealed record EnvironmentMarker(string Name);

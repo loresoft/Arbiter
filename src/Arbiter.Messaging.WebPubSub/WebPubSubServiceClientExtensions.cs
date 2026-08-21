@@ -444,7 +444,7 @@ public static class WebPubSubServiceClientExtensions
             return null;
 
         var contextName = groupName ?? connectionId ?? hubName;
-        activity.DisplayName = $"{operationName} {contextName}";
+        activity.DisplayName = $"{operationName} {hubName} {contextName}";
 
         activity.SetTag(WebPubSubTelemetry.MessagingSystemTag, "azure.webpubsub");
         activity.SetTag(WebPubSubTelemetry.DestinationNameTag, hubName);

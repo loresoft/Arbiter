@@ -34,7 +34,9 @@ public sealed class ServiceBusOptionsBuilder
     /// <returns>The current <see cref="ServiceBusOptionsBuilder" /> instance for chaining.</returns>
     public ServiceBusOptionsBuilder WithNameSuffix(string? nameSuffix)
     {
-        _options.WithNameSuffix(nameSuffix);
+        if(nameSuffix != null)
+            _options.WithNameSuffix(nameSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -48,7 +50,10 @@ public sealed class ServiceBusOptionsBuilder
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        _options.WithNameSuffix(factory(Services));
+        var nameSuffix = factory(Services);
+        if (nameSuffix != null)
+            _options.WithNameSuffix(nameSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -59,7 +64,9 @@ public sealed class ServiceBusOptionsBuilder
     /// <returns>The current <see cref="ServiceBusOptionsBuilder" /> instance for chaining.</returns>
     public ServiceBusOptionsBuilder WithSubscriptionSuffix(string? subscriptionSuffix)
     {
-        _options.WithSubscriptionSuffix(subscriptionSuffix);
+        if (subscriptionSuffix != null)
+            _options.WithSubscriptionSuffix(subscriptionSuffix.ToLowerInvariant());
+
         return this;
     }
 
@@ -73,7 +80,11 @@ public sealed class ServiceBusOptionsBuilder
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        _options.WithSubscriptionSuffix(factory(Services));
+        var subscriptionSuffix = factory(Services);
+
+        if (subscriptionSuffix != null)
+            _options.WithSubscriptionSuffix(subscriptionSuffix.ToLowerInvariant());
+
         return this;
     }
 

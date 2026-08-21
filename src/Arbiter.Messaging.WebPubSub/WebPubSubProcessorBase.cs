@@ -198,7 +198,7 @@ public abstract partial class WebPubSubProcessorBase : IHostedService, IDisposab
             ActivityKind.Consumer);
 
         if (activity is not null)
-            activity.DisplayName = $"{WebPubSubTelemetry.ProcessGroupOperation} {args.Message.Group}";
+            activity.DisplayName = $"{WebPubSubTelemetry.ProcessGroupOperation} {_context.HubName} {args.Message.Group}";
 
         activity?.SetTag(WebPubSubTelemetry.MessagingSystemTag, "azure.webpubsub");
         activity?.SetTag(WebPubSubTelemetry.DestinationNameTag, _context.HubName);

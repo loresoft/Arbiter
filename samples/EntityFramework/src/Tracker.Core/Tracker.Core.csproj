@@ -23,6 +23,7 @@
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\src\Arbiter.Messaging.WebPubSub\Arbiter.Messaging.WebPubSub.csproj" />
     <ProjectReference Include="..\Tracker.Shared\Tracker.Shared.csproj" />
   </ItemGroup>
 </Project>
