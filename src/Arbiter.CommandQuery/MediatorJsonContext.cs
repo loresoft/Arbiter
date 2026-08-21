@@ -15,4 +15,6 @@ namespace Arbiter.CommandQuery;
 [JsonSerializable(typeof(EntitySort))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationResult))]
+[JsonSerializable(typeof(HealthReportModel))]
+[JsonSerializable(typeof(IReadOnlyList<ConfigurationValue>))]
 public partial class MediatorJsonContext : JsonSerializerContext;

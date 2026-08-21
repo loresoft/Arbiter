@@ -17,6 +17,7 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// <summary>
 /// Defines diagnostics and operational API endpoints.
 /// </summary>
+/// <param name="logger">The logger used for diagnostics endpoint operations.</param>
 public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpointRoute
 {
     private readonly ILogger<DiagnosticsEndpoint> _logger = logger;
@@ -64,12 +65,14 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
     /// <summary>
     /// Returns configuration entries as key, value, and provider records.
     /// </summary>
-    /// <param name="configuration">The application configuration.</param>
+    /// <param name="httpContext">The HTTP context containing the request metadata.</param>
+    /// <param name="mediator">The mediator used to dispatch the configuration query.</param>
     /// <param name="user">The current user principal.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A JSON result containing configuration provider values.</returns>
-    private async Task<Results<Ok<List<ConfigurationValue>>, ProblemHttpResult>> ConfigurationDebugger(
-        [FromServices] IConfiguration configuration,
+    /// <returns>A configuration result or problem details when an error occurs.</returns>
+    private async Task<Results<Ok<IReadOnlyList<ConfigurationValue>>, ProblemHttpResult>> ConfigurationDebugger(
+        HttpContext httpContext,
+        [FromServices] IMediator mediator,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
@@ -77,39 +80,12 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
 
         try
         {
-            var items = new List<ConfigurationValue>();
-            if (configuration is not IConfigurationRoot configurationRoot)
-            {
-                _logger.LogWarning("Configuration is not an IConfigurationRoot. Unable to retrieve provider information.");
-                return TypedResults.Ok(items);
-            }
+            var command = new ConfigurationQuery(user);
+            command.ApplyContext(httpContext);
 
-            void RecurseChildren(IEnumerable<IConfigurationSection> children)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var result = await mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
-                foreach (var child in children)
-                {
-                    var (value, provider) = GetValueAndProvider(configurationRoot, child.Path);
-                    if (provider != null)
-                    {
-                        ConfigurationValue providerValue = new()
-                        {
-                            Key = child.Path,
-                            Value = value,
-                            Provider = provider.ToString(),
-                        };
-                        items.Add(providerValue);
-                    }
-
-                    RecurseChildren(child.GetChildren());
-                }
-            }
-
-            RecurseChildren(configurationRoot.GetChildren());
-
-            return TypedResults.Ok(items.OrderBy(i => i.Key, StringComparer.Ordinal).ToList());
-
+            return TypedResults.Ok(result);
         }
         catch (Exception ex)
         {
@@ -226,26 +202,5 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
-    }
-
-
-    /// <summary>
-    /// Resolves a configuration value and the provider that supplies it.
-    /// </summary>
-    /// <param name="root">The configuration root.</param>
-    /// <param name="key">The configuration key.</param>
-    /// <returns>The resolved value and provider, if found.</returns>
-    private static (string? Value, IConfigurationProvider? Provider) GetValueAndProvider(
-        IConfigurationRoot root,
-        string key)
-    {
-        // Iterate through the configuration providers in reverse order to find the last provider that has the key.
-        foreach (var provider in root.Providers.Reverse())
-        {
-            if (provider.TryGet(key, out var value))
-                return (value, provider);
-        }
-
-        return (null, null);
     }
 }

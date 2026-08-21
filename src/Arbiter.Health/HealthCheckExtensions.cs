@@ -28,6 +28,7 @@ public static class HealthCheckExtensions
 
         services.AddHealthChecks();
         services.TryAddSingleton<IRequestHandler<HealthCheckCommand, HealthReportModel>, HealthCheckHandler>();
+        services.TryAddSingleton<IRequestHandler<ConfigurationQuery, IReadOnlyList<ConfigurationValue>>, ConfigurationQueryHandler>();
 
         return services;
     }
