@@ -103,7 +103,8 @@ public static class HostApplicationBuilderExtensions
                         "Arbiter.Mediation",
                         "Arbiter.Dispatcher",
                         "Arbiter.Messaging.ServiceBus",
-                        "Arbiter.Messaging.WebPubSub");
+                        "Arbiter.Messaging.WebPubSub"
+                    );
 
                 // allow for additional custom configuration of tracing
                 configureTracing?.Invoke(tracing);

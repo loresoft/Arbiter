@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Extensions;
 using Arbiter.Mediation;
 
 using Azure.Messaging.ServiceBus;
@@ -57,12 +58,12 @@ public class ServiceBusCacheExpireBehavior<TRequest, TResponse> : HybridCacheExp
         var response = await base.Process(request, next, cancellationToken).ConfigureAwait(false);
 
         if (request is ICacheExpire cacheRequest)
-            await PublishExpire(cacheRequest, cancellationToken).ConfigureAwait(false);
+            PublishExpire(cacheRequest, cancellationToken);
 
         return response;
     }
 
-    private async ValueTask PublishExpire(ICacheExpire cacheRequest, CancellationToken cancellationToken)
+    private void PublishExpire(ICacheExpire cacheRequest, CancellationToken cancellationToken)
     {
         var cacheKey = cacheRequest.GetCacheKey();
         var cacheTags = cacheRequest.GetCacheTags()
@@ -80,7 +81,18 @@ public class ServiceBusCacheExpireBehavior<TRequest, TResponse> : HybridCacheExp
             SourceId = _options.SourceId,
         };
 
-        var sender = _serviceProvider.GetRequiredKeyedService<ServiceBusSender>(_options.TopicName);
-        await sender.SendAsJsonAsync(message, cancellationToken: cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var sender = _serviceProvider.GetRequiredKeyedService<ServiceBusSender>(_options.TopicName);
+
+            // fire-and-forget publish to prevent slowing down request processing, log any errors
+            sender
+                .SendAsJsonAsync(message, cancellationToken: cancellationToken)
+                .RunInBackground(Logger);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error publishing cache expiration message: {ErrorMessage}", ex.Message);
+        }
     }
 }

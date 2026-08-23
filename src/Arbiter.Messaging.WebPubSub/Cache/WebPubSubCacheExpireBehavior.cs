@@ -1,5 +1,6 @@
 using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Extensions;
 using Arbiter.Mediation;
 
 using Microsoft.Extensions.Caching.Hybrid;
@@ -68,12 +69,12 @@ public class WebPubSubCacheExpireBehavior<TRequest, TResponse> : HybridCacheExpi
         var response = await base.Process(request, next, cancellationToken).ConfigureAwait(false);
 
         if (request is ICacheExpire cacheRequest)
-            await PublishExpire(cacheRequest, cancellationToken).ConfigureAwait(false);
+            PublishExpire(cacheRequest, cancellationToken);
 
         return response;
     }
 
-    private async ValueTask PublishExpire(ICacheExpire cacheRequest, CancellationToken cancellationToken)
+    private void PublishExpire(ICacheExpire cacheRequest, CancellationToken cancellationToken)
     {
         var cacheKey = cacheRequest.GetCacheKey();
         var cacheTags = cacheRequest.GetCacheTags();
@@ -91,9 +92,10 @@ public class WebPubSubCacheExpireBehavior<TRequest, TResponse> : HybridCacheExpi
 
         try
         {
-            await _publisher
+            // fire-and-forget publish to prevent slowing down request processing, log any errors
+            _publisher
                 .PublishAsync(message, cancellationToken)
-                .ConfigureAwait(false);
+                .RunInBackground(Logger);
         }
         catch (Exception ex)
         {
