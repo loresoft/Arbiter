@@ -113,7 +113,12 @@ public static class Program
 
         services
             .AddEndpointRoutes()
-            .AddDiagnosticRoutes();
+            .AddDiagnosticRoutes(options =>
+            {
+                // sample application opts in to the sensitive diagnostics routes
+                options.ConfigurationEnabled = true;
+                options.CacheClearEnabled = true;
+            });
 
         services
             .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddDomainOptions());

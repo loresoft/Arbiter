@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.CommandQuery.Endpoints;
 
@@ -18,47 +19,98 @@ namespace Arbiter.CommandQuery.Endpoints;
 /// Defines diagnostics and operational API endpoints.
 /// </summary>
 /// <param name="logger">The logger used for diagnostics endpoint operations.</param>
-public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpointRoute
+/// <param name="options">The options used to control which routes are exposed and how they are authorized.</param>
+/// <remarks>
+/// Routes are exposed based on <see cref="DiagnosticsEndpointOptions"/>. The <c>config-debugger</c> and
+/// <c>cache-clear</c> routes are disabled unless explicitly enabled.
+/// </remarks>
+public partial class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger, IOptions<DiagnosticsEndpointOptions>? options = null) : IEndpointRoute
 {
     private readonly ILogger<DiagnosticsEndpoint> _logger = logger;
+    private readonly DiagnosticsEndpointOptions _options = options?.Value ?? new DiagnosticsEndpointOptions();
 
     /// <summary>
-    /// Adds diagnostics and operational routes to the endpoint builder.
+    /// Adds the enabled diagnostics and operational routes to the endpoint builder.
     /// </summary>
     /// <param name="builder">The endpoint route builder.</param>
     public void AddRoutes(IEndpointRouteBuilder builder)
     {
-        builder
-            .MapGet("config-debugger", ConfigurationDebugger)
-            .WithTags("Diagnostics")
-            .WithSummary("Show configuration")
-            .WithDescription("Show configuration")
-            .ExcludeFromDescription()
-            .RequireAuthorization();
+        if (_options.ConfigurationEnabled)
+        {
+            var route = builder
+                .MapGet("config-debugger", ConfigurationDebugger)
+                .WithTags("Diagnostics")
+                .WithSummary("Show configuration")
+                .WithDescription("Show configuration");
 
-        builder
-            .MapGet("health-check", HealthCheck)
-            .WithTags("Diagnostics")
-            .WithSummary("Health Check")
-            .WithDescription("Health Check")
-            .ExcludeFromDescription()
-            .RequireAuthorization();
+            ApplyConventions(route, _options.ConfigurationPolicy, _options.ConfigureConfigurationEndpoint);
+        }
 
-        builder
-            .MapGet("claims-check", ClaimsCheck)
-            .WithTags("Diagnostics")
-            .WithSummary("Claims Check")
-            .WithDescription("Claims Check")
-            .ExcludeFromDescription()
-            .RequireAuthorization();
+        if (_options.HealthCheckEnabled)
+        {
+            var route = builder
+                .MapGet("health-check", HealthCheck)
+                .WithTags("Diagnostics")
+                .WithSummary("Health Check")
+                .WithDescription("Health Check");
 
-        builder
-            .MapGet("cache-clear", CacheClear)
-            .WithTags("Diagnostics")
-            .WithSummary("Clear Cache")
-            .WithDescription("Clear Cache")
-            .ExcludeFromDescription()
-            .RequireAuthorization();
+            ApplyConventions(route, _options.HealthCheckPolicy, _options.ConfigureHealthCheckEndpoint);
+        }
+
+        if (_options.ClaimsCheckEnabled)
+        {
+            var route = builder
+                .MapGet("claims-check", ClaimsCheck)
+                .WithTags("Diagnostics")
+                .WithSummary("Claims Check")
+                .WithDescription("Claims Check");
+
+            ApplyConventions(route, _options.ClaimsCheckPolicy, _options.ConfigureClaimsCheckEndpoint);
+        }
+
+        if (_options.CacheClearEnabled)
+        {
+            var route = builder
+                .MapGet("cache-clear", CacheClear)
+                .WithTags("Diagnostics")
+                .WithSummary("Clear Cache")
+                .WithDescription("Clear Cache");
+
+            ApplyConventions(route, _options.CacheClearPolicy, _options.ConfigureCacheClearEndpoint);
+        }
+
+        LogDiagnosticsRoutesMapped(
+            _logger,
+            _options.ConfigurationEnabled,
+            _options.HealthCheckEnabled,
+            _options.ClaimsCheckEnabled,
+            _options.CacheClearEnabled);
+    }
+
+    /// <summary>
+    /// Applies the shared diagnostics conventions, authorization, and customization actions to a route.
+    /// </summary>
+    /// <param name="route">The route to apply the conventions to.</param>
+    /// <param name="policy">The endpoint specific authorization policy name, if any.</param>
+    /// <param name="configure">The endpoint specific customization action, if any.</param>
+    private void ApplyConventions(
+        RouteHandlerBuilder route,
+        string? policy,
+        Action<RouteHandlerBuilder>? configure)
+    {
+        // Exclude diagnostics endpoints from OpenAPI/Swagger documentation by default
+        route.ExcludeFromDescription();
+
+        // Apply authorization policy if specified, otherwise use the default policy from options
+        var authorizationPolicy = policy ?? _options.AuthorizationPolicy;
+        if (!string.IsNullOrEmpty(authorizationPolicy))
+            route.RequireAuthorization(authorizationPolicy);
+        else
+            route.RequireAuthorization();
+
+        // Apply any additional endpoint configuration provided in the options or by the caller
+        _options.ConfigureEndpoint?.Invoke(route);
+        configure?.Invoke(route);
     }
 
 
@@ -76,7 +128,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Configuration debug requested by {UserName}", user?.Identity?.Name ?? "anonymous");
+        LogConfigurationDebugRequested(_logger, user?.Identity?.Name ?? "anonymous");
 
         try
         {
@@ -89,7 +141,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error: {ErrorMessage}", ex.Message);
+            LogEndPointException(_logger, ex, ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -110,7 +162,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Health check requested by {UserName}", user?.Identity?.Name ?? "anonymous");
+        LogHealthCheckRequested(_logger, user?.Identity?.Name ?? "anonymous");
 
         try
         {
@@ -123,7 +175,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error: {ErrorMessage}", ex.Message);
+            LogEndPointException(_logger, ex, ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -140,7 +192,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Claims check requested by {UserName}", user?.Identity?.Name ?? "anonymous");
+        LogClaimsCheckRequested(_logger, user?.Identity?.Name ?? "anonymous");
 
         try
         {
@@ -152,7 +204,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error: {ErrorMessage}", ex.Message);
+            LogEndPointException(_logger, ex, ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
@@ -173,8 +225,8 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Cache clear requested by {UserName} for tags: {Tags}",
+        LogCacheClearRequested(
+            _logger,
             user?.Identity?.Name ?? "anonymous",
             tags != null ? string.Join(", ", tags) : "all");
 
@@ -182,7 +234,7 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         {
             if (hybridCache == null)
             {
-                _logger.LogWarning("HybridCache service is not available. Cache clear operation cannot be performed.");
+                LogHybridCacheUnavailable(_logger);
                 return TypedResults.NoContent();
             }
 
@@ -197,10 +249,37 @@ public class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger) : IEndpoin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error: {ErrorMessage}", ex.Message);
+            LogEndPointException(_logger, ex, ex.Message);
 
             var details = ex.ToProblemDetails();
             return TypedResults.Problem(details);
         }
     }
+
+
+    [LoggerMessage(1, LogLevel.Information, "Diagnostics routes mapped; config-debugger: {ConfigurationEnabled}, health-check: {HealthCheckEnabled}, claims-check: {ClaimsCheckEnabled}, cache-clear: {CacheClearEnabled}")]
+    static partial void LogDiagnosticsRoutesMapped(
+        ILogger logger,
+        bool configurationEnabled,
+        bool healthCheckEnabled,
+        bool claimsCheckEnabled,
+        bool cacheClearEnabled);
+
+    [LoggerMessage(2, LogLevel.Information, "Configuration debug requested by {UserName}")]
+    static partial void LogConfigurationDebugRequested(ILogger logger, string userName);
+
+    [LoggerMessage(3, LogLevel.Information, "Health check requested by {UserName}")]
+    static partial void LogHealthCheckRequested(ILogger logger, string userName);
+
+    [LoggerMessage(4, LogLevel.Information, "Claims check requested by {UserName}")]
+    static partial void LogClaimsCheckRequested(ILogger logger, string userName);
+
+    [LoggerMessage(5, LogLevel.Information, "Cache clear requested by {UserName} for tags: {Tags}")]
+    static partial void LogCacheClearRequested(ILogger logger, string userName, string tags);
+
+    [LoggerMessage(6, LogLevel.Warning, "HybridCache service is not available. Cache clear operation cannot be performed.")]
+    static partial void LogHybridCacheUnavailable(ILogger logger);
+
+    [LoggerMessage(7, LogLevel.Error, "Error processing request: {ErrorMessage}")]
+    static partial void LogEndPointException(ILogger logger, Exception exception, string errorMessage);
 }

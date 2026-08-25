@@ -30,9 +30,35 @@ public static class EndpointRouteExtensions
     /// Adds diagnostics endpoint routes to the specified service collection.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+    /// <param name="configure">An optional delegate used to configure the <see cref="DiagnosticsEndpointOptions"/>.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-    public static IServiceCollection AddDiagnosticRoutes(this IServiceCollection services)
+    /// <remarks>
+    /// <para>
+    /// Diagnostics routes are secure by default. The <c>health-check</c> and <c>claims-check</c> routes are exposed,
+    /// while the <c>config-debugger</c> and <c>cache-clear</c> routes are disabled until explicitly enabled because
+    /// they expose configuration secrets and allow invalidating the entire cache.
+    /// </para>
+    /// <example>
+    /// The following example enables the configuration route and restricts it to an administrator policy:
+    /// <code>
+    /// services.AddDiagnosticRoutes(options =>
+    /// {
+    ///     options.AuthorizationPolicy = "Diagnostics";
+    ///     options.ConfigurationEnabled = true;
+    ///     options.ConfigurationPolicy = "Administrator";
+    /// });
+    /// </code>
+    /// </example>
+    /// </remarks>
+    public static IServiceCollection AddDiagnosticRoutes(this IServiceCollection services, Action<DiagnosticsEndpointOptions>? configure = null)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddOptions<DiagnosticsEndpointOptions>();
+
+        if (configure is not null)
+            services.Configure(configure);
+
         services.AddSingleton<IEndpointRoute, DiagnosticsEndpoint>();
         return services;
     }
