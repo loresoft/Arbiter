@@ -183,12 +183,14 @@ public partial class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger, IO
     }
 
     /// <summary>
-    /// Returns the current user's claims.
+    /// Returns request headers and the current user's claims.
     /// </summary>
+    /// <param name="httpContext">The HTTP context containing the incoming request headers.</param>
     /// <param name="user">The current user principal.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A list of claim type and value pairs.</returns>
-    private async Task<Results<Ok<List<ClaimType>>, ProblemHttpResult>> ClaimsCheck(
+    /// <returns>A claim result containing request headers and claim type/value pairs, or problem details when an error occurs.</returns>
+    private async Task<Results<Ok<ClaimResult>, ProblemHttpResult>> ClaimsCheck(
+        HttpContext httpContext,
         ClaimsPrincipal? user = default,
         CancellationToken cancellationToken = default)
     {
@@ -196,11 +198,30 @@ public partial class DiagnosticsEndpoint(ILogger<DiagnosticsEndpoint> logger, IO
 
         try
         {
-            var claims = user?.Claims
-                .Select(c => new ClaimType { Type = c.Type, Value = c.Value })
+            var headers = httpContext.Request.Headers
+                .SelectMany(h => h.Value, (h, v) => new KeyValue<string, string> { Key = h.Key, Value = v })
+                .OrderBy(c => c.Key, StringComparer.Ordinal)
+                .ThenBy(c => c.Value, StringComparer.Ordinal)
                 .ToList();
 
-            return TypedResults.Ok(claims);
+            var cookies = httpContext.Request.Cookies
+                .Select(c => new KeyValue<string, string> { Key = c.Key, Value = c.Value })
+                .OrderBy(c => c.Key, StringComparer.Ordinal)
+                .ToList();
+
+            var claims = user?.Claims
+                .Select(c => new ClaimType { Type = c.Type, Value = c.Value })
+                .OrderBy(c => c.Type, StringComparer.Ordinal)
+                .ToList();
+
+            var results = new ClaimResult
+            {
+                Headers = headers,
+                Cookies = cookies,
+                Claims = claims,
+            };
+
+            return TypedResults.Ok(results);
         }
         catch (Exception ex)
         {
