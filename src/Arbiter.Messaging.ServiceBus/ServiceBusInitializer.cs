@@ -52,7 +52,7 @@ public sealed partial class ServiceBusInitializer : IHostedService
             var option = optionsMonitor.Get(registration.OptionsName);
             try
             {
-                await Initialize(option, cancellationToken).ConfigureAwait(false);
+                Initialize(option, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -72,17 +72,34 @@ public sealed partial class ServiceBusInitializer : IHostedService
     }
 
 
-    private async Task Initialize(
+    private void Initialize(
         ServiceBusOptions option,
         CancellationToken cancellationToken)
     {
         var adminClient = _serviceProvider.GetRequiredKeyedService<ServiceBusAdministrationClient>(option.ServiceKey);
 
         foreach (var queue in option.Queues)
-            await InitializeQueue(adminClient, option, queue, cancellationToken).ConfigureAwait(false);
+        {
+            var task = InitializeQueue(adminClient, option, queue, cancellationToken);
+            InitializeBackground(task);
+        }
 
         foreach (var topic in option.Topics)
-            await InitializeTopic(adminClient, option, topic, cancellationToken).ConfigureAwait(false);
+        {
+            var task = InitializeTopic(adminClient, option, topic, cancellationToken);
+            InitializeBackground(task);
+        }
+    }
+
+    private void InitializeBackground(Task task)
+    {
+        // don't block host startup, but log any exceptions that occur during resource initialization
+        _ = task.ContinueWith(
+            continuationAction: TaskContinuationFault,
+            state: _logger,
+            cancellationToken: CancellationToken.None,
+            continuationOptions: TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted,
+            scheduler: TaskScheduler.Default);
     }
 
     private async Task InitializeQueue(
@@ -227,12 +244,26 @@ public sealed partial class ServiceBusInitializer : IHostedService
         return topicOptions;
     }
 
+    private static void TaskContinuationFault(
+        Task completedTask,
+        object? state)
+    {
+        var logger = state as ILogger;
+        var exception = completedTask.Exception?.GetBaseException();
+
+        if (exception is not null && logger is not null)
+            LogBackgroundTaskFault(logger, exception, exception.Message);
+    }
+
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "No Azure Service Bus resources configured for initialization.")]
     private static partial void LogNoResourcesConfigured(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error initializing Azure Service Bus resources for '{NameOrConnectionString}'")]
     private static partial void LogErrorInitializingResources(ILogger logger, Exception exception, string nameOrConnectionString);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred while running a task in the background: {ErrorMessage}")]
+    private static partial void LogBackgroundTaskFault(ILogger logger, Exception exception, string errorMessage);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Creating Queue '{QueueName}'")]
     private static partial void LogCreatingQueue(ILogger logger, string queueName);

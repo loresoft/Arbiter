@@ -53,7 +53,7 @@ public sealed partial class BlobStorageInitializer : IHostedService
 
             try
             {
-                await Initialize(option, cancellationToken).ConfigureAwait(false);
+                Initialize(option, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -73,15 +73,29 @@ public sealed partial class BlobStorageInitializer : IHostedService
     }
 
 
-    private async Task Initialize(
+    private void Initialize(
         BlobStorageOptions option,
         CancellationToken cancellationToken)
     {
         foreach (var container in option.Containers)
         {
             var containerClient = _serviceProvider.GetRequiredKeyedService<BlobContainerClient>(container.Key);
-            await InitializeContainer(containerClient, container.Value, cancellationToken).ConfigureAwait(false);
+
+            var task = InitializeContainer(containerClient, container.Value, cancellationToken);
+
+            InitializeBackground(task);
         }
+    }
+
+    private void InitializeBackground(Task task)
+    {
+        // don't block host startup, but log any exceptions that occur during resource initialization
+        _ = task.ContinueWith(
+            continuationAction: TaskContinuationFault,
+            state: _logger,
+            cancellationToken: CancellationToken.None,
+            continuationOptions: TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted,
+            scheduler: TaskScheduler.Default);
     }
 
     private async Task InitializeContainer(
@@ -108,12 +122,26 @@ public sealed partial class BlobStorageInitializer : IHostedService
         }
     }
 
+    private static void TaskContinuationFault(
+        Task completedTask,
+        object? state)
+    {
+        var logger = state as ILogger;
+        var exception = completedTask.Exception?.GetBaseException();
+
+        if (exception is not null && logger is not null)
+            LogBackgroundTaskFault(logger, exception, exception.Message);
+    }
+
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "No Azure Blob Storage containers configured for initialization.")]
     private static partial void LogNoContainersConfigured(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error initializing Azure Blob Storage containers for '{NameOrConnectionString}'")]
     private static partial void LogErrorInitializingContainers(ILogger logger, Exception exception, string nameOrConnectionString);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred while running a task in the background: {ErrorMessage}")]
+    private static partial void LogBackgroundTaskFault(ILogger logger, Exception exception, string errorMessage);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Creating Blob Container '{ContainerName}'")]
     private static partial void LogCreatingContainer(ILogger logger, string containerName);
@@ -123,4 +151,6 @@ public sealed partial class BlobStorageInitializer : IHostedService
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "Blob Container '{ContainerName}' already exists")]
     private static partial void LogContainerAlreadyExists(ILogger logger, Exception exception, string containerName);
+
+
 }
