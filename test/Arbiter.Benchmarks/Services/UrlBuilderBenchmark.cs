@@ -41,9 +41,9 @@ public class UrlBuilderBenchmark
         var builder = new UrlBuilder()
             .Scheme(Scheme)
             .Host(Host)
-            .AppendPath(Path1)
-            .AppendPath(Path2)
-            .AppendPath(Path3)
+            .AppendSegment(Path1)
+            .AppendSegment(Path2)
+            .AppendSegment(Path3)
             .AppendQuery(QueryKey, QueryValue)
             .Fragment(Fragment);
 

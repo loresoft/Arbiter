@@ -64,7 +64,8 @@ public static class QueryExtensions
         ArgumentNullException.ThrowIfNull(query);
 
         // Create ordering expression e.g. Field1 asc, Field2 desc
-        var builder = new ValueStringBuilder(128);
+        using var builder = new ValueStringBuilder(128);
+
         foreach (var sort in sorts)
         {
             if (builder.Length > 0)
@@ -79,7 +80,8 @@ public static class QueryExtensions
                 builder.Append("asc");
         }
 
-        return query.OrderBy(builder.ToString());
+        string sortExpression = builder.ToString();
+        return query.OrderBy(sortExpression);
     }
 
     /// <summary>

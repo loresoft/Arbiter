@@ -1,11 +1,12 @@
-using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Arbiter.Services;
 
 /// <summary>
-/// Provides a high-performance builder for constructing and manipulating Uniform Resource Locators (URLs).
+/// Provides a low-allocation builder for constructing and manipulating Uniform Resource Locators (URLs).
 /// Supports a fluent API for setting URL components and appending path/query segments efficiently.
 /// </summary>
 /// <remarks>
@@ -13,62 +14,103 @@ namespace Arbiter.Services;
 /// <b>Thread Safety:</b> This type is not thread-safe and should not be shared between threads.
 /// </para>
 /// <para>
-/// <b>Disposal:</b> After calling <see cref="ToString"/>, this instance is disposed and must not be used again.
-/// Any further method calls will throw <see cref="ObjectDisposedException"/>.
+/// <b>Lifetime:</b> This type holds no unmanaged or pooled resources and requires no cleanup.
+/// <see cref="ToString"/> does not mutate the builder, so a builder can be built more than once and
+/// extended between calls.
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
-/// var builder = new UrlBuilder()
+/// var url = new UrlBuilder()
 ///     .Scheme("https")
 ///     .Host("api.example.com")
 ///     .Port(443)
-///     .AppendPath("v1")
-///     .AppendPath("users")
+///     .AppendSegment("v1")
+///     .AppendSegment("users")
 ///     .AppendQuery("active", "true")
-///     .AppendQuery("role", "admin");
+///     .AppendQuery("role", "admin")
+///     .ToString();
 ///
-/// string url = builder.ToString();
 /// // Result: "https://api.example.com:443/v1/users?active=true&amp;role=admin"
 /// </code>
 /// </example>
-public ref struct UrlBuilder
+public sealed class UrlBuilder
 {
-    private ReadOnlySpan<char> _scheme;
-    private ReadOnlySpan<char> _host;
-    private ReadOnlySpan<char> _port;
-    private ReadOnlySpan<char> _username;
-    private ReadOnlySpan<char> _password;
-    private ReadOnlySpan<char> _fragment;
+    // typical path and query segments are short; the buffers grow by doubling when needed
+    private const int DefaultSegmentCapacity = 32;
+    private const int DefaultBuildCapacity = 128;
 
-    // Path segments buffer
-    private char[]? _pathSegmentsBuffer;
-    private int _pathSegmentsLength;
+    private string? _scheme;
+    private string? _host;
+    private string? _portText;
+    private int _portNumber = -1;
+    private string? _username;
+    private string? _password;
+    private string? _fragment;
 
-    // Query string buffer
-    private char[]? _queryStringBuffer;
-    private int _queryStringLength;
+    // Path segments buffer, percent-encoded, without leading or trailing separator
+    private char[]? _pathBuffer;
+    private int _pathLength;
 
-    private bool _disposed;
+    // Query string buffer, percent-encoded, without the leading '?'
+    private char[]? _queryBuffer;
+    private int _queryLength;
+
+    #region Create Methods
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UrlBuilder"/> struct, ready for URL construction.
+    /// Creates a new <see cref="UrlBuilder"/> starting with the specified path, where '/' acts as a
+    /// segment separator, for example <c>api/user</c>.
     /// </summary>
-    public UrlBuilder()
-    {
-        _pathSegmentsBuffer = null;
-        _pathSegmentsLength = 0;
-        _queryStringBuffer = null;
-        _queryStringLength = 0;
-        _disposed = false;
-    }
+    /// <remarks>
+    /// The value is appended without escaping, so the caller is responsible for percent-encoding it.
+    /// Use <see cref="FromSegment(string?)"/> for a single segment that may contain characters
+    /// requiring escaping.
+    /// </remarks>
+    /// <param name="path">The path to start the URL with. If empty, nothing is appended.</param>
+    /// <returns>A new <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public static UrlBuilder FromPath(scoped ReadOnlySpan<char> path)
+        => new UrlBuilder().AppendPath(path);
+
+    /// <summary>
+    /// Creates a new <see cref="UrlBuilder"/> starting with the specified path, where '/' acts as a
+    /// segment separator, for example <c>api/user</c>.
+    /// </summary>
+    /// <remarks>
+    /// The value is appended without escaping, so the caller is responsible for percent-encoding it.
+    /// Use <see cref="FromSegment(string?)"/> for a single segment that may contain characters
+    /// requiring escaping.
+    /// </remarks>
+    /// <param name="path">The path to start the URL with. If <see langword="null"/> or empty, nothing is appended.</param>
+    /// <returns>A new <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public static UrlBuilder FromPath(string? path)
+        => new UrlBuilder().AppendPath(path);
+
+    /// <summary>
+    /// Creates a new <see cref="UrlBuilder"/> starting with a single path segment, escaping as needed.
+    /// </summary>
+    /// <param name="segment">The path segment to start the URL with. If <see langword="null"/> or empty, nothing is appended.</param>
+    /// <returns>A new <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public static UrlBuilder FromSegment(string? segment)
+        => new UrlBuilder().AppendSegment(segment);
+
+    /// <summary>
+    /// Creates a new <see cref="UrlBuilder"/> starting with the specified path segments, joined by '/'.
+    /// Each segment is escaped as needed.
+    /// </summary>
+    /// <param name="segments">The path segments to start the URL with. <see langword="null"/> or empty segments are ignored.</param>
+    /// <returns>A new <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public static UrlBuilder FromSegments(params IEnumerable<string>? segments)
+        => new UrlBuilder().AppendSegments(segments);
+
+    #endregion
 
     /// <summary>
     /// Sets the scheme (protocol) for the URL, such as "http" or "https".
     /// </summary>
     /// <param name="scheme">The scheme to use for the URL (e.g., "http", "https").</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder Scheme(ReadOnlySpan<char> scheme)
+    public UrlBuilder Scheme(string? scheme)
     {
         _scheme = scheme;
         return this;
@@ -79,7 +121,7 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="userName">The user name to include in the URL.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder UserName(ReadOnlySpan<char> userName)
+    public UrlBuilder UserName(string? userName)
     {
         _username = userName;
         return this;
@@ -90,7 +132,7 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="password">The password to include in the URL.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder Password(ReadOnlySpan<char> password)
+    public UrlBuilder Password(string? password)
     {
         _password = password;
         return this;
@@ -101,20 +143,21 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="host">The host name or IP address.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder Host(ReadOnlySpan<char> host)
+    public UrlBuilder Host(string? host)
     {
         _host = host;
         return this;
     }
 
     /// <summary>
-    /// Sets the port for the URL using a character span.
+    /// Sets the port for the URL using its textual representation.
     /// </summary>
-    /// <param name="port">The port as a character span (e.g., "443").</param>
+    /// <param name="port">The port as text (e.g., "443").</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder Port(ReadOnlySpan<char> port)
+    public UrlBuilder Port(string? port)
     {
-        _port = port;
+        _portText = port;
+        _portNumber = -1;
         return this;
     }
 
@@ -123,9 +166,14 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="port">The port number (e.g., 443).</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="port"/> is negative.</exception>
     public UrlBuilder Port(int port)
     {
-        _port = port.ToString(CultureInfo.InvariantCulture).AsSpan();
+        if (port < 0)
+            throw new ArgumentOutOfRangeException(nameof(port), port, "Port must not be negative.");
+
+        _portNumber = port;
+        _portText = null;
         return this;
     }
 
@@ -134,173 +182,177 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="fragment">The fragment to append to the URL (without the '#').</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    public UrlBuilder Fragment(ReadOnlySpan<char> fragment)
+    public UrlBuilder Fragment(string? fragment)
     {
         _fragment = fragment;
         return this;
     }
 
     /// <summary>
-    /// Appends a path segment to the URL, escaping as needed.
+    /// Appends a single path segment to the URL, escaping as needed. Any '/' in the value is
+    /// escaped as <c>%2F</c> and does not act as a separator.
     /// </summary>
-    /// <param name="path">The path segment to append. Must not be empty.</param>
+    /// <param name="segment">The path segment to append. If empty, nothing is appended.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPath(scoped ReadOnlySpan<char> path)
+    public UrlBuilder AppendSegment(scoped ReadOnlySpan<char> segment)
     {
-        ThrowIfDisposed();
-
-        if (path.IsEmpty)
+        if (segment.IsEmpty)
             return this;
 
-        // Calculate encoded length for the path segment
-        int encodedLen = GetEncodedLength(path);
-        bool needsSlash = _pathSegmentsLength > 0 && _pathSegmentsBuffer![_pathSegmentsLength - 1] != '/';
-        int requiredExtra = encodedLen + (needsSlash ? 1 : 0);
+        // Separators are added between segments; the encoded segment can never contain '/'
+        if (_pathLength > 0)
+            AppendChar(ref _pathBuffer, ref _pathLength, '/');
 
-        EnsureCapacity(ref _pathSegmentsBuffer, _pathSegmentsLength, requiredExtra);
-
-        if (needsSlash)
-            _pathSegmentsBuffer![_pathSegmentsLength++] = '/';
-
-        // Encode the path segment in place
-        UrlEncode(path, _pathSegmentsBuffer.AsSpan(_pathSegmentsLength, encodedLen));
-        _pathSegmentsLength += encodedLen;
+        AppendEscaped(ref _pathBuffer, ref _pathLength, segment);
 
         return this;
     }
 
     /// <summary>
-    /// Appends a path segment to the URL, converting the value to a string and escaping as needed.
+    /// Appends a single path segment to the URL, converting the value to a string and escaping as needed.
     /// Optionally, a predicate can be provided to determine if the value should be appended.
     /// </summary>
     /// <typeparam name="TValue">The type of the path segment value.</typeparam>
-    /// <param name="path">The path segment to append. If <see langword="null"/> or empty, nothing is appended.</param>
+    /// <param name="segment">The path segment to append. If <see langword="null"/> or empty, nothing is appended.</param>
     /// <param name="condition">
-    /// An optional predicate that determines whether the path should be appended.
-    /// If <see langword="null"/>, the path is always appended.
+    /// An optional predicate that determines whether the segment should be appended.
+    /// If <see langword="null"/>, the segment is always appended.
     /// </param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPath<TValue>(TValue? path, Func<TValue?, bool>? condition = null)
+    public UrlBuilder AppendSegment<TValue>(TValue? segment, Func<TValue?, bool>? condition = null)
     {
-        ThrowIfDisposed();
-
-        if (path is null)
+        if (segment is null)
             return this;
 
-        if (condition != null && !condition(path))
+        if (condition != null && !condition(segment))
             return this;
 
-        var str = path.ToString();
-        if (string.IsNullOrEmpty(str))
+        var text = ToStringInvariant(segment);
+        if (string.IsNullOrEmpty(text))
             return this;
 
-        return AppendPath(str.AsSpan());
+        return AppendSegment(text.AsSpan());
     }
 
     /// <summary>
-    /// Appends a path segment to the URL, escaping as needed.
+    /// Appends a single path segment to the URL, escaping as needed.
     /// Optionally, a predicate can be provided to determine if the value should be appended.
     /// </summary>
-    /// <param name="path">The path segment to append.</param>
+    /// <param name="segment">The path segment to append.</param>
     /// <param name="condition">
-    /// An optional predicate that determines whether the path should be appended.
-    /// If <see langword="null"/>, the path is always appended.
+    /// An optional predicate that determines whether the segment should be appended.
+    /// If <see langword="null"/>, the segment is always appended.
     /// </param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPath(string? path, Func<string?, bool>? condition = null)
+    public UrlBuilder AppendSegment(string? segment, Func<string?, bool>? condition = null)
     {
-        ThrowIfDisposed();
-
-        if (path is null)
+        if (segment is null)
             return this;
 
-        if (condition != null && !condition(path))
+        if (condition != null && !condition(segment))
             return this;
 
-        return AppendPath(path.AsSpan());
+        return AppendSegment(segment.AsSpan());
     }
 
     /// <summary>
-    /// Appends a path segment to the URL if the specified boolean condition is true.
+    /// Appends a single path segment to the URL if the specified boolean condition is true.
     /// </summary>
-    /// <param name="path">The path segment to append.</param>
-    /// <param name="condition">If <see langword="true"/>, the path is appended; otherwise, it is not.</param>
+    /// <param name="segment">The path segment to append.</param>
+    /// <param name="condition">If <see langword="true"/>, the segment is appended; otherwise, it is not.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPath(string? path, bool condition)
+    public UrlBuilder AppendSegment(string? segment, bool condition)
     {
-        ThrowIfDisposed();
-
-        if (path is null || !condition)
+        if (segment is null || !condition)
             return this;
 
-        return AppendPath(path.AsSpan());
+        return AppendSegment(segment.AsSpan());
     }
 
     /// <summary>
-    /// Appends multiple path segments to the URL. Each segment is escaped as needed.
+    /// Appends multiple path segments to the URL, joined by '/'. Each segment is escaped as needed.
     /// </summary>
-    /// <param name="paths">A collection of path segments to append. <see langword="null"/> or empty segments are ignored.</param>
+    /// <param name="segments">A collection of path segments to append. <see langword="null"/> or empty segments are ignored.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
-    public UrlBuilder AppendPaths(params IEnumerable<string>? paths)
+    public UrlBuilder AppendSegments(params IEnumerable<string>? segments)
     {
-        ThrowIfDisposed();
-
-        if (paths is null)
+        if (segments is null)
             return this;
 
-        foreach (var path in paths)
+        foreach (var segment in segments)
         {
-            if (!string.IsNullOrEmpty(path))
-                AppendPath(path.AsSpan());
+            if (!string.IsNullOrEmpty(segment))
+                AppendSegment(segment.AsSpan());
         }
 
         return this;
     }
 
     /// <summary>
+    /// Appends a path to the URL, where '/' acts as a segment separator, for example <c>api/user</c>.
+    /// Leading and trailing '/' characters are trimmed; interior separators are preserved as-is.
+    /// </summary>
+    /// <remarks>
+    /// The value is appended without escaping, so the caller is responsible for percent-encoding it.
+    /// Use <see cref="AppendSegment(ReadOnlySpan{char})"/> for a single segment that may contain
+    /// characters requiring escaping.
+    /// </remarks>
+    /// <param name="path">The path to append. If empty, nothing is appended.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder AppendPath(scoped ReadOnlySpan<char> path)
+    {
+        path = path.Trim('/');
+        if (path.IsEmpty)
+            return this;
+
+        if (_pathLength > 0)
+            AppendChar(ref _pathBuffer, ref _pathLength, '/');
+
+        EnsureCapacity(ref _pathBuffer, _pathLength, path.Length);
+
+        path.CopyTo(_pathBuffer.AsSpan(_pathLength));
+        _pathLength += path.Length;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Appends a path to the URL, where '/' acts as a segment separator, for example <c>api/user</c>.
+    /// Leading and trailing '/' characters are trimmed; interior separators are preserved as-is.
+    /// </summary>
+    /// <remarks>
+    /// The value is appended without escaping, so the caller is responsible for percent-encoding it.
+    /// Use <see cref="AppendSegment(string?, Func{string?, bool}?)"/> for a single segment that may
+    /// contain characters requiring escaping.
+    /// </remarks>
+    /// <param name="path">The path to append. If <see langword="null"/> or empty, nothing is appended.</param>
+    /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
+    public UrlBuilder AppendPath(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return this;
+
+        return AppendPath(path.AsSpan());
+    }
+
+    /// <summary>
     /// Appends a query string parameter to the URL, escaping both name and value.
     /// </summary>
-    /// <param name="name">The query parameter name.</param>
+    /// <param name="name">The query parameter name. If empty, nothing is appended.</param>
     /// <param name="value">The query parameter value.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendQuery(scoped ReadOnlySpan<char> name, scoped ReadOnlySpan<char> value)
     {
-        ThrowIfDisposed();
-
         if (name.IsEmpty)
             return this;
 
-        int encodedNameLen = GetEncodedLength(name);
-        int encodedValueLen = GetEncodedLength(value);
+        if (_queryLength > 0)
+            AppendChar(ref _queryBuffer, ref _queryLength, '&');
 
-        int extra = encodedNameLen + 1 + encodedValueLen; // name=value
-        bool needsAmp = _queryStringLength > 0;
-        if (needsAmp)
-            extra++; // for '&'
+        AppendEscaped(ref _queryBuffer, ref _queryLength, name);
+        AppendChar(ref _queryBuffer, ref _queryLength, '=');
+        AppendEscaped(ref _queryBuffer, ref _queryLength, value);
 
-        EnsureCapacity(ref _queryStringBuffer, _queryStringLength, extra);
-
-        int pos = _queryStringLength;
-        if (needsAmp)
-            _queryStringBuffer![pos++] = '&';
-
-        // Encode name in place
-        UrlEncode(name, _queryStringBuffer.AsSpan(pos, encodedNameLen));
-        pos += encodedNameLen;
-
-        _queryStringBuffer![pos++] = '=';
-
-        // Encode value in place
-        UrlEncode(value, _queryStringBuffer.AsSpan(pos, encodedValueLen));
-        pos += encodedValueLen;
-
-        _queryStringLength = pos;
         return this;
     }
 
@@ -313,18 +365,15 @@ public ref struct UrlBuilder
     /// <param name="value">The query parameter value. If <see langword="null"/>, nothing is appended.</param>
     /// <param name="condition">Optional predicate to determine if the value should be appended.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendQuery<TValue>(string name, TValue? value, Func<TValue?, bool>? condition = null)
     {
-        ThrowIfDisposed();
-
         if (string.IsNullOrEmpty(name) || value is null)
             return this;
 
         if (condition != null && !condition(value))
             return this;
 
-        return AppendQuery(name.AsSpan(), value.ToString().AsSpan());
+        return AppendQuery(name.AsSpan(), ToStringInvariant(value).AsSpan());
     }
 
     /// <summary>
@@ -337,11 +386,8 @@ public ref struct UrlBuilder
     /// If <see langword="null"/>, the query is always appended.
     /// </param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendQuery(string name, string? value, Func<string?, bool>? condition = null)
     {
-        ThrowIfDisposed();
-
         if (string.IsNullOrEmpty(name) || (condition != null && !condition(value)))
             return this;
 
@@ -355,12 +401,9 @@ public ref struct UrlBuilder
     /// <param name="value">The query parameter value.</param>
     /// <param name="condition">If <see langword="true"/>, the query is appended; otherwise, it is not.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendQuery(string name, string? value, bool condition)
     {
-        ThrowIfDisposed();
-
-        if (string.IsNullOrEmpty(name) || !condition || value is null)
+        if (string.IsNullOrEmpty(name) || !condition)
             return this;
 
         return AppendQuery(name.AsSpan(), value.AsSpan());
@@ -371,213 +414,227 @@ public ref struct UrlBuilder
     /// </summary>
     /// <param name="queryParams">A collection of query string key-value pairs. <see langword="null"/> or empty keys/values are ignored.</param>
     /// <returns>This <see cref="UrlBuilder"/> instance for chaining.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     public UrlBuilder AppendQueries(params IEnumerable<KeyValuePair<string, string?>>? queryParams)
     {
-        ThrowIfDisposed();
-
         if (queryParams is null)
             return this;
 
-        foreach (var kvp in queryParams)
+        foreach (var pair in queryParams)
         {
-            if (!string.IsNullOrEmpty(kvp.Key) && kvp.Value != null)
-                AppendQuery(kvp.Key.AsSpan(), kvp.Value.AsSpan());
+            if (!string.IsNullOrEmpty(pair.Key) && pair.Value != null)
+                AppendQuery(pair.Key.AsSpan(), pair.Value.AsSpan());
         }
 
         return this;
     }
 
     /// <summary>
-    /// Returns the fully constructed URL as a string, including all components and segments.
-    /// After calling this method, the builder is disposed and must not be used again.
+    /// Returns the fully constructed URL as a string.
     /// </summary>
     /// <returns>The complete URL as a string.</returns>
-    /// <exception cref="ObjectDisposedException">Thrown if this instance has been disposed.</exception>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Simple string building logic")]
     public override string ToString()
     {
-        ThrowIfDisposed();
-
-        // a reasonable initial capacity
-        var sb = new ValueStringBuilder(128);
+        using var builder = new ValueStringBuilder(DefaultBuildCapacity);
 
         // scheme://
-        if (!_scheme.IsEmpty)
+        if (!string.IsNullOrEmpty(_scheme))
         {
-            sb.Append(_scheme);
-            sb.Append("://");
+            builder.Append(_scheme);
+            builder.Append("://");
         }
 
         // [username[:password]@]
-        if (!_username.IsEmpty)
+        if (!string.IsNullOrEmpty(_username))
         {
-            sb.Append(_username);
-            if (!_password.IsEmpty)
+            builder.Append(_username);
+            if (!string.IsNullOrEmpty(_password))
             {
-                sb.Append(':');
-                sb.Append(_password);
+                builder.Append(':');
+                builder.Append(_password);
             }
-            sb.Append('@');
+            builder.Append('@');
         }
 
         // host
-        if (!_host.IsEmpty)
-            sb.Append(_host);
+        if (!string.IsNullOrEmpty(_host))
+        {
+            var isUnbracketedIpv6 = _host[0] != '[' && Uri.CheckHostName(_host) == UriHostNameType.IPv6;
+            if (isUnbracketedIpv6)
+                builder.Append('[');
+
+            builder.Append(_host);
+
+            if (isUnbracketedIpv6)
+                builder.Append(']');
+        }
 
         // :port
-        if (!_port.IsEmpty)
+        if (!string.IsNullOrEmpty(_portText))
         {
-            sb.Append(':');
-            sb.Append(_port);
+            builder.Append(':');
+            builder.Append(_portText);
+        }
+        else if (_portNumber >= 0)
+        {
+            builder.Append(':');
+            builder.Append(_portNumber);
         }
 
         // /path
-        if (_pathSegmentsBuffer != null && _pathSegmentsLength > 0)
+        if (_pathLength > 0)
         {
-            // Ensure path starts with '/'
-            if (_pathSegmentsBuffer[0] != '/')
-                sb.Append('/');
-
-            sb.Append(_pathSegmentsBuffer.AsSpan(0, _pathSegmentsLength));
+            builder.Append('/');
+            builder.Append(_pathBuffer.AsSpan(0, _pathLength));
         }
 
         // ?query
-        if (_queryStringBuffer != null && _queryStringLength > 0)
+        if (_queryLength > 0)
         {
-            sb.Append('?');
-            sb.Append(_queryStringBuffer.AsSpan(0, _queryStringLength));
+            builder.Append('?');
+            builder.Append(_queryBuffer.AsSpan(0, _queryLength));
         }
 
         // #fragment
-        if (!_fragment.IsEmpty)
+        if (!string.IsNullOrEmpty(_fragment))
         {
-            sb.Append('#');
-            sb.Append(_fragment);
+            builder.Append('#');
+            builder.Append(_fragment);
         }
 
-        var url = sb.ToString();
-
-        Dispose(); // Clean up buffers
-
-        return url;
+        return builder.ToString();
     }
 
-    /// <summary>
-    /// Releases all resources used by this <see cref="UrlBuilder"/> instance.
-    /// After disposal, further use of this instance will throw an <see cref="ObjectDisposedException"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Dispose()
-    {
-        if (_disposed)
-            return;
-
-        if (_pathSegmentsBuffer != null)
-        {
-            ArrayPool<char>.Shared.Return(_pathSegmentsBuffer);
-            _pathSegmentsBuffer = null;
-            _pathSegmentsLength = 0;
-        }
-
-        if (_queryStringBuffer != null)
-        {
-            ArrayPool<char>.Shared.Return(_queryStringBuffer);
-            _queryStringBuffer = null;
-            _queryStringLength = 0;
-        }
-
-        _disposed = true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void ThrowIfDisposed()
-    {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(UrlBuilder));
-    }
+    private static string? ToStringInvariant<TValue>(TValue value)
+        => value is IFormattable formattable
+            ? formattable.ToString(format: null, CultureInfo.InvariantCulture)
+            : value?.ToString();
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void EnsureCapacity(ref char[]? buffer, int currentLength, int requiredExtra)
+    private static void EnsureCapacity([NotNull] ref char[]? buffer, int currentLength, int requiredExtra)
     {
-        int requiredLength = currentLength + requiredExtra;
+        var requiredLength = currentLength + requiredExtra;
 
         if (buffer == null)
         {
-            int initialSize = Math.Max(128, requiredLength);
-            buffer = ArrayPool<char>.Shared.Rent(initialSize);
+            buffer = new char[Math.Max(DefaultSegmentCapacity, requiredLength)];
         }
         else if (buffer.Length < requiredLength)
         {
-            int newSize = Math.Max(buffer.Length * 2, requiredLength);
-            var newBuffer = ArrayPool<char>.Shared.Rent(newSize);
+            var newBuffer = new char[Math.Max(buffer.Length * 2, requiredLength)];
             buffer.AsSpan(0, currentLength).CopyTo(newBuffer);
 
-            ArrayPool<char>.Shared.Return(buffer);
             buffer = newBuffer;
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int UrlEncode(ReadOnlySpan<char> input, Span<char> output)
+    private static void AppendChar([NotNull] ref char[]? buffer, ref int length, char value)
     {
-        int written = 0;
+        EnsureCapacity(ref buffer, length, 1);
+        buffer[length++] = value;
+    }
+
+    private static void AppendEscaped([NotNull] ref char[]? buffer, ref int length, scoped ReadOnlySpan<char> value)
+    {
+        // Worst case is a 3 byte UTF-8 scalar per char, each byte escaped as "%XX".
+        var maximum = value.Length * 9;
+        var required = value.Length;
+
+        // Loop until we can successfully escape the string into the buffer, growing as needed.
+        while (true)
+        {
+            EnsureCapacity(ref buffer, length, required);
+
+            // Try to escape the string into the buffer. If it fails, increase the required size and try again.
+            if (TryEscapeDataString(value, buffer.AsSpan(length), out var charsWritten))
+            {
+                length += charsWritten;
+                return;
+            }
+
+            required = Math.Min(required * 3, maximum);
+        }
+    }
+
+#if NET9_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryEscapeDataString(scoped ReadOnlySpan<char> input, Span<char> destination, out int charsWritten)
+        => Uri.TryEscapeDataString(input, destination, out charsWritten);
+#else
+    /// <summary>
+    /// Polyfill for <c>Uri.TryEscapeDataString</c>, which is only available on .NET 9 or greater.
+    /// </summary>
+    private static bool TryEscapeDataString(scoped ReadOnlySpan<char> input, Span<char> destination, out int charsWritten)
+    {
+        var written = 0;
         Span<byte> utf8Buffer = stackalloc byte[4];
 
-        for (int i = 0; i < input.Length; i++)
+        for (var i = 0; i < input.Length; i++)
         {
-            char c = input[i];
+            var c = input[i];
             if (IsUnreserved(c))
             {
-                output[written++] = c;
+                if (written + 1 > destination.Length)
+                {
+                    charsWritten = 0;
+                    return false;
+                }
+
+                destination[written++] = c;
             }
             else if (c <= 0x7F)
             {
                 // ASCII, percent-encode as single byte
-                output[written++] = '%';
-                output[written++] = GetHex((c >> 4) & 0xF);
-                output[written++] = GetHex(c & 0xF);
+                if (written + 3 > destination.Length)
+                {
+                    charsWritten = 0;
+                    return false;
+                }
+
+                destination[written++] = '%';
+                destination[written++] = GetHex((c >> 4) & 0xF);
+                destination[written++] = GetHex(c & 0xF);
             }
             else
             {
-                // Non-ASCII: encode as UTF-8 bytes and percent-encode each byte
-                int byteCount = System.Text.Encoding.UTF8.GetBytes(input.Slice(i, 1), utf8Buffer);
-                for (int b = 0; b < byteCount; b++)
+                // Non-ASCII: encode the whole scalar value, a surrogate pair must not be split
+                var charCount = GetScalarLength(input, i);
+                var byteCount = Encoding.UTF8.GetBytes(input.Slice(i, charCount), utf8Buffer);
+
+                if (written + (3 * byteCount) > destination.Length)
                 {
-                    output[written++] = '%';
-                    output[written++] = GetHex((utf8Buffer[b] >> 4) & 0xF);
-                    output[written++] = GetHex(utf8Buffer[b] & 0xF);
+                    charsWritten = 0;
+                    return false;
                 }
+
+                for (var b = 0; b < byteCount; b++)
+                {
+                    destination[written++] = '%';
+                    destination[written++] = GetHex((utf8Buffer[b] >> 4) & 0xF);
+                    destination[written++] = GetHex(utf8Buffer[b] & 0xF);
+                }
+
+                i += charCount - 1;
             }
         }
-        return written;
+
+        charsWritten = written;
+        return true;
     }
 
+    /// <summary>
+    /// Gets the number of chars making up the scalar value at <paramref name="index"/>, either a
+    /// surrogate pair or a single char. Unpaired surrogates are treated as a single char and encode
+    /// as the Unicode replacement character, matching <see cref="Encoding.UTF8"/>.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetEncodedLength(ReadOnlySpan<char> input)
+    private static int GetScalarLength(scoped ReadOnlySpan<char> input, int index)
     {
-        int len = 0;
-        Span<byte> utf8Buffer = stackalloc byte[4];
-
-        for (int i = 0; i < input.Length; i++)
-        {
-            char c = input[i];
-            if (IsUnreserved(c))
-            {
-                len += 1;
-            }
-            else if (c <= 0x7F)
-            {
-                len += 3; // %XX
-            }
-            else
-            {
-                // Non-ASCII: count UTF-8 bytes and add 3 per byte
-                int byteCount = System.Text.Encoding.UTF8.GetBytes(input.Slice(i, 1), utf8Buffer);
-                len += 3 * byteCount;
-            }
-        }
-        return len;
+        return char.IsHighSurrogate(input[index])
+            && index + 1 < input.Length
+            && char.IsLowSurrogate(input[index + 1])
+                ? 2
+                : 1;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -595,4 +652,5 @@ public ref struct UrlBuilder
     {
         return (char)(value < 10 ? ('0' + value) : ('A' + (value - 10)));
     }
+#endif
 }

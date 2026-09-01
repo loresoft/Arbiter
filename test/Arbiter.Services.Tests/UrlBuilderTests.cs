@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Services;
+using System.Globalization;
 
 namespace Arbiter.Services.Tests;
 
@@ -30,6 +31,29 @@ public class UrlBuilderTests
     }
 
     [Test]
+    public void BuildUrlWithIpv6HostAddsBrackets()
+    {
+        var url = new UrlBuilder()
+            .Scheme("https")
+            .Host("::1")
+            .Port(8080)
+            .ToString();
+
+        url.Should().Be("https://[::1]:8080");
+    }
+
+    [Test]
+    public void BuildUrlWithBracketedIpv6HostDoesNotAddBrackets()
+    {
+        var url = new UrlBuilder()
+            .Scheme("https")
+            .Host("[::1]")
+            .ToString();
+
+        url.Should().Be("https://[::1]");
+    }
+
+    [Test]
     public void BuildUrlWithUserInfoWorks()
     {
         var builder = new UrlBuilder()
@@ -49,9 +73,9 @@ public class UrlBuilderTests
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath("api")
-            .AppendPath("v1")
-            .AppendPath("users");
+            .AppendSegment("api")
+            .AppendSegment("v1")
+            .AppendSegment("users");
 
         var url = builder.ToString();
 
@@ -64,8 +88,8 @@ public class UrlBuilderTests
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath("api v1")
-            .AppendPath("üser");
+            .AppendSegment("api v1")
+            .AppendSegment("üser");
 
         var url = builder.ToString();
 
@@ -116,9 +140,9 @@ public class UrlBuilderTests
     public void BuildOnlyPathNoSchemeOrHost()
     {
         var builder = new UrlBuilder()
-            .AppendPath("api")
-            .AppendPath("v1")
-            .AppendPath("users");
+            .AppendSegment("api")
+            .AppendSegment("v1")
+            .AppendSegment("users");
 
         var url = builder.ToString();
 
@@ -152,8 +176,8 @@ public class UrlBuilderTests
     public void BuildPathAndQueryNoSchemeOrHost()
     {
         var builder = new UrlBuilder()
-            .AppendPath("api")
-            .AppendPath("v1")
+            .AppendSegment("api")
+            .AppendSegment("v1")
             .AppendQuery("id", "42");
 
         var url = builder.ToString();
@@ -165,8 +189,8 @@ public class UrlBuilderTests
     public void BuildPathQueryFragmentNoSchemeOrHost()
     {
         var builder = new UrlBuilder()
-            .AppendPath("api")
-            .AppendPath("v1")
+            .AppendSegment("api")
+            .AppendSegment("v1")
             .AppendQuery("id", "42")
             .Fragment("top");
 
@@ -199,13 +223,44 @@ public class UrlBuilderTests
     }
 
     [Test]
-    public void AppendPathGenericWorks()
+    public void FromPathStartsBuilder()
+    {
+        var url = UrlBuilder
+            .FromPath("api/user")
+            .AppendQuery("id", 42)
+            .ToString();
+
+        url.Should().Be("/api/user?id=42");
+    }
+
+    [Test]
+    public void FromSegmentStartsBuilder()
+    {
+        var url = UrlBuilder
+            .FromSegment("john doe")
+            .ToString();
+
+        url.Should().Be("/john%20doe");
+    }
+
+    [Test]
+    public void FromSegmentsStartsBuilder()
+    {
+        var url = UrlBuilder
+            .FromSegments("api", "v2", "users")
+            .ToString();
+
+        url.Should().Be("/api/v2/users");
+    }
+
+    [Test]
+    public void AppendSegmentGenericWorks()
     {
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath(123)
-            .AppendPath(Guid.Empty);
+            .AppendSegment(123)
+            .AppendSegment(Guid.Empty);
 
         var url = builder.ToString();
 
@@ -213,13 +268,13 @@ public class UrlBuilderTests
     }
 
     [Test]
-    public void AppendPathWithConditionFuncWorks()
+    public void AppendSegmentWithConditionFuncWorks()
     {
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath("api", s => s == "api")
-            .AppendPath("skip", s => s == "nope");
+            .AppendSegment("api", s => s == "api")
+            .AppendSegment("skip", s => s == "nope");
 
         var url = builder.ToString();
 
@@ -227,13 +282,13 @@ public class UrlBuilderTests
     }
 
     [Test]
-    public void AppendPathWithConditionBoolWorks()
+    public void AppendSegmentWithConditionBoolWorks()
     {
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath("api", true)
-            .AppendPath("skip", false);
+            .AppendSegment("api", true)
+            .AppendSegment("skip", false);
 
         var url = builder.ToString();
 
@@ -241,16 +296,71 @@ public class UrlBuilderTests
     }
 
     [Test]
-    public void AppendPathsWorks()
+    public void AppendSegmentsWorks()
     {
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPaths(["api", "v2", "users"]);
+            .AppendSegments(["api", "v2", "users"]);
 
         var url = builder.ToString();
 
         url.Should().Be("https://example.com/api/v2/users");
+    }
+
+    [Test]
+    public void AppendPathKeepsSeparators()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api/user");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api/user");
+    }
+
+    [Test]
+    public void AppendPathTrimsLeadingAndTrailingSeparators()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("/api/user/")
+            .AppendSegment("john doe");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api/user/john%20doe");
+    }
+
+    [Test]
+    public void AppendPathDoesNotEscape()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath("api/john%20doe");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/api/john%20doe");
+    }
+
+    [Test]
+    public void AppendPathNullOrEmptyDoesNothing()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendPath(null)
+            .AppendPath(string.Empty)
+            .AppendPath("/");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com");
     }
 
     [Test]
@@ -267,6 +377,28 @@ public class UrlBuilderTests
     }
 
     [Test]
+    [NotInParallel]
+    public void GenericValuesUseInvariantCulture()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+
+            var url = new UrlBuilder()
+                .AppendSegment(1.5m)
+                .AppendQuery("value", 2.5m)
+                .ToString();
+
+            url.Should().Be("/1.5?value=2.5");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Test]
     public void AppendQueryWithConditionFuncWorks()
     {
         var builder = new UrlBuilder()
@@ -278,6 +410,17 @@ public class UrlBuilderTests
         var url = builder.ToString();
 
         url.Should().Be("https://example.com?a=1");
+    }
+
+    [Test]
+    public void AppendQueryWithConditionBoolAppendsNullAsEmptyValue()
+    {
+        var url = new UrlBuilder()
+            .AppendQuery("included", null, true)
+            .AppendQuery("excluded", null, false)
+            .ToString();
+
+        url.Should().Be("?included=");
     }
 
     [Test]
@@ -311,14 +454,14 @@ public class UrlBuilderTests
     }
 
     [Test]
-    public void AppendPathNullOrEmptyDoesNothing()
+    public void AppendSegmentNullOrEmptyDoesNothing()
     {
         var builder = new UrlBuilder()
             .Scheme("https")
             .Host("example.com")
-            .AppendPath((string?)null)
-            .AppendPath("")
-            .AppendPath("users");
+            .AppendSegment((string?)null)
+            .AppendSegment("")
+            .AppendSegment("users");
 
         var url = builder.ToString();
 
@@ -338,5 +481,58 @@ public class UrlBuilderTests
         var url = builder.ToString();
 
         url.Should().Be("https://example.com?key=&id=42");
+    }
+
+    [Test]
+    public void BuildUrlWithPathEncodesSurrogatePair()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendSegment("\U0001F600");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com/%F0%9F%98%80");
+    }
+
+    [Test]
+    public void BuildUrlWithQueryEncodesSurrogatePair()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendQuery("emoji", "\U0001F600");
+
+        var url = builder.ToString();
+
+        url.Should().Be("https://example.com?emoji=%F0%9F%98%80");
+    }
+
+    [Test]
+    public void BuildIsNotDestructiveAndBuilderCanBeExtended()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendSegment("api");
+
+        var first = builder.ToString();
+        var second = builder.AppendSegment("users").ToString();
+
+        first.Should().Be("https://example.com/api");
+        second.Should().Be("https://example.com/api/users");
+    }
+
+    [Test]
+    public void ToStringMatchesToString()
+    {
+        var builder = new UrlBuilder()
+            .Scheme("https")
+            .Host("example.com")
+            .AppendSegment("api")
+            .AppendQuery("id", "42");
+
+        builder.ToString().Should().Be(builder.ToString());
     }
 }

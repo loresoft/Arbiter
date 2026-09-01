@@ -56,10 +56,13 @@ string plain  = aes.Decrypt(cipher);
 ## URL builder
 
 ```csharp
-string url = new UrlBuilder("https://api.example.com/users")
-    .AppendPath("42", "orders")
-    .AddQuery("status", "open")
-    .AddQuery("page", 2)
+string url = new UrlBuilder()
+    .Scheme("https")
+    .Host("api.example.com")
+    .AppendPath("users")
+    .AppendSegments("42", "orders")
+    .AppendQuery("status", "open")
+    .AppendQuery("page", 2)
     .ToString();
 // → https://api.example.com/users/42/orders?status=open&page=2
 ```
