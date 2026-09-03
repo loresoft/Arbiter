@@ -27,7 +27,7 @@
     <PackageVersion Include="Fluid.Core" Version="2.40.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="Injectio" Version="6.2.0" />
-    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.9.6" />
+    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.9.9" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="MessagePack" Version="3.1.8" />
