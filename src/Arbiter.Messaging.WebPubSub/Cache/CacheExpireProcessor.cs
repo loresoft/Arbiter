@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using Arbiter.CommandQuery.Extensions;
+
 using Azure.Messaging.WebPubSub.Clients;
 
 using Microsoft.Extensions.Caching.Hybrid;
@@ -116,23 +118,15 @@ public sealed partial class CacheExpireProcessor : WebPubSubProcessorBase
             return;
         }
 
-        if (!string.IsNullOrEmpty(message.Key))
-        {
-            await _hybridCache.RemoveAsync(message.Key, cancellationToken).ConfigureAwait(false);
-        }
+        var cacheKey = message.Key;
+        if (!string.IsNullOrEmpty(cacheKey))
+            await _hybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
 
-        if (message.Tags is not null && message.Tags.Count != 0)
-        {
-            foreach (var tag in message.Tags)
-            {
-                if (!string.IsNullOrEmpty(tag))
-                    await _hybridCache.RemoveByTagAsync(tag, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        var cacheTags = message.Tags;
+        if (cacheTags?.Any() == true)
+            await _hybridCache.RemoveByTagAsync(cacheTags, cancellationToken).ConfigureAwait(false);
 
-
-        LogExpiredCache(_logger, message.Key, message.Tags?.Count ?? 0);
-
+        LogExpiredCache(_logger, cacheKey, cacheTags?.ToDelimitedString());
     }
 
 
@@ -142,7 +136,7 @@ public sealed partial class CacheExpireProcessor : WebPubSubProcessorBase
     [LoggerMessage(Level = LogLevel.Warning, Message = "Dropping cache expiration message from group '{GroupName}' with unparsable body")]
     private static partial void LogDroppingMessage(ILogger logger, Exception exception, string? groupName);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Expired local cache for key '{Key}' and {TagCount} tag(s)")]
-    private static partial void LogExpiredCache(ILogger logger, string? key, int tagCount);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Expired hybrid cache for key '{Key}' and tag(s) '{Tags}'")]
+    private static partial void LogExpiredCache(ILogger logger, string? key, string? tags);
 
 }

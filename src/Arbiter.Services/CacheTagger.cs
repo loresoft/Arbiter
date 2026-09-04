@@ -35,13 +35,13 @@ public static class CacheTagger
     /// </summary>
     /// <typeparam name="TModel">The type of the model</typeparam>
     /// <returns>The tag for the model type</returns>
-    public static string? GetTag<TModel>()
+    public static string GetTag<TModel>()
     {
         var type = typeof(TModel);
-        if (_typeTags.TryGetValue(type, out var tag))
+        if (_typeTags.TryGetValue(type, out var tag) && !string.IsNullOrEmpty(tag))
             return tag;
 
-        return type.FullName;
+        return type.FullName ?? type.Name;
     }
 
     /// <summary>
@@ -73,8 +73,7 @@ public static class CacheTagger
     /// <returns>The cache key for the model type</returns>
     public static string GetKey<TModel, TValue>(string bucket, TValue value, string delimiter = ".")
     {
-        _typeTags.TryGetValue(typeof(TModel), out var tag);
-        tag ??= typeof(TModel).FullName;
+        var tag = GetTag<TModel>();
 
         return $"{tag}{delimiter}{bucket}{delimiter}{value}";
     }
@@ -85,16 +84,16 @@ public static class CacheTagger
     public static class Buckets
     {
         /// <summary>The cache key bucket for an entity identifier</summary>
-        public const string Identifier = "id";
+        public const string Identifier = nameof(Identifier);
         /// <summary>The cache key bucket for a list of identifiers</summary>
-        public const string Identifiers = "ids";
+        public const string Identifiers = nameof(Identifiers);
         /// <summary>The cache key bucket for a paged list of items</summary>
-        public const string Paged = "page";
+        public const string Paged = nameof(Paged);
         /// <summary>The cache key bucket for a continuation list of items</summary>
-        public const string Continuation = "continue";
+        public const string Continuation = nameof(Continuation);
         /// <summary>The cache key bucket for a list of items</summary>
-        public const string List = "list";
+        public const string List = nameof(List);
         /// <summary>The cache key bucket for an entity alternate key</summary>
-        public const string Key = "key";
+        public const string Key = nameof(Key);
     }
 }

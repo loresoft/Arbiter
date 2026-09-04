@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Extensions;
 
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,7 @@ namespace Arbiter.CommandQuery.Behaviors;
 /// </summary>
 /// <typeparam name="TRequest">The type of the request.</typeparam>
 /// <typeparam name="TResponse">The type of the response.</typeparam>
-public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBase<TRequest, TResponse>
+public partial class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBase<TRequest, TResponse>
     where TRequest : class, IRequest<TResponse>, ICacheExpire
 {
     /// <summary>
@@ -68,10 +69,14 @@ public class HybridCacheExpireBehavior<TRequest, TResponse> : PipelineBehaviorBa
         if (!string.IsNullOrEmpty(cacheKey))
             await HybridCache.RemoveAsync(cacheKey, cancellationToken).ConfigureAwait(false);
 
-        foreach (var cacheTag in cacheRequest.GetCacheTags())
-        {
-            if (!string.IsNullOrEmpty(cacheTag))
-                await HybridCache.RemoveByTagAsync(cacheTag, cancellationToken).ConfigureAwait(false);
-        }
+        var cacheTags = cacheRequest.GetCacheTags();
+        if (cacheTags?.Any() == true)
+            await HybridCache.RemoveByTagAsync(cacheTags, cancellationToken).ConfigureAwait(false);
+
+        LogExpiredCache(Logger, cacheKey, cacheTags?.ToDelimitedString());
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Expired hybrid cache for key '{Key}' and tag(s) '{Tags}'")]
+    private static partial void LogExpiredCache(ILogger logger, string? key, string? tags);
+
 }
