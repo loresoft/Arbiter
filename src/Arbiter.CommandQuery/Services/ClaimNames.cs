@@ -58,7 +58,7 @@ public static class ClaimNames
     /// <summary>
     /// The claim name for the user identifier.
     /// </summary>
-    public const string UserId = "uid";
+    public const string UserId = "user_id";
 
     /// <summary>
     /// The claim name for the tenant identifier.

@@ -1,9 +1,9 @@
-using System.Security.Principal;
+using System.Security.Claims;
 
 namespace Arbiter.CommandQuery.Definitions;
 
 /// <summary>
-///   <see langword="interface"/> for extracting tenant key from <see cref="IPrincipal" /> instance
+///   <see langword="interface"/> for extracting tenant key from <see cref="ClaimsPrincipal" /> instance
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 public interface ITenantResolver<TKey>
@@ -13,5 +13,5 @@ public interface ITenantResolver<TKey>
     /// </summary>
     /// <param name="principal">The principal.</param>
     /// <returns>The tenant identifier for the specified principal.</returns>
-    ValueTask<TKey?> GetTenantId(IPrincipal? principal);
+    ValueTask<TKey?> GetTenantId(ClaimsPrincipal? principal);
 }

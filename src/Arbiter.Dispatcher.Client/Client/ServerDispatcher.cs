@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Arbiter.Mediation;
 
 namespace Arbiter.Dispatcher.Client;

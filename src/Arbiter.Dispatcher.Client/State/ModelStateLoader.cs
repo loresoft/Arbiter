@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.Dispatcher.Client;
 
 namespace Arbiter.Dispatcher.State;
 
@@ -37,6 +38,7 @@ namespace Arbiter.Dispatcher.State;
 /// </code>
 /// </example>
 public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
+    where TKey : notnull
     where TModel : class, IHaveIdentifier<TKey>, new()
 {
     /// <summary>
@@ -56,6 +58,14 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// The <see cref="IDispatcherDataService"/> instance used for data operations.
     /// </value>
     public IDispatcherDataService DataService { get; }
+
+    /// <summary>
+    /// Gets the dispatcher from the data service for sending custom requests.
+    /// </summary>
+    /// <value>
+    /// The <see cref="IDispatcher"/> instance from the <see cref="DataService"/> that can be used for custom request handling.
+    /// </value>
+    public IDispatcher Dispatcher => DataService.Dispatcher;
 
     /// <summary>
     /// Gets a value indicating whether the state is currently performing a data operation.
@@ -78,7 +88,8 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// <c>true</c> to force a reload even if the model is already loaded with the same identifier;
     /// <c>false</c> to skip loading if the same model is already present
     /// </param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous load operation</returns>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous load operation</returns>
     /// <remarks>
     /// <para>
     /// This method implements intelligent caching behavior. If <paramref name="force"/> is <c>false</c> and a model
@@ -96,6 +107,7 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <c>null</c></exception>
     /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is canceled</exception>
     /// <example>
     /// <code>
     /// // Load a model for the first time
@@ -108,7 +120,7 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// await stateLoader.Load("user123", force: true);
     /// </code>
     /// </example>
-    public async ValueTask Load(TKey id, bool force = false)
+    public async ValueTask Load(TKey id, bool force = false, CancellationToken cancellationToken = default)
     {
         // don't load if already loaded
         if (!force && Model != null && EqualityComparer<TKey>.Default.Equals(id, Model.Id))
@@ -119,8 +131,11 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
             IsBusy = true;
             NotifyStateChanged();
 
-            // load modal
-            Model = await DataService.Get<TKey, TModel>(id).ConfigureAwait(false);
+            var model = await DataService
+                .Get<TKey, TModel>(id, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            SetModel(model);
         }
         finally
         {
@@ -137,7 +152,8 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// <c>true</c> to force a reload even if the model is already loaded with the same alternate key;
     /// <c>false</c> to skip loading if the same model is already present
     /// </param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous load operation</returns>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous load operation</returns>
     /// <remarks>
     /// <para>
     /// This method loads models using their alternate key (<see cref="IHaveKey.Key"/>) rather than their primary identifier.
@@ -156,7 +172,8 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is an empty <see cref="Guid"/></exception>
     /// <exception cref="InvalidOperationException">Thrown when the data service is not properly configured</exception>
-    public async ValueTask LoadKey(Guid key, bool force = false)
+    /// <exception cref="OperationCanceledException">Thrown when <paramref name="cancellationToken"/> is canceled</exception>
+    public async ValueTask LoadKey(Guid key, bool force = false, CancellationToken cancellationToken = default)
     {
         // don't load if already loaded
         if (!force && Model != null && Model is IHaveKey keyed && keyed.Key == key)
@@ -167,15 +184,25 @@ public class ModelStateLoader<TKey, TModel> : ModelStateManager<TModel>
             IsBusy = true;
             NotifyStateChanged();
 
-            // load modal
-            Model = await DataService
-                .GetKey<TModel>(key)
+            var model = await DataService
+                .GetKey<TModel>(key, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
+
+            SetModel(model);
         }
         finally
         {
             IsBusy = false;
             NotifyStateChanged();
         }
+    }
+
+    /// <summary>
+    /// Sets the model to the specified value.
+    /// </summary>
+    /// <param name="model">The model to set</param>
+    protected virtual void SetModel(TModel? model)
+    {
+        Model = model;
     }
 }

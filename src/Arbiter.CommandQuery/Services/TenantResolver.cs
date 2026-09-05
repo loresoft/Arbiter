@@ -1,19 +1,20 @@
-using System.Globalization;
-using System.Security.Principal;
+using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Extensions;
 
 namespace Arbiter.CommandQuery.Services;
 
 /// <summary>
-/// Resolves the tenant identifier from an <see cref="IPrincipal"/> instance.
+/// Resolves the tenant identifier from a <see cref="ClaimsPrincipal"/> instance.
 /// </summary>
 /// <typeparam name="TKey">The type of the tenant identifier.</typeparam>
 /// <remarks>
 /// This class uses an <see cref="IPrincipalReader"/> to extract the tenant identifier claim from the provided
-/// <see cref="IPrincipal"/> and converts it to the specified type <typeparamref name="TKey"/>.
+/// <see cref="ClaimsPrincipal"/> and converts it to the specified type <typeparamref name="TKey"/>.
 /// </remarks>
 public class TenantResolver<TKey>(IPrincipalReader principalReader) : ITenantResolver<TKey>
+    where TKey : IParsable<TKey>
 {
     private readonly IPrincipalReader _principalReader = principalReader
         ?? throw new ArgumentNullException(nameof(principalReader));
@@ -26,23 +27,13 @@ public class TenantResolver<TKey>(IPrincipalReader principalReader) : ITenantRes
     /// A <see cref="ValueTask{TResult}"/> containing the tenant identifier as <typeparamref name="TKey"/> if found;
     /// otherwise, <see langword="null"/>.
     /// </returns>
-    /// <exception cref="InvalidCastException">
-    /// Thrown if the tenant identifier cannot be converted to the specified type <typeparamref name="TKey"/>.
-    /// </exception>
-    public ValueTask<TKey?> GetTenantId(IPrincipal? principal)
+    public ValueTask<TKey?> GetTenantId(ClaimsPrincipal? principal)
     {
         if (principal is null)
             return ValueTask.FromResult<TKey?>(default);
 
-        var tenantId = _principalReader.GetTenantId(principal);
-        if (tenantId is null)
-            return ValueTask.FromResult<TKey?>(default);
+        var tenantId = _principalReader.GetTenantId<TKey>(principal);
 
-        var result = Convert.ChangeType(tenantId, typeof(TKey), CultureInfo.InvariantCulture);
-
-        if (result is TKey key)
-            return ValueTask.FromResult<TKey?>(key);
-
-        return ValueTask.FromResult<TKey?>(default);
+        return ValueTask.FromResult(tenantId);
     }
 }
