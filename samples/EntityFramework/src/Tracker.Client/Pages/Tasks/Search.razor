@@ -1,0 +1,116 @@
+@page "/tasks/search"
+
+@using Arbiter.CommandQuery.Queries
+
+@inherits ResultPageBase<TaskReadModel>
+
+<PageTitle>Search Tasks</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb d-print-none">
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Home()">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="@RouteLinks.Tasks.List()">Tasks</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Search
+            </li>
+        </ol>
+    </nav>
+    <div class="card shadow">
+        <div class="card-header d-flex align-items-center">
+            <h5 class="me-auto">
+                Search Tasks
+            </h5>
+            <div class="w-auto">
+                <input type="search"
+                       class="form-control"
+                       placeholder="Search Tasks"
+                       aria-label="Search Tasks"
+                       value="@SearchText"
+                       @oninput="HandleSearchChanged" />
+            </div>
+        </div>
+
+        <div class="card-body">
+            <DataGrid TItem="TaskReadModel"
+                      DataLoader="DataLoader"
+                      Filterable="false"
+                      Sortable="true"
+                      @ref="DataComponent">
+                <DataColumns>
+                    <DataColumn Property="x => x.Title"
+                                Title="Title"
+                                Width="280px"
+                                SortIndex="0">
+                        <Template Context="item">
+                            <a href="@RouteLinks.Tasks.Edit(item.Id)"
+                               class="d-block"
+                               title="Edit Task @item.Title">
+                                @item.Title
+                            </a>
+                        </Template>
+                    </DataColumn>
+
+                    <DataColumn Property="x => x.TenantName"
+                                Title="Tenant"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.StatusName"
+                                Title="Status"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.PriorityName"
+                                Title="Priority"
+                                Width="220px" />
+
+                    <DataColumn Property="x => x.Description"
+                                Title="Description" />
+
+                    <DataColumn Property="x => x.DueDate"
+                                Title="Due Date"
+                                Width="180px"
+                                Format="g" />
+
+                    <DataColumn Property="x => x.Updated"
+                                Title="Updated"
+                                Width="180px"
+                                Format="g" />
+                </DataColumns>
+                <DataPagination Context="grid">
+                    <DataPager PageSize="10" />
+                    <DataSizer />
+                    <div>@grid.Pager.StartItem - @grid.Pager.EndItem of @grid.Pager.Total</div>
+                </DataPagination>
+            </DataGrid>
+        </div>
+
+        <div class="card-footer">
+            @Data.Count Task(s) found
+        </div>
+    </div>
+</div>
+
+@code
+{
+    private string? SearchText { get; set; }
+
+    protected override EntityQuery? CreateEntityQuery()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+            return null;
+
+        return EntityFilterBuilder.CreateSearchQuery<TaskReadModel>(SearchText, pageSize: 100);
+    }
+
+    private async Task HandleSearchChanged(ChangeEventArgs args)
+    {
+        SearchText = args.Value as string;
+
+        // debounced by the base class, safe to call for every keystroke
+        await RefreshData();
+    }
+}

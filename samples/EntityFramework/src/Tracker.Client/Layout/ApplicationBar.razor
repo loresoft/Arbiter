@@ -29,6 +29,61 @@
                             Tasks
                         </a>
                     </li>
+                    <!-- Scenario Menu -->
+                    <li class="nav-item dropdown">
+                        <a id="navbar-dropdown-scenarios"
+                           class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            Scenarios
+                        </a>
+                        <ul class="dropdown-menu"
+                            aria-labelledby="navbar-dropdown-scenarios">
+                            <li>
+                                <a id="navbar-item-scenarios-taskSearch-link"
+                                   class="dropdown-item"
+                                   title="Task Search"
+                                   href="@RouteLinks.Tasks.Search()">
+                                    Task Search
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a id="navbar-item-scenarios-highPriority-link"
+                                   class="dropdown-item"
+                                   title="High Priority Tasks"
+                                   href="@RouteLinks.Tasks.List(priority: Priorities.High)">
+                                    High Priority Tasks
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-scenarios-inProgress-link"
+                                   class="dropdown-item"
+                                   title="In Progress Tasks"
+                                   href="@RouteLinks.Tasks.List(status: Statuses.InProgress)">
+                                    In Progress Tasks
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-scenarios-completed-link"
+                                   class="dropdown-item"
+                                   title="Completed Tasks"
+                                   href="@RouteLinks.Tasks.List(status: Statuses.Completed)">
+                                    Completed Tasks
+                                </a>
+                            </li>
+                            <li>
+                                <a id="navbar-item-scenarios-highPriorityBlocked-link"
+                                   class="dropdown-item"
+                                   title="High Priority Blocked Tasks"
+                                   href="@RouteLinks.Tasks.List(priority: Priorities.High, status: Statuses.Blocked)">
+                                    High Priority Blocked Tasks
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <!-- Administrative Menu -->
                     <li class="nav-item dropdown">
                         <a id="navbar-dropdown-administrative"

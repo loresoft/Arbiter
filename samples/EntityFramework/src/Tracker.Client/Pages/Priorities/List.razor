@@ -1,6 +1,6 @@
 @page "/priorities"
 
-@inherits ListPageBase<PriorityReadModel, PriorityReadModel>
+@inherits ListPageBase<int, PriorityReadModel>
 
 <PageTitle>Priorities</PageTitle>
 
@@ -36,7 +36,7 @@
                       DataProvider="LoadData"
                       Filterable="true"
                       Sortable="true"
-                      @ref="DataGrid">
+                      @ref="DataComponent">
                 <DataColumns>
                     <DataColumn Property="x => x.Name"
                                 Title="Name"

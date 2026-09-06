@@ -1,6 +1,6 @@
 @page "/users/{id:int}"
 
-@inherits EditPageBase<UserReadModel, UserUpdateModel>
+@inherits EditPageBase<int, UserReadModel, UserUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -104,9 +104,8 @@
 
 @code
 {
-    protected override string Redirect => RouteLinks.Users.List();
+    protected override string? GetRedirectLocation(RedirectReason reason, int id)
+        => reason == RedirectReason.Created ? RouteLinks.Users.Edit(id) : RouteLinks.Users.List();
 
-    protected override string ModelTypeName => "User";
-
-    protected override string? ModelInstanceName => Store?.Original?.DisplayName;
+    protected override string? ModelDisplay => Store.Original?.DisplayName;
 }

@@ -1,6 +1,6 @@
 @page "/tasks/{id:int}"
 
-@inherits EditPageBase<TaskReadModel, TaskUpdateModel>
+@inherits EditPageBase<int, TaskReadModel, TaskUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -207,9 +207,8 @@
 
 @code
 {
-    protected override string Redirect => RouteLinks.Tasks.List();
+    protected override string? GetRedirectLocation(RedirectReason reason, int id)
+        => reason == RedirectReason.Created ? RouteLinks.Tasks.Edit(id) : RouteLinks.Tasks.List();
 
-    protected override string ModelTypeName => "Task";
-
-    protected override string? ModelInstanceName => Store?.Original?.Title;
+    protected override string? ModelDisplay => Store.Original?.Title;
 }

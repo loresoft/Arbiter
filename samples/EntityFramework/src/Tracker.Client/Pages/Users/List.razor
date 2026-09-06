@@ -1,6 +1,6 @@
 @page "/users"
 
-@inherits ListPageBase<UserReadModel, UserReadModel>
+@inherits ListPageBase<int, UserReadModel>
 
 <PageTitle>Users</PageTitle>
 
@@ -36,7 +36,7 @@
                       DataProvider="LoadData"
                       Filterable="true"
                       Sortable="true"
-                      @ref="DataGrid">
+                      @ref="DataComponent">
                 <DataColumns>
                     <DataColumn Property="x => x.DisplayName"
                                 Title="Display Name"

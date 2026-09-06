@@ -1,6 +1,6 @@
 @page "/priorities/{id:int}"
 
-@inherits EditPageBase<PriorityReadModel, PriorityUpdateModel>
+@inherits EditPageBase<int, PriorityReadModel, PriorityUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -127,9 +127,8 @@
 
 @code
 {
-    protected override string Redirect => RouteLinks.Priorities.List();
+    protected override string? GetRedirectLocation(RedirectReason reason, int id)
+        => reason == RedirectReason.Created ? RouteLinks.Priorities.Edit(id) : RouteLinks.Priorities.List();
 
-    protected override string ModelTypeName => "Priority";
-
-    protected override string? ModelInstanceName => Store?.Original?.Name;
+    protected override string? ModelDisplay => Store.Original?.Name;
 }

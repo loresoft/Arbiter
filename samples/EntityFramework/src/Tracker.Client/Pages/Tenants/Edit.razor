@@ -1,6 +1,6 @@
 @page "/tenants/{id:int}"
 
-@inherits EditPageBase<TenantReadModel, TenantUpdateModel>
+@inherits EditPageBase<int, TenantReadModel, TenantUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -102,9 +102,8 @@
 
 @code
 {
-    protected override string Redirect => RouteLinks.Tenants.List();
+    protected override string? GetRedirectLocation(RedirectReason reason, int id)
+        => reason == RedirectReason.Created ? RouteLinks.Tenants.Edit(id) : RouteLinks.Tenants.List();
 
-    protected override string ModelTypeName => "Tenant";
-
-    protected override string? ModelInstanceName => Store?.Original?.Name;
+    protected override string? ModelDisplay => Store.Original?.Name;
 }

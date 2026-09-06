@@ -1,6 +1,6 @@
 @page "/statuses"
 
-@inherits ListPageBase<StatusReadModel, StatusReadModel>
+@inherits ListPageBase<int, StatusReadModel>
 
 <PageTitle>Statuses</PageTitle>
 
@@ -36,7 +36,7 @@
                       DataProvider="LoadData"
                       Filterable="true"
                       Sortable="true"
-                      @ref="DataGrid">
+                      @ref="DataComponent">
                 <DataColumns>
                     <DataColumn Property="x => x.Name"
                                 Title="Name"

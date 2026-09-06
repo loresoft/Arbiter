@@ -1,3 +1,5 @@
+using Arbiter.Services;
+
 namespace Tracker;
 
 public static partial class RouteLinks
@@ -31,6 +33,14 @@ public static partial class RouteLinks
     public static partial class Tasks
     {
         public static string List() => "/tasks";
+        public static string Search() => "/tasks/search";
         public static string Edit(int id) => $"/tasks/{id}";
+
+        public static string List(int? priority = null, int? status = null)
+            => UrlBuilder.FromPath("/tasks")
+            .AppendQuery("priority", priority, v => v.HasValue)
+            .AppendQuery("status", status, v => v.HasValue)
+            .ToString();
+
     }
 }

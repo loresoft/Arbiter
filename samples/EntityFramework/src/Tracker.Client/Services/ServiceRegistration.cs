@@ -1,5 +1,6 @@
 using System.Text.Json;
 
+using Arbiter.Components;
 using Arbiter.Dispatcher;
 using Arbiter.Dispatcher.Client;
 
@@ -18,8 +19,10 @@ public static class ServiceRegistration
     public static void Register(IServiceCollection services, ISet<string> tags)
     {
         // component libraries
-        services
-            .AddBlazorControls();
+        services.AddBlazorControls();
+
+        // page component services
+        services.AddArbiterComponents();
 
         // json options
         services

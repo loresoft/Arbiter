@@ -20,6 +20,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Blazilla" Version="2.4.1" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
+    <PackageVersion Include="bunit" Version="2.9.0" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="7.2.0" />
     <PackageVersion Include="Equatable.Generator" Version="3.0.0" />
@@ -27,11 +28,13 @@
     <PackageVersion Include="Fluid.Core" Version="2.40.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="Injectio" Version="6.2.0" />
-    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.9.9" />
+    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.10.0" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="MessagePack" Version="3.1.8" />
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.194" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.11" />
@@ -43,6 +46,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.9.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
@@ -89,9 +93,13 @@
   </ItemGroup>
   <!-- TFM-specific overrides -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageVersion Update="Microsoft.AspNetCore.Components.Authorization" Version="9.0.19" />
+    <PackageVersion Update="Microsoft.AspNetCore.Components.Web" Version="9.0.19" />
     <PackageVersion Update="Microsoft.EntityFrameworkCore" Version="9.0.19" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageVersion Update="Microsoft.AspNetCore.Components.Authorization" Version="8.0.30" />
+    <PackageVersion Update="Microsoft.AspNetCore.Components.Web" Version="8.0.30" />
     <PackageVersion Update="Microsoft.EntityFrameworkCore" Version="9.0.19" />
   </ItemGroup>
 </Project>

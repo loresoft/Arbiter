@@ -1,6 +1,7 @@
 @using System.Linq.Expressions
 @using Arbiter.CommandQuery.Definitions
 @using Arbiter.CommandQuery.Queries
+@using Arbiter.Dispatcher
 
 @typeparam TModel where TModel : class, IHaveIdentifier<int>, ISupportSearch
 @typeparam TValue
@@ -22,10 +23,10 @@
 
 @code {
     [Inject]
-    public required NotificationService Notification { get; set; }
+    public required INotificationService Notification { get; set; }
 
     [Inject]
-    public required DataService DataService { get; set; }
+    public required IDispatcherDataService DataService { get; set; }
 
     [Parameter]
     public string? DisplayName { get; set; }

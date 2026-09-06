@@ -1,6 +1,6 @@
 @page "/statuses/{id:int}"
 
-@inherits EditPageBase<StatusReadModel, StatusUpdateModel>
+@inherits EditPageBase<int, StatusReadModel, StatusUpdateModel>
 
 <PageTitle>@PageTitle()</PageTitle>
 
@@ -128,9 +128,8 @@
 
 @code
 {
-    protected override string Redirect => RouteLinks.Statuses.List();
+    protected override string? GetRedirectLocation(RedirectReason reason, int id)
+        => reason == RedirectReason.Created ? RouteLinks.Statuses.Edit(id) : RouteLinks.Statuses.List();
 
-    protected override string ModelTypeName => "Status";
-
-    protected override string? ModelInstanceName => Store?.Original?.Name;
+    protected override string? ModelDisplay => Store.Original?.Name;
 }

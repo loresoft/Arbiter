@@ -1,6 +1,6 @@
 @page "/tasks"
 
-@inherits ListPageBase<TaskReadModel, TaskReadModel>
+@inherits ListPageBase<int, TaskReadModel>
 
 <PageTitle>Tasks</PageTitle>
 
@@ -34,10 +34,15 @@
         <div class="card-body">
             <DataGrid TItem="TaskReadModel"
                       DataProvider="LoadData"
+                      Query="@DefaultQuery"
                       Filterable="true"
                       Sortable="true"
-                      @ref="DataGrid">
+                      @ref="DataComponent">
                 <DataColumns>
+                    <DataColumn Property="x => x.Id"
+                                Width="110px"
+                                Visible="false" />
+
                     <DataColumn Property="x => x.Title"
                                 Title="Title"
                                 Width="280px"
@@ -51,13 +56,25 @@
                         </Template>
                     </DataColumn>
 
+                    <DataColumn Property="x => x.TenantId"
+                                Width="110px"
+                                Visible="false" />
+
                     <DataColumn Property="x => x.TenantName"
                                 Title="Tenant"
                                 Width="220px" />
 
+                    <DataColumn Property="x => x.StatusId"
+                                Width="110px"
+                                Visible="false" />
+
                     <DataColumn Property="x => x.StatusName"
                                 Title="Status"
                                 Width="220px" />
+
+                    <DataColumn Property="x => x.PriorityId"
+                                Width="110px"
+                                Visible="false" />
 
                     <DataColumn Property="x => x.PriorityName"
                                 Title="Priority"
@@ -115,6 +132,47 @@
 
 @code
 {
+    [SupplyParameterFromQuery(Name = "priority")]
+    private int? PriorityId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "status")]
+    private int? StatusId { get; set; }
+
+    protected override QueryRule? CreateDefaultQuery()
+    {
+        var filters = new List<QueryRule>();
+
+        if (PriorityId.HasValue)
+        {
+            var filter = new QueryFilter
+            {
+                Field = nameof(TaskReadModel.PriorityId),
+                Operator = QueryOperators.Equal,
+                Value = PriorityId.Value
+            };
+            filters.Add(filter);
+        }
+
+        if (StatusId.HasValue)
+        {
+            var filter = new QueryFilter
+            {
+                Field = nameof(TaskReadModel.StatusId),
+                Operator = QueryOperators.Equal,
+                Value = StatusId.Value
+            };
+            filters.Add(filter);
+        }
+
+        if (filters.Count == 0)
+            return null;
+
+        return new QueryGroup
+        {
+            Id = nameof(CreateDefaultQuery),
+            Logic = QueryLogic.And,
+            Filters = filters
+        };
+    }
 }
 
