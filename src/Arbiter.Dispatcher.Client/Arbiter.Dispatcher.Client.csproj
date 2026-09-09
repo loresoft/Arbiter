@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="MessagePack" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>
 
