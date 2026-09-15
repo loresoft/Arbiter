@@ -29,7 +29,7 @@
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="Injectio" Version="6.2.0" />
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.10.0" />
-    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MailKit" Version="4.18.0" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="MessagePack" Version="3.1.8" />
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.235" />
