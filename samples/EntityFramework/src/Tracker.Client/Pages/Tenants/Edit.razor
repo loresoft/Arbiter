@@ -20,7 +20,7 @@
     </nav>
 </div>
 <div class="container">
-    <LoadingBlock IsLoading="EditContext == null || Store.Model == null">
+    <LoadingBlock IsLoading="EditContext == null || Model == null">
         <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
             <FluentValidator />
 
@@ -44,13 +44,13 @@
                                 <label for="Name" class="form-label">
                                     Name: <span class="text-danger">*</span>
                                 </label>
-                                <InputText @bind-Value="Store.Model!.Name"
+                                <InputText @bind-Value="Model!.Name"
                                            DisplayName="Name"
                                            id="Name"
                                            name="Name"
                                            class="form-control"
                                            placeholder="Name" />
-                                <ValidationMessage For="@(() => Store.Model.Name)" />
+                                <ValidationMessage For="@(() => Model.Name)" />
                             </div>
                         </div>
                         <div class="col-6">
@@ -58,13 +58,13 @@
                                 <label for="Description" class="form-label">
                                     Description:
                                 </label>
-                                <InputTextArea @bind-Value="Store.Model!.Description"
+                                <InputTextArea @bind-Value="Model!.Description"
                                                DisplayName="Description"
                                                id="Description"
                                                name="Description"
                                                class="form-control"
                                                placeholder="Description" />
-                                <ValidationMessage For="@(() => Store.Model.Description)" />
+                                <ValidationMessage For="@(() => Model.Description)" />
                             </div>
                         </div>
                     </div>
@@ -75,8 +75,8 @@
                         <div class="col">
                             <BusyButton id="save-button"
                                         type="submit"
-                                        Busy="Store.IsBusy"
-                                        Disabled="Store.IsClean"
+                                        Busy="IsBusy"
+                                        Disabled="IsClean"
                                         class="btn btn-primary">
                                 Save
                             </BusyButton>
@@ -86,7 +86,7 @@
                                 <button id="delete-button"
                                         type="button"
                                         @onclick="HandleDelete"
-                                        disabled="@Store.IsBusy"
+                                        disabled="@IsBusy"
                                         class="btn btn-danger float-end">
                                     Delete
                                 </button>
@@ -105,5 +105,5 @@
     protected override string? GetRedirectLocation(RedirectReason reason, int id)
         => reason == RedirectReason.Created ? RouteLinks.Tenants.Edit(id) : RouteLinks.Tenants.List();
 
-    protected override string? ModelDisplay => Store.Original?.Name;
+    protected override string? ModelDisplay => Original?.Name;
 }

@@ -119,10 +119,11 @@ public class UserController : ControllerBase
 
 ### Blazor Dispatcher Packages
 
-| Library                                               | Package                                                                                                                                                 | Description                                                                      |
-| :---------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------- |
-| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver) | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/) | ASP.NET Core endpoint that receives dispatcher messages from Blazor WASM clients |
-| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient) | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/) | Client-side dispatcher for Blazor: JSON/MessagePack (WASM) and ServerDispatcher  |
+| Library                                                                  | Package                                                                                                                                                 | Description                                                                      |
+| :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------- |
+| [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)                    | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/) | ASP.NET Core endpoint that receives dispatcher messages from Blazor WASM clients |
+| [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)                    | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/) | Client-side dispatcher for Blazor: JSON/MessagePack (WASM) and ServerDispatcher  |
+| [Arbiter.Components](https://www.nuget.org/packages/Arbiter.Components/) | [![Arbiter.Components](https://img.shields.io/nuget/v/Arbiter.Components.svg)](https://www.nuget.org/packages/Arbiter.Components/)                      | Blazor building blocks for list, view, and edit pages                            |
 
 ### Communication Providers Packages
 

@@ -124,6 +124,18 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     /// </remarks>
     protected TReadModel? Original => Store.Original;
 
+    /// <summary>
+    /// Gets a value indicating whether the current model has unsaved changes./
+    /// </summary>
+    protected bool IsClean => Store.IsClean;
+
+    /// <inheritdoc />
+    protected override bool IsDirty => Store.IsDirty;
+
+    /// <summary>
+    /// Gets a value indicating whether the store is currently loading or saving the model.
+    /// </summary>
+    protected bool IsBusy => Store.IsBusy;
 
     /// <summary>
     /// Gets the edit context bound to the current <see cref="Model"/>.
@@ -134,9 +146,6 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     /// <typeparamref name="TUpdateModel"/>.
     /// </remarks>
     protected EditContext? EditContext { get; set; }
-
-    /// <inheritdoc />
-    protected override bool IsDirty => Store.IsDirty;
 
     /// <inheritdoc />
     /// <remarks>

@@ -16,6 +16,7 @@ Arbiter consists of multiple focused libraries that work together to provide a c
 - **Command Query**: CQRS framework with pre-built commands, queries, and behaviors
 - **Mapping**: Source-generated, compile-time object mapping with custom property expressions and `IQueryable` projection
 - **Dispatcher**: Blazor-first `IDispatcher` abstraction for sending commands and queries from WASM and Server Interactive components
+- **Components**: Blazor building blocks with base list, view, and edit page components plus notification and principal services
 - **Services**: Utility library for CSV parsing, encryption, caching, token management, and URL building
 - **Communication**: Message template system for email and SMS services
 
@@ -55,6 +56,7 @@ The User Guide provides comprehensive tutorials, examples, and best practices:
 - **[Handlers](guide/handlers/entityFramework.md)** - Database-specific handler implementations
 - **[Behaviors](guide/behaviors/delete.md)** - Cross-cutting concerns and pipeline behaviors
 - **[Dispatcher](guide/dispatcher/overview.md)** - Blazor Dispatcher for WASM and Server Interactive modes
+- **[Components](guide/components/overview.md)** - Blazor base page components and UI services
 - **[Communication](guide/communication/overview.md)** - Message templates and delivery services
 
 ### [API Reference](reference/index.md)
@@ -66,7 +68,7 @@ The API Reference contains detailed documentation for all types, methods, and in
 | Library                                                                                                      | Package                                                                                                                                                                                  | Description                                                       |
 | :----------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
 | [Arbiter.Mediation](https://www.nuget.org/packages/Arbiter.Mediation/)                                       | [![Arbiter.Mediation](https://img.shields.io/nuget/v/Arbiter.Mediation.svg)](https://www.nuget.org/packages/Arbiter.Mediation/)                                                          | Lightweight and extensible implementation of the Mediator pattern |
-| [Arbiter.Queue](https://www.nuget.org/packages/Arbiter.Queue/)                                               | [![Arbiter.Queue](https://img.shields.io/nuget/v/Arbiter.Queue.svg)](https://www.nuget.org/packages/Arbiter.Queue/)                                                                       | Background request queue for mediator commands                    |
+| [Arbiter.Queue](https://www.nuget.org/packages/Arbiter.Queue/)                                               | [![Arbiter.Queue](https://img.shields.io/nuget/v/Arbiter.Queue.svg)](https://www.nuget.org/packages/Arbiter.Queue/)                                                                      | Background request queue for mediator commands                    |
 | [Arbiter.CommandQuery](https://www.nuget.org/packages/Arbiter.CommandQuery/)                                 | [![Arbiter.CommandQuery](https://img.shields.io/nuget/v/Arbiter.CommandQuery.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery/)                                                 | Base package for Commands, Queries and Behaviors                  |
 | [Arbiter.Mapping](https://www.nuget.org/packages/Arbiter.Mapping/)                                           | [![Arbiter.Mapping](https://img.shields.io/nuget/v/Arbiter.Mapping.svg)](https://www.nuget.org/packages/Arbiter.Mapping/)                                                                | Source-generated, compile-time object mapping                     |
 | [Arbiter.CommandQuery.EntityFramework](https://www.nuget.org/packages/Arbiter.CommandQuery.EntityFramework/) | [![Arbiter.CommandQuery.EntityFramework](https://img.shields.io/nuget/v/Arbiter.CommandQuery.EntityFramework.svg)](https://www.nuget.org/packages/Arbiter.CommandQuery.EntityFramework/) | Entity Framework Core handlers for the base Commands and Queries  |
@@ -82,6 +84,7 @@ The API Reference contains detailed documentation for all types, methods, and in
 | [Arbiter.Services](https://www.nuget.org/packages/Arbiter.Services/)                                         | [![Arbiter.Services](https://img.shields.io/nuget/v/Arbiter.Services.svg)](https://www.nuget.org/packages/Arbiter.Services/)                                                             | Utility services for CSV, encryption, caching, and tokens         |
 | [Arbiter.Dispatcher.Server](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                       | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                                  | Server-side endpoint for Blazor WASM dispatcher requests          |
 | [Arbiter.Dispatcher.Client](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                       | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                                  | Client dispatcher for WASM and Server Interactive modes           |
+| [Arbiter.Components](https://www.nuget.org/packages/Arbiter.Components/)                                     | [![Arbiter.Components](https://img.shields.io/nuget/v/Arbiter.Components.svg)](https://www.nuget.org/packages/Arbiter.Components/)                                                       | Blazor building blocks for list, view, and edit pages             |
 
 ## Next Steps
 

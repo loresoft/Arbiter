@@ -37,11 +37,11 @@ public class DataGridExtensionsTests
     }
 
     [Test]
-    public async Task ToQueryThrowsWhenRequestIsNull()
+    public async Task ToQueryReturnsNullWhenRequestIsNull()
     {
-        var action = () => DataGridExtensions.ToQuery(null!);
+        var query = DataGridExtensions.ToQuery(null);
 
-        await Assert.That(action).Throws<ArgumentNullException>();
+        await Assert.That(query).IsNull();
     }
 
     [Test]
@@ -155,11 +155,11 @@ public class DataGridExtensionsTests
     }
 
     [Test]
-    public async Task ToResultThrowsWhenPagedResultIsNull()
+    public async Task ToResultReturnsEmptyWhenPagedResultIsNull()
     {
-        var action = () => DataGridExtensions.ToResult<string>(null!);
+        var result = DataGridExtensions.ToResult<string>(null);
 
-        await Assert.That(action).Throws<ArgumentNullException>();
+        await Assert.That(result).IsEqualTo(DataResult<string>.Empty);
     }
 
     [Test]

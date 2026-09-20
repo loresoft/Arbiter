@@ -20,7 +20,7 @@
     </nav>
 </div>
 <div class="container">
-    <LoadingBlock IsLoading="EditContext == null || Store.Model == null">
+    <LoadingBlock IsLoading="EditContext == null || Model == null">
         <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
             <FluentValidator />
 
@@ -44,13 +44,13 @@
                                 <label for="Title" class="form-label">
                                     Title: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-                                <InputText @bind-Value="Store.Model!.Title"
+                                <InputText @bind-Value="Model!.Title"
                                            DisplayName="Title"
                                            id="Title"
                                            name="Title"
                                            class="form-control"
                                            placeholder="Title" />
-                                <ValidationMessage For="@(() => Store.Model.Title)" />
+                                <ValidationMessage For="@(() => Model.Title)" />
                             </div>
                             <div class="mb-3">
                                 <label for="TenantId" class="form-label">
@@ -59,14 +59,14 @@
 
                                 <EntitySelect TModel="TenantReadModel"
                                               TValue="int"
-                                              @bind-Value="Store.Model!.TenantId"
+                                              @bind-Value="Model!.TenantId"
                                               DisplayName="Tenant"
                                               CacheTime="TimeSpan.FromMinutes(5)"
                                               id="TenantId"
                                               name="TenantId"
                                               class="form-select"
                                               placeholder="Tenant" />
-                                <ValidationMessage For="@(() => Store.Model.TenantId)" />
+                                <ValidationMessage For="@(() => Model.TenantId)" />
                             </div>
                             <div class="mb-3">
                                 <label for="StatusId" class="form-label">
@@ -74,14 +74,14 @@
                                 </label>
                                 <EntitySelect TModel="StatusReadModel"
                                               TValue="int"
-                                              @bind-Value="Store.Model!.StatusId"
+                                              @bind-Value="Model!.StatusId"
                                               DisplayName="Status"
                                               CacheTime="TimeSpan.FromMinutes(5)"
                                               id="StatusId"
                                               name="StatusId"
                                               class="form-select"
                                               placeholder="Status" />
-                                <ValidationMessage For="@(() => Store.Model.StatusId)" />
+                                <ValidationMessage For="@(() => Model.StatusId)" />
                             </div>
                             <div class="mb-3">
                                 <label for="PriorityId" class="form-label">
@@ -89,14 +89,14 @@
                                 </label>
                                 <EntitySelect TModel="PriorityReadModel"
                                               TValue="int?"
-                                              @bind-Value="Store.Model!.PriorityId"
+                                              @bind-Value="Model!.PriorityId"
                                               DisplayName="Priority"
                                               CacheTime="TimeSpan.FromMinutes(5)"
                                               id="PriorityId"
                                               name="PriorityId"
                                               class="form-select"
                                               placeholder="Priority" />
-                                <ValidationMessage For="@(() => Store.Model.PriorityId)" />
+                                <ValidationMessage For="@(() => Model.PriorityId)" />
                             </div>
                         </div>
                         <div class="col-6">
@@ -106,52 +106,52 @@
                                 </label>
                                 <EntitySelect TModel="UserReadModel"
                                               TValue="int?"
-                                              @bind-Value="Store.Model!.AssignedId"
+                                              @bind-Value="Model!.AssignedId"
                                               DisplayName="Assigned"
                                               CacheTime="TimeSpan.FromMinutes(5)"
                                               id="AssignedId"
                                               name="AssignedId"
                                               class="form-select"
                                               placeholder="Assigned" />
-                                <ValidationMessage For="@(() => Store.Model.AssignedId)" />
+                                <ValidationMessage For="@(() => Model.AssignedId)" />
                             </div>
                             <div class="mb-3">
                                 <label for="StartDate" class="form-label">
                                     Start Date:
                                 </label>
-                                <InputDate @bind-Value="Store.Model!.StartDate"
+                                <InputDate @bind-Value="Model!.StartDate"
                                            DisplayName="Start Date"
                                            id="StartDate"
                                            name="StartDate"
                                            class="form-control"
                                            placeholder="Start Date" />
-                                <ValidationMessage For="@(() => Store.Model.StartDate)" />
+                                <ValidationMessage For="@(() => Model.StartDate)" />
                             </div>
 
                             <div class="mb-3">
                                 <label for="DueDate" class="form-label">
                                     Due Date:
                                 </label>
-                                <InputDate @bind-Value="Store.Model!.DueDate"
+                                <InputDate @bind-Value="Model!.DueDate"
                                            DisplayName="Due Date"
                                            id="DueDate"
                                            name="DueDate"
                                            class="form-control"
                                            placeholder="Due Date" />
-                                <ValidationMessage For="@(() => Store.Model.DueDate)" />
+                                <ValidationMessage For="@(() => Model.DueDate)" />
                             </div>
 
                             <div class="mb-3">
                                 <label for="CompleteDate" class="form-label">
                                     Complete Date:
                                 </label>
-                                <InputDate @bind-Value="Store.Model!.CompleteDate"
+                                <InputDate @bind-Value="Model!.CompleteDate"
                                            DisplayName="Complete Date"
                                            id="CompleteDate"
                                            name="CompleteDate"
                                            class="form-control"
                                            placeholder="Complete Date" />
-                                <ValidationMessage For="@(() => Store.Model.CompleteDate)" />
+                                <ValidationMessage For="@(() => Model.CompleteDate)" />
                             </div>
                         </div>
                     </div>
@@ -162,14 +162,14 @@
                                 <label for="Description" class="form-label">
                                     Description:
                                 </label>
-                                <InputTextArea @bind-Value="Store.Model!.Description"
+                                <InputTextArea @bind-Value="Model!.Description"
                                                DisplayName="Description"
                                                rows="10"
                                                id="Description"
                                                name="Description"
                                                class="form-control"
                                                placeholder="Description" />
-                                <ValidationMessage For="@(() => Store.Model.Description)" />
+                                <ValidationMessage For="@(() => Model.Description)" />
                             </div>
 
                         </div>
@@ -180,8 +180,8 @@
                         <div class="col">
                             <BusyButton id="save-button"
                                         type="submit"
-                                        Busy="Store.IsBusy"
-                                        Disabled="Store.IsClean"
+                                        Busy="IsBusy"
+                                        Disabled="IsClean"
                                         class="btn btn-primary">
                                 Save
                             </BusyButton>
@@ -191,7 +191,7 @@
                                 <button id="delete-button"
                                         type="button"
                                         @onclick="HandleDelete"
-                                        disabled="@Store.IsBusy"
+                                        disabled="@IsBusy"
                                         class="btn btn-danger float-end">
                                     Delete
                                 </button>
@@ -210,5 +210,5 @@
     protected override string? GetRedirectLocation(RedirectReason reason, int id)
         => reason == RedirectReason.Created ? RouteLinks.Tasks.Edit(id) : RouteLinks.Tasks.List();
 
-    protected override string? ModelDisplay => Store.Original?.Title;
+    protected override string? ModelDisplay => Original?.Title;
 }

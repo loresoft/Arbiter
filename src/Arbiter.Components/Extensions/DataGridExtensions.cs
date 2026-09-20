@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Arbiter.CommandQuery.Queries;
 
 using LoreSoft.Blazor.Controls;
@@ -13,11 +15,14 @@ public static class DataGridExtensions
     /// Converts a data grid request to an <see cref="EntityQuery"/>.
     /// </summary>
     /// <param name="request">The paging, sorting and filtering options requested by the data grid</param>
-    /// <returns>The equivalent <see cref="EntityQuery"/></returns>
-    /// <exception cref="ArgumentNullException">When <paramref name="request"/> is <see langword="null"/></exception>
-    public static EntityQuery ToQuery(this DataRequest request)
+    /// <returns>
+    /// The equivalent <see cref="EntityQuery"/>, or <see langword="null"/> when <paramref name="request"/> is <see langword="null"/>
+    /// </returns>
+    [return: NotNullIfNotNull(nameof(request))]
+    public static EntityQuery? ToQuery(this DataRequest? request)
     {
-        ArgumentNullException.ThrowIfNull(request);
+        if (request == null)
+            return null;
 
         return new EntityQuery
         {
@@ -108,6 +113,7 @@ public static class DataGridExtensions
     /// <returns>
     /// The equivalent filter, or <see langword="null"/> when <paramref name="queryFilter"/> is <see langword="null"/>
     /// </returns>
+    [return: NotNullIfNotNull(nameof(queryFilter))]
     public static EntityFilter? ToFilter(this QueryFilter? queryFilter)
     {
         if (queryFilter == null)
@@ -128,15 +134,15 @@ public static class DataGridExtensions
     /// </summary>
     /// <typeparam name="T">The type of the items in the result</typeparam>
     /// <param name="pagedResult">The paged result returned by the data store</param>
-    /// <returns>The equivalent <see cref="DataResult{T}"/></returns>
-    /// <exception cref="ArgumentNullException">When <paramref name="pagedResult"/> is <see langword="null"/></exception>
+    /// <returns>The equivalent <see cref="DataResult{T}"/>, or <see cref="DataResult{T}.Empty"/> when <paramref name="pagedResult"/> is <see langword="null"/></returns>
     /// <remarks>
     /// The total is clamped to the range of <see cref="int"/> because the data grid counts rows with an
     /// <see cref="int"/>; a larger total would otherwise overflow to a negative page count.
     /// </remarks>
-    public static DataResult<T> ToResult<T>(this EntityPagedResult<T> pagedResult)
+    public static DataResult<T> ToResult<T>(this EntityPagedResult<T>? pagedResult)
     {
-        ArgumentNullException.ThrowIfNull(pagedResult);
+        if (pagedResult is null)
+            return DataResult<T>.Empty;
 
         return new DataResult<T>(
             items: pagedResult.Data ?? [],
@@ -156,7 +162,7 @@ public static class DataGridExtensions
     public static FilterOperators? ToOperator(this string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return default;
+            return null;
 
         return value switch
         {
@@ -174,7 +180,7 @@ public static class DataGridExtensions
             QueryOperators.LessThanOrEqual => FilterOperators.LessThanOrEqual,
             QueryOperators.IsNull => FilterOperators.IsNull,
             QueryOperators.IsNotNull => FilterOperators.IsNotNull,
-            _ => (FilterOperators?)null,
+            _ => null,
         };
     }
 
@@ -188,13 +194,13 @@ public static class DataGridExtensions
     public static FilterLogic? ToLogic(this string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return default;
+            return null;
 
         return value switch
         {
             QueryLogic.And => FilterLogic.And,
             QueryLogic.Or => FilterLogic.Or,
-            _ => (FilterLogic?)null,
+            _ => null,
         };
     }
 }

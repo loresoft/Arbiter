@@ -9,21 +9,22 @@ Arbiter (https://github.com/loresoft/Arbiter) is a family of small .NET librarie
 
 ## Package map
 
-| Need | Package | Specialist skill |
-| --- | --- | --- |
-| In-process mediator (`IRequest`, `INotification`, pipeline behaviors) | `Arbiter.Mediation` | `arbiter-mediation` |
-| CQRS commands/queries, filtering, paging, behaviors | `Arbiter.CommandQuery` | `arbiter-commandquery` |
-| EF Core handlers for the base commands/queries | `Arbiter.CommandQuery.EntityFramework` | `arbiter-commandquery-ef` |
-| MongoDB handlers for the base commands/queries | `Arbiter.CommandQuery.MongoDB` | `arbiter-commandquery-mongo` |
-| Minimal API endpoints exposing commands/queries as REST | `Arbiter.CommandQuery.Endpoints` | `arbiter-endpoints` |
-| MVC controllers exposing commands/queries | `Arbiter.CommandQuery.Mvc` | `arbiter-mvc` |
-| Source-generated object mapping | `Arbiter.Mapping` (+ `.Generators`) | `arbiter-mapping` |
-| Blazor dispatcher (WASM/Server/Auto), `ModelStateEditor` | `Arbiter.Dispatcher.Client` + `Arbiter.Dispatcher.Server` | `arbiter-dispatcher` |
-| Email + SMS templates and delivery | `Arbiter.Communication` + `.Azure` / `.Graph` / `.Twilio` | `arbiter-communication` |
-| CSV, encryption, caching, tokens, URL builder | `Arbiter.Services` | `arbiter-services` |
-| OpenTelemetry tracing/metrics for Arbiter | `Arbiter.OpenTelemetry` + `.Server` / `.Monitor` | `arbiter-opentelemetry` |
-| Azure Service Bus integration | `Arbiter.Messaging.ServiceBus` | `arbiter-messaging-servicebus` |
-| Azure Web PubSub integration | `Arbiter.Messaging.WebPubSub` | `arbiter-messaging-webpubsub` |
+| Need                                                                  | Package                                                   | Specialist skill               |
+| --------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------ |
+| In-process mediator (`IRequest`, `INotification`, pipeline behaviors) | `Arbiter.Mediation`                                       | `arbiter-mediation`            |
+| CQRS commands/queries, filtering, paging, behaviors                   | `Arbiter.CommandQuery`                                    | `arbiter-commandquery`         |
+| EF Core handlers for the base commands/queries                        | `Arbiter.CommandQuery.EntityFramework`                    | `arbiter-commandquery-ef`      |
+| MongoDB handlers for the base commands/queries                        | `Arbiter.CommandQuery.MongoDB`                            | `arbiter-commandquery-mongo`   |
+| Minimal API endpoints exposing commands/queries as REST               | `Arbiter.CommandQuery.Endpoints`                          | `arbiter-endpoints`            |
+| MVC controllers exposing commands/queries                             | `Arbiter.CommandQuery.Mvc`                                | `arbiter-mvc`                  |
+| Source-generated object mapping                                       | `Arbiter.Mapping` (+ `.Generators`)                       | `arbiter-mapping`              |
+| Blazor dispatcher (WASM/Server/Auto), `ModelStateEditor`              | `Arbiter.Dispatcher.Client` + `Arbiter.Dispatcher.Server` | `arbiter-dispatcher`           |
+| Blazor building blocks for list, view, and edit pages                 | `Arbiter.Components`                                      | `arbiter-dispatcher`           |
+| Email + SMS templates and delivery                                    | `Arbiter.Communication` + `.Azure` / `.Graph` / `.Twilio` | `arbiter-communication`        |
+| CSV, encryption, caching, tokens, URL builder                         | `Arbiter.Services`                                        | `arbiter-services`             |
+| OpenTelemetry tracing/metrics for Arbiter                             | `Arbiter.OpenTelemetry` + `.Server` / `.Monitor`          | `arbiter-opentelemetry`        |
+| Azure Service Bus integration                                         | `Arbiter.Messaging.ServiceBus`                            | `arbiter-messaging-servicebus` |
+| Azure Web PubSub integration                                          | `Arbiter.Messaging.WebPubSub`                             | `arbiter-messaging-webpubsub`  |
 
 ## Typical layered setup
 
@@ -46,7 +47,7 @@ Arbiter.CommandQuery.Endpoints         ← pick one web surface
 
 ## When in doubt
 
-Ask Claude to load the specialist skill — e.g. *"use arbiter-commandquery-ef"* — or just describe the concrete task (*"register CRUD handlers for my Product entity with EF Core"*) and the matching skill will trigger automatically.
+Ask Claude to load the specialist skill — e.g. _"use arbiter-commandquery-ef"_ — or just describe the concrete task (_"register CRUD handlers for my Product entity with EF Core"_) and the matching skill will trigger automatically.
 
 ## Reference
 

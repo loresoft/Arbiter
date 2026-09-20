@@ -80,6 +80,21 @@ items:
       - name: State Management
         href: dispatcher/state.md
 
+  - name: Components
+    items:
+      - name: Overview
+        href: components/overview.md
+      - name: View Page
+        href: components/view.md
+      - name: Edit Page
+        href: components/edit.md
+      - name: List Pages
+        href: components/list.md
+      - name: Services
+        href: components/services.md
+      - name: Extensions
+        href: components/extensions.md
+
   - name: Communication
     items:
       - name: Communication Overview

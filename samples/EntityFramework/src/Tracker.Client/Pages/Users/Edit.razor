@@ -20,7 +20,7 @@
     </nav>
 </div>
 <div class="container">
-    <LoadingBlock IsLoading="EditContext == null || Store.Model == null">
+    <LoadingBlock IsLoading="EditContext == null || Model == null">
         <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
             <FluentValidator />
 
@@ -45,13 +45,13 @@
                                 <label for="DisplayName" class="form-label">
                                     Display Name: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-                                <InputText @bind-Value="Store.Model!.DisplayName"
+                                <InputText @bind-Value="Model!.DisplayName"
                                            DisplayName="Display Name"
                                            id="DisplayName"
                                            name="DisplayName"
                                            class="form-control"
                                            placeholder="Display Name" />
-                                <ValidationMessage For="@(() => Store.Model.DisplayName)" />
+                                <ValidationMessage For="@(() => Model.DisplayName)" />
                             </div>
                         </div>
                         <div class="col-6">
@@ -59,14 +59,14 @@
                                 <label for="EmailAddress" class="form-label">
                                     Email Address: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-                                <InputText @bind-Value="Store.Model!.EmailAddress"
+                                <InputText @bind-Value="Model!.EmailAddress"
                                            DisplayName="Email Address"
                                            id="EmailAddress"
                                            name="EmailAddress"
                                            type="email"
                                            class="form-control"
                                            placeholder="Email Address" />
-                                <ValidationMessage For="@(() => Store.Model.EmailAddress)" />
+                                <ValidationMessage For="@(() => Model.EmailAddress)" />
                             </div>
                         </div>
                     </div>
@@ -77,8 +77,8 @@
                         <div class="col">
                             <BusyButton id="save-button"
                                         type="submit"
-                                        Busy="Store.IsBusy"
-                                        Disabled="Store.IsClean"
+                                        Busy="IsBusy"
+                                        Disabled="IsClean"
                                         class="btn btn-primary">
                                 Save
                             </BusyButton>
@@ -88,7 +88,7 @@
                                 <button id="delete-button"
                                         type="button"
                                         @onclick="HandleDelete"
-                                        disabled="@Store.IsBusy"
+                                        disabled="@IsBusy"
                                         class="btn btn-danger float-end">
                                     Delete
                                 </button>
@@ -107,5 +107,5 @@
     protected override string? GetRedirectLocation(RedirectReason reason, int id)
         => reason == RedirectReason.Created ? RouteLinks.Users.Edit(id) : RouteLinks.Users.List();
 
-    protected override string? ModelDisplay => Store.Original?.DisplayName;
+    protected override string? ModelDisplay => Original?.DisplayName;
 }

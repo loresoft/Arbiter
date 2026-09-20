@@ -20,7 +20,7 @@
     </nav>
 </div>
 <div class="container">
-    <LoadingBlock IsLoading="EditContext == null || Store.Model == null">
+    <LoadingBlock IsLoading="EditContext == null || Model == null">
         <EditForm EditContext="EditContext" OnValidSubmit="HandleSave">
             <FluentValidator />
 
@@ -44,37 +44,37 @@
                                 <label for="Name" class="form-label">
                                     Name: <span class="text-danger">*</span>
                                 </label>
-                                <InputText @bind-Value="Store.Model!.Name"
+                                <InputText @bind-Value="Model!.Name"
                                            DisplayName="Name"
                                            id="Name"
                                            name="Name"
                                            class="form-control"
                                            placeholder="Name" />
-                                <ValidationMessage For="@(() => Store.Model.Name)" />
+                                <ValidationMessage For="@(() => Model.Name)" />
                             </div>
                             <div class="mb-3">
                                 <label for="DisplayOrder" class="form-label">
                                     Display Order: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-                                <InputNumber @bind-Value="Store.Model!.DisplayOrder"
+                                <InputNumber @bind-Value="Model!.DisplayOrder"
                                              DisplayName="Display Order"
                                              id="DisplayOrder"
                                              name="DisplayOrder"
                                              class="form-control"
                                              placeholder="Display Order" />
-                                <ValidationMessage For="@(() => Store.Model.DisplayOrder)" />
+                                <ValidationMessage For="@(() => Model.DisplayOrder)" />
                             </div>
                             <div class="mb-3">
                                 <label for="IsActive" class="form-label">
                                     Active: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-                                <BooleanSelect @bind-Value="Store.Model!.IsActive"
+                                <BooleanSelect @bind-Value="Model!.IsActive"
                                                DisplayName="Active"
                                                id="IsActive"
                                                name="IsActive"
                                                class="form-select"
                                                placeholder="Active" />
-                                <ValidationMessage For="@(() => Store.Model.IsActive)" />
+                                <ValidationMessage For="@(() => Model.IsActive)" />
                             </div>
                         </div>
                         <div class="col-6">
@@ -82,14 +82,14 @@
                                 <label for="Description" class="form-label">
                                     Description:
                                 </label>
-                                <InputTextArea @bind-Value="Store.Model!.Description"
+                                <InputTextArea @bind-Value="Model!.Description"
                                                DisplayName="Description"
                                                id="Description"
                                                name="Description"
                                                class="form-control"
                                                rows="8"
                                                placeholder="Description" />
-                                <ValidationMessage For="@(() => Store.Model.Description)" />
+                                <ValidationMessage For="@(() => Model.Description)" />
                             </div>
                         </div>
                     </div>
@@ -100,8 +100,8 @@
                         <div class="col">
                             <BusyButton id="save-button"
                                         type="submit"
-                                        Busy="Store.IsBusy"
-                                        Disabled="Store.IsClean"
+                                        Busy="IsBusy"
+                                        Disabled="IsClean"
                                         class="btn btn-primary">
                                 Save
                             </BusyButton>
@@ -111,7 +111,7 @@
                                 <button id="delete-button"
                                         type="button"
                                         @onclick="HandleDelete"
-                                        disabled="@Store.IsBusy"
+                                        disabled="@IsBusy"
                                         class="btn btn-danger float-end">
                                     Delete
                                 </button>
@@ -130,5 +130,5 @@
     protected override string? GetRedirectLocation(RedirectReason reason, int id)
         => reason == RedirectReason.Created ? RouteLinks.Priorities.Edit(id) : RouteLinks.Priorities.List();
 
-    protected override string? ModelDisplay => Store.Original?.Name;
+    protected override string? ModelDisplay => Original?.Name;
 }

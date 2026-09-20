@@ -60,4 +60,6 @@ updates:
         versions: [">=15.0.0"]
       - dependency-name: MediatR
         versions: [">=13.0.0"]
+      - dependency-name: Verify*
+        versions: [">=33.0.0"]
       - dependency-name: Microsoft.CodeAnalysis.CSharp

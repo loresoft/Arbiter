@@ -17,6 +17,7 @@ Mediator pattern and Command Query Responsibility Segregation (CQRS) implementat
 | [Arbiter.Mapping](#arbitermapping)                                          | [![Arbiter.Mapping](https://img.shields.io/nuget/v/Arbiter.Mapping.svg)](https://www.nuget.org/packages/Arbiter.Mapping/)                                                                | Source-generated, compile-time object mapping                     |
 | [Arbiter.Dispatcher.Server](#arbiterdispatcherserver)                       | [![Arbiter.Dispatcher.Server](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Server.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Server/)                                  | Server-side endpoint for Blazor WASM dispatcher requests          |
 | [Arbiter.Dispatcher.Client](#arbiterdispatcherclient)                       | [![Arbiter.Dispatcher.Client](https://img.shields.io/nuget/v/Arbiter.Dispatcher.Client.svg)](https://www.nuget.org/packages/Arbiter.Dispatcher.Client/)                                  | Client dispatcher for WASM and Server Interactive modes           |
+| [Arbiter.Components](https://www.nuget.org/packages/Arbiter.Components/)    | [![Arbiter.Components](https://img.shields.io/nuget/v/Arbiter.Components.svg)](https://www.nuget.org/packages/Arbiter.Components/)                                                       | Blazor building blocks for list, view, and edit pages             |
 
 ## Arbiter.Mediation
 
