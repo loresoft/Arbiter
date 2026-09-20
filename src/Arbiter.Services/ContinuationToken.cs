@@ -22,6 +22,7 @@ namespace Arbiter.Services;
 /// <item><description>Works well with real-time data and concurrent modifications</description></item>
 /// </list>
 /// </para>
+/// </remarks>
 /// <example>
 /// Implementing keyset pagination using DateTime and Id:
 /// <code>
@@ -72,7 +73,6 @@ namespace Arbiter.Services;
 /// }
 /// </code>
 /// </example>
-/// </remarks>
 public static class ContinuationToken
 {
     private const int MaxStackAllocSize = 512;

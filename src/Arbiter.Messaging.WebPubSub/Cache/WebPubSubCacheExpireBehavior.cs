@@ -69,12 +69,12 @@ public class WebPubSubCacheExpireBehavior<TRequest, TResponse> : HybridCacheExpi
         var response = await base.Process(request, next, cancellationToken).ConfigureAwait(false);
 
         if (request is ICacheExpire cacheRequest)
-            PublishExpire(cacheRequest, cancellationToken);
+            PublishExpire(cacheRequest);
 
         return response;
     }
 
-    private void PublishExpire(ICacheExpire cacheRequest, CancellationToken cancellationToken)
+    private void PublishExpire(ICacheExpire cacheRequest)
     {
         var cacheKey = cacheRequest.GetCacheKey();
         var cacheTags = cacheRequest.GetCacheTags();
@@ -93,8 +93,9 @@ public class WebPubSubCacheExpireBehavior<TRequest, TResponse> : HybridCacheExpi
         try
         {
             // fire-and-forget publish to prevent slowing down request processing, log any errors
+            // intentionally not using the request CancellationToken so invalidation isn't cancelled when the request ends
             _publisher
-                .PublishAsync(message, cancellationToken)
+                .PublishAsync(message, CancellationToken.None)
                 .RunInBackground(Logger);
         }
         catch (Exception ex)
