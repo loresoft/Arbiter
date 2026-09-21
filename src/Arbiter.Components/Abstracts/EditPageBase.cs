@@ -399,7 +399,7 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     /// The store is only notified when the dirty state actually changes, so binding to <c>oninput</c> does not
     /// force a render on every keystroke.
     /// </remarks>
-    protected void HandleFormChange(object? sender, FieldChangedEventArgs args)
+    protected virtual void HandleFormChange(object? sender, FieldChangedEventArgs args)
     {
         var isDirty = Store.IsDirty;
         if (isDirty == _lastDirtyState)
