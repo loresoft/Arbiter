@@ -1,10 +1,12 @@
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.Components.Abstracts;
+using Arbiter.Components.Options;
 using Arbiter.Components.Services;
 using Arbiter.Dispatcher;
 
 using LoreSoft.Blazor.Controls;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -23,6 +25,10 @@ public static class ComponentServiceExtensions
     /// <param name="configureNotifications">
     /// An optional delegate used to configure the <see cref="NotificationServiceOptions"/> used by
     /// <see cref="NotificationService"/>.
+    /// </param>
+    /// <param name="configureEnvironment">
+    /// An optional delegate used to configure the <see cref="EnvironmentOptions"/>. The delegate runs after the
+    /// options are bound from <see cref="IConfiguration"/>, so any values it sets override configured values.
     /// </param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
@@ -44,15 +50,29 @@ public static class ComponentServiceExtensions
     /// <see cref="NotificationService"/> displays notifications through an <c>IToaster</c>, which is registered by
     /// calling <c>AddBlazorControls</c>.
     /// </para>
+    /// <para>
+    /// <see cref="EnvironmentOptions"/> is first bound from <see cref="IConfiguration"/> and then updated by
+    /// <paramref name="configureEnvironment"/>, when provided. The options mirror the host environment values for
+    /// scenarios where <c>IHostEnvironment</c> is not available, such as Blazor WebAssembly.
+    /// </para>
     /// </remarks>
     public static IServiceCollection AddArbiterComponents(
         this IServiceCollection services,
-        Action<NotificationServiceOptions>? configureNotifications = null)
+        Action<NotificationServiceOptions>? configureNotifications = null,
+        Action<EnvironmentOptions>? configureEnvironment = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
         if (configureNotifications != null)
             services.Configure(configureNotifications);
+
+        var environmentOptions = services
+            .AddOptions<EnvironmentOptions>()
+            .Configure<IConfiguration>((settings, configuration) => configuration.Bind(settings));
+
+        // configure actions run in registration order, so the delegate overrides values bound from configuration
+        if (configureEnvironment != null)
+            environmentOptions.Configure(configureEnvironment);
 
         // register the IToaster used by NotificationService
         services.AddBlazorControls();

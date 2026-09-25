@@ -170,6 +170,6 @@ public class NotificationServiceTests
         return new NotificationService(
             NullLogger<NotificationService>.Instance,
             toaster,
-            options == null ? null : Options.Create(options));
+            options == null ? null : Microsoft.Extensions.Options.Options.Create(options));
     }
 }

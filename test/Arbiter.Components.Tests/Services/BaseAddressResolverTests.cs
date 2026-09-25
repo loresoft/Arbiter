@@ -1,7 +1,9 @@
+using Arbiter.Components.Options;
 using Arbiter.Components.Services;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Components.Tests.Services;
 
@@ -10,7 +12,17 @@ public class BaseAddressResolverTests
     [Test]
     public async Task ConstructorThrowsWhenConfigurationIsNull()
     {
-        var action = () => new BaseAddressResolver(null!);
+        var options = CreateOptions(null);
+        var action = () => new BaseAddressResolver(null!, options);
+
+        await Assert.That(action).Throws<ArgumentNullException>();
+    }
+
+    [Test]
+    public async Task ConstructorThrowsWhenEnvironmentOptionsIsNull()
+    {
+        var configuration = CreateConfiguration([]);
+        var action = () => new BaseAddressResolver(configuration, null!);
 
         await Assert.That(action).Throws<ArgumentNullException>();
     }
@@ -18,10 +30,10 @@ public class BaseAddressResolverTests
     [Test]
     public async Task GetBaseAddressPrefersNavigationManager()
     {
-        var values = new Dictionary<string, string?> { [BaseAddressResolver.BaseAddressKey] = "https://config.example.com/" };
-        var configuration = CreateConfiguration(values);
+        var configuration = CreateConfiguration([]);
+        var options = CreateOptions("https://options.example.com/");
         var navigation = new TestNavigationManager("https://navigation.example.com/");
-        var resolver = new BaseAddressResolver(configuration, navigation);
+        var resolver = new BaseAddressResolver(configuration, options, navigation);
 
         var address = resolver.GetBaseAddress();
 
@@ -29,28 +41,28 @@ public class BaseAddressResolverTests
     }
 
     [Test]
-    public async Task GetBaseAddressUsesConfigurationWhenNavigationManagerIsMissing()
+    public async Task GetBaseAddressUsesEnvironmentOptionsWhenNavigationManagerIsMissing()
     {
-        var values = new Dictionary<string, string?> { [BaseAddressResolver.BaseAddressKey] = "https://config.example.com/" };
-        var configuration = CreateConfiguration(values);
-        var resolver = new BaseAddressResolver(configuration);
+        var configuration = CreateConfiguration([]);
+        var options = CreateOptions("https://options.example.com/");
+        var resolver = new BaseAddressResolver(configuration, options);
 
         var address = resolver.GetBaseAddress();
 
-        await Assert.That(address).IsEqualTo("https://config.example.com/");
+        await Assert.That(address).IsEqualTo("https://options.example.com/");
     }
 
     [Test]
-    public async Task GetBaseAddressUsesConfigurationWhenNavigationManagerIsNotInitialized()
+    public async Task GetBaseAddressUsesEnvironmentOptionsWhenNavigationManagerIsNotInitialized()
     {
-        var values = new Dictionary<string, string?> { [BaseAddressResolver.BaseAddressKey] = "https://config.example.com/" };
-        var configuration = CreateConfiguration(values);
+        var configuration = CreateConfiguration([]);
+        var options = CreateOptions("https://options.example.com/");
         var navigation = new TestNavigationManager(null);
-        var resolver = new BaseAddressResolver(configuration, navigation);
+        var resolver = new BaseAddressResolver(configuration, options, navigation);
 
         var address = resolver.GetBaseAddress();
 
-        await Assert.That(address).IsEqualTo("https://config.example.com/");
+        await Assert.That(address).IsEqualTo("https://options.example.com/");
     }
 
     [Test]
@@ -58,7 +70,8 @@ public class BaseAddressResolverTests
     {
         var values = new Dictionary<string, string?> { ["Api:BaseAddress"] = "https://api.example.com/" };
         var configuration = CreateConfiguration(values);
-        var resolver = new BaseAddressResolver(configuration);
+        var options = CreateOptions("https://options.example.com/");
+        var resolver = new BaseAddressResolver(configuration, options);
 
         var address = resolver.GetBaseAddress("Api:BaseAddress");
 
@@ -66,27 +79,33 @@ public class BaseAddressResolverTests
     }
 
     [Test]
-    public async Task GetBaseAddressFallsBackToDefaultKeyWhenKeyIsNull()
+    public async Task GetBaseAddressUsesEnvironmentOptionsWhenKeyIsNull()
     {
-        var values = new Dictionary<string, string?> { [BaseAddressResolver.BaseAddressKey] = "https://config.example.com/" };
-        var configuration = CreateConfiguration(values);
-        var resolver = new BaseAddressResolver(configuration);
+        var configuration = CreateConfiguration([]);
+        var options = CreateOptions("https://options.example.com/");
+        var resolver = new BaseAddressResolver(configuration, options);
 
         var address = resolver.GetBaseAddress(null);
 
-        await Assert.That(address).IsEqualTo("https://config.example.com/");
+        await Assert.That(address).IsEqualTo("https://options.example.com/");
     }
 
     [Test]
     public async Task GetBaseAddressReturnsNullWhenNothingIsConfigured()
     {
-        var values = new Dictionary<string, string?>();
-        var configuration = CreateConfiguration(values);
-        var resolver = new BaseAddressResolver(configuration);
+        var configuration = CreateConfiguration([]);
+        var options = CreateOptions(null);
+        var resolver = new BaseAddressResolver(configuration, options);
 
         var address = resolver.GetBaseAddress();
 
         await Assert.That(address).IsNull();
+    }
+
+    private static IOptions<EnvironmentOptions> CreateOptions(string? baseAddress)
+    {
+        var environmentOptions = new EnvironmentOptions { BaseAddress = baseAddress };
+        return Microsoft.Extensions.Options.Options.Create(environmentOptions);
     }
 
     private static IConfiguration CreateConfiguration(Dictionary<string, string?> values)

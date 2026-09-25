@@ -22,6 +22,7 @@
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="bunit" Version="2.11.3" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
+    <PackageVersion Include="cuid.net" Version="7.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="7.2.0" />
     <PackageVersion Include="Equatable.Generator" Version="3.0.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
@@ -85,6 +86,7 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.15.0" />
     <PackageVersion Include="TUnit" Version="1.68.17" />
     <PackageVersion Include="Twilio" Version="8.0.1" />
+    <PackageVersion Include="Ulid" Version="1.4.1" />
     <PackageVersion Include="Verify.TUnit" Version="[32.0.1,33.0.0)" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>

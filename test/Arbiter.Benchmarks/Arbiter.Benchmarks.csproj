@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="BenchmarkDotNet.Artifacts\**" />
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Services\GuidBenchmark.cs" />
   </ItemGroup>
 
@@ -17,11 +23,13 @@
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="CsvHelper" />
+    <PackageReference Include="cuid.net" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
     <PackageReference Include="Riok.Mapperly" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="SimpleBase" />
+    <PackageReference Include="Ulid" />
   </ItemGroup>
 
   <ItemGroup>
