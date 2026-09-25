@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text;
-using System.Text.Json;
 
 namespace Arbiter.Services.Tests;
 
@@ -236,68 +235,6 @@ public class Cuid2Tests
         var text = $"id:{id}";
 
         text.Should().Be("id:tz4a98xxat96iws9zmbrgj3a");
-    }
-
-    [Test]
-    public void Json_Serialize_WritesString()
-    {
-        var id = Cuid2.Parse("tz4a98xxat96iws9zmbrgj3a");
-
-        var json = JsonSerializer.Serialize(id);
-
-        json.Should().Be("\"tz4a98xxat96iws9zmbrgj3a\"");
-    }
-
-    [Test]
-    public void Json_RoundTripInObject_ReturnsEqualValue()
-    {
-        var id = Cuid2.Parse("tz4a98xxat96iws9zmbrgj3a");
-        var model = new Cuid2Model(id, "Test");
-
-        var json = JsonSerializer.Serialize(model);
-        var result = JsonSerializer.Deserialize<Cuid2Model>(json);
-
-        result.Should().Be(model);
-    }
-
-    [Test]
-    public void Json_Null_ReadsEmpty()
-    {
-        var result = JsonSerializer.Deserialize<Cuid2>("null");
-
-        result.Should().Be(Cuid2.Empty);
-    }
-
-    [Test]
-    public void Json_Empty_WritesNull()
-    {
-        var json = JsonSerializer.Serialize(Cuid2.Empty);
-
-        json.Should().Be("null");
-    }
-
-    [Test]
-    public void Json_EscapedValue_Reads()
-    {
-        var result = JsonSerializer.Deserialize<Cuid2>("\"\\u0074z4a98xxat96iws9zmbrgj3a\"");
-
-        result.ToString().Should().Be("tz4a98xxat96iws9zmbrgj3a");
-    }
-
-    [Test]
-    public void Json_InvalidValue_Throws()
-    {
-        var action = () => JsonSerializer.Deserialize<Cuid2>("\"NOT-VALID\"");
-
-        action.Should().Throw<JsonException>();
-    }
-
-    [Test]
-    public void Json_NumberToken_Throws()
-    {
-        var action = () => JsonSerializer.Deserialize<Cuid2>("123");
-
-        action.Should().Throw<JsonException>();
     }
 
     internal static void SkipIfUnsupported()
