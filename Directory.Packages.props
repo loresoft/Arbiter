@@ -60,7 +60,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.10.0" />
     <PackageVersion Include="Microsoft.Graph" Version="6.7.0" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.2" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.15.0" />
     <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="MongoDB.Abstracts" Version="7.2.2" />
