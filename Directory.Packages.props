@@ -33,7 +33,7 @@
     <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="MessagePack" Version="3.1.10" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.264" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.290" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
