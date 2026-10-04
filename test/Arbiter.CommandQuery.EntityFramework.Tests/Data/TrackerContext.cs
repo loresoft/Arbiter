@@ -32,8 +32,12 @@ public partial class TrackerContext : DbContext
 
     #endregion
 
+    public virtual DbSet<Arbiter.CommandQuery.EntityFramework.Tests.Data.Entities.Event> Events { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new Arbiter.CommandQuery.EntityFramework.Tests.Data.Mapping.EventMap());
+
         #region Generated Configuration
         modelBuilder.ApplyConfiguration(new Arbiter.CommandQuery.EntityFramework.Tests.Data.Mapping.AuditMap());
         modelBuilder.ApplyConfiguration(new Arbiter.CommandQuery.EntityFramework.Tests.Data.Mapping.PriorityMap());

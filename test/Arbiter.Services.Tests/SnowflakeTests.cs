@@ -17,18 +17,19 @@ public class SnowflakeTests
     }
 
     [Test]
-    public void NextId_CalledTwice_SecondIdIsGreater()
+    public void NextId_CalledTwice_SecondTimestampIsNotEarlier()
     {
         var snowflake = new Snowflake(instanceId: 1);
 
         var first = snowflake.NextId();
         var second = snowflake.NextId();
 
-        second.Should().BeGreaterThan(first);
+        second.Should().NotBe(first);
+        snowflake.GetTimestamp(second).Should().BeOnOrAfter(snowflake.GetTimestamp(first));
     }
 
     [Test]
-    public void NextId_CalledRepeatedly_ReturnsIncreasingIds()
+    public void NextId_CalledRepeatedly_ReturnsIdsAscendingByMillisecond()
     {
         var snowflake = new Snowflake(instanceId: 1);
 
@@ -36,7 +37,7 @@ public class SnowflakeTests
         for (int i = 0; i < ids.Length; i++)
             ids[i] = snowflake.NextId();
 
-        ids.Should().BeInAscendingOrder();
+        ids.Select(snowflake.GetTimestamp).Should().BeInAscendingOrder();
     }
 
     [Test]
@@ -74,23 +75,116 @@ public class SnowflakeTests
     }
 
     [Test]
-    public void NextId_WhenSequenceExhausted_StillReturnsUniqueIds()
+    public void NextId_WhenCounterExhausted_BorrowsNextMillisecondWithoutBlocking()
     {
-        // Two sequence bits allow only four ids per millisecond, forcing the wait-for-next-tick path.
-        var snowflake = new Snowflake(instanceId: 1, sequenceBits: 2);
+        // Two counter bits overflow almost immediately, forcing the borrow-next-millisecond path.
+        var snowflake = new Snowflake(instanceId: 1, counterBits: 2);
 
-        var ids = new HashSet<long>();
-        for (int i = 0; i < 50; i++)
-            ids.Add(snowflake.NextId());
+        var ids = new long[10_000];
+        for (int i = 0; i < ids.Length; i++)
+            ids[i] = snowflake.NextId();
 
-        ids.Should().HaveCount(50);
+        ids.Should().OnlyHaveUniqueItems();
+        ids.Select(snowflake.GetTimestamp).Should().BeInAscendingOrder();
+    }
+
+    [Test]
+    public void NextId_LargeVolume_ReturnsUniqueIdsAscendingByMillisecond()
+    {
+        var snowflake = new Snowflake(instanceId: 1);
+
+        var ids = new long[1_000_000];
+        for (int i = 0; i < ids.Length; i++)
+            ids[i] = snowflake.NextId();
+
+        ids.Select(snowflake.GetTimestamp).Should().BeInAscendingOrder();
+        ids.Distinct().Should().HaveCount(ids.Length);
+    }
+
+    [Test]
+    public void NextId_ProducesNonConsecutiveIds()
+    {
+        var snowflake = new Snowflake(instanceId: 1);
+
+        var ids = new long[10_000];
+        for (int i = 0; i < ids.Length; i++)
+            ids[i] = snowflake.NextId();
+
+        var gaps = ids.Zip(ids.Skip(1), (a, b) => b - a);
+
+        gaps.Should().Contain(g => g > 1);
+    }
+
+    [Test]
+    public void NextId_WithinSameMillisecond_CountersAreShuffled()
+    {
+        var snowflake = new Snowflake(instanceId: 1);
+
+        var ids = new long[100_000];
+        for (int i = 0; i < ids.Length; i++)
+            ids[i] = snowflake.NextId();
+
+        var sameMsGaps = ids
+            .Zip(ids.Skip(1), (a, b) => (a, b))
+            .Where(p => snowflake.GetTimestamp(p.a) == snowflake.GetTimestamp(p.b))
+            .Select(p => p.b - p.a)
+            .ToList();
+
+        sameMsGaps.Should().NotBeEmpty();
+        sameMsGaps.Should().Contain(g => g < 0);
+        sameMsGaps.Count(g => Math.Abs(g) <= 16).Should().BeLessThan(sameMsGaps.Count / 2);
+    }
+
+    [Test]
+    public void NextId_WhenCounterSpaceFilled_UsesEveryCounterValueOnce()
+    {
+        const int counterBits = 8;
+        var snowflake = new Snowflake(instanceId: 0, instanceBits: 0, counterBits: counterBits);
+
+        var ids = new long[100_000];
+        for (int i = 0; i < ids.Length; i++)
+            ids[i] = snowflake.NextId();
+
+        var fullMillisecond = ids
+            .GroupBy(id => id >> counterBits)
+            .FirstOrDefault(g => g.Count() == 1 << counterBits);
+
+        fullMillisecond.Should().NotBeNull();
+        fullMillisecond!.Select(id => id & ((1 << counterBits) - 1)).Should().OnlyHaveUniqueItems();
+    }
+
+    [Test]
+    public async Task NextId_FromMultipleThreads_IsAscendingByMillisecondPerThread()
+    {
+        var snowflake = new Snowflake(instanceId: 1);
+
+        const int threads = 8;
+        const int perThread = 5_000;
+
+        var tasks = Enumerable
+            .Range(0, threads)
+            .Select(_ => Task.Run(() =>
+            {
+                var local = new long[perThread];
+                for (int i = 0; i < perThread; i++)
+                    local[i] = snowflake.NextId();
+
+                return local;
+            }));
+
+        var results = await Task.WhenAll(tasks);
+
+        foreach (var local in results)
+            local.Select(snowflake.GetTimestamp).Should().BeInAscendingOrder();
+
+        results.SelectMany(r => r).Distinct().Should().HaveCount(threads * perThread);
     }
 
     [Test]
     public void NextId_EncodesConfiguredInstanceId()
     {
         const long instanceId = 511;
-        var snowflake = new Snowflake(instanceId, instanceBits: 10, sequenceBits: 12);
+        var snowflake = new Snowflake(instanceId, instanceBits: 10, counterBits: 12);
 
         var id = snowflake.NextId();
         var encodedInstance = (id >> 12) & 1023;
@@ -180,7 +274,7 @@ public class SnowflakeTests
     [Test]
     public void Constructor_WhenInstanceIdExceedsBits_Throws()
     {
-        var create = () => new Snowflake(instanceId: 1024, instanceBits: 10);
+        var create = () => new Snowflake(instanceId: 64, instanceBits: 6);
 
         create.Should().Throw<ArgumentOutOfRangeException>()
             .WithParameterName("instanceId");
@@ -205,30 +299,21 @@ public class SnowflakeTests
     }
 
     [Test]
-    public void Constructor_WhenSequenceBitsIsNegative_Throws()
+    public void Constructor_WhenCounterBitsIsZero_Throws()
     {
-        var create = () => new Snowflake(instanceId: 1, sequenceBits: -1);
+        var create = () => new Snowflake(instanceId: 1, counterBits: 0);
 
         create.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("sequenceBits");
-    }
-
-    [Test]
-    public void Constructor_WhenMaxClockDriftIsNegative_Throws()
-    {
-        var create = () => new Snowflake(instanceId: 1, maxClockDriftMs: -1);
-
-        create.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("maxClockDriftMs");
+            .WithParameterName("counterBits");
     }
 
     [Test]
     [Arguments(42, 11, 12)]
     [Arguments(41, 11, 12)]
     [Arguments(62, 1, 1)]
-    public void Constructor_WhenBitsExceedSixtyThree_Throws(int timestampBits, int instanceBits, int sequenceBits)
+    public void Constructor_WhenBitsExceedSixtyThree_Throws(int timestampBits, int instanceBits, int counterBits)
     {
-        var create = () => new Snowflake(instanceId: 0, timestampBits: timestampBits, instanceBits: instanceBits, sequenceBits: sequenceBits);
+        var create = () => new Snowflake(instanceId: 0, timestampBits: timestampBits, instanceBits: instanceBits, counterBits: counterBits);
 
         create.Should().Throw<ArgumentException>();
     }
@@ -236,7 +321,7 @@ public class SnowflakeTests
     [Test]
     public void Constructor_WhenBitsSumToSixtyThree_Succeeds()
     {
-        var snowflake = new Snowflake(instanceId: 0, timestampBits: 41, instanceBits: 10, sequenceBits: 12);
+        var snowflake = new Snowflake(instanceId: 0, timestampBits: 41, instanceBits: 10, counterBits: 12);
 
         snowflake.NextId().Should().BePositive();
     }

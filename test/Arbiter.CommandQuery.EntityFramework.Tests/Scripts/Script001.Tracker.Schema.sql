@@ -164,6 +164,18 @@ CREATE TABLE [dbo].[UserRole] (
     CONSTRAINT [PK_UserRole] PRIMARY KEY ([UserId], [RoleId])
 );
 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Event]') AND type in (N'U'))
+CREATE TABLE [dbo].[Event] (
+    [Id] bigint NOT NULL,
+    [Name] nvarchar(100) NOT NULL,
+    [Created] datetimeoffset NOT NULL DEFAULT (sysutcdatetime()),
+    [CreatedBy] nvarchar(100) NULL,
+    [Updated] datetimeoffset NOT NULL DEFAULT (sysutcdatetime()),
+    [UpdatedBy] nvarchar(100) NULL,
+    [RowVersion] rowversion NOT NULL,
+    CONSTRAINT [PK_Event] PRIMARY KEY ([Id])
+);
+
 
 -- Foreign Keys
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Task_Priority_PriorityId]') AND parent_object_id = OBJECT_ID(N'[dbo].[Task]'))

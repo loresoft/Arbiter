@@ -3,25 +3,30 @@ using System.Runtime.CompilerServices;
 namespace Arbiter.Services;
 
 /// <summary>
-/// <para>High-performance, thread-safe Snowflake ID generator.</para>
+/// <para>High-performance, thread-safe, non-blocking Snowflake-style ID generator.</para>
 /// <para>
 /// A 63-bit positive <see cref="long"/> laid out (MSB to LSB) as:
-/// <c>[unused sign bit][timestamp][instance][sequence]</c>. Because the timestamp occupies the most
-/// significant bits, ids sort chronologically, which makes them well suited to clustered database keys.
+/// <c>[unused sign bit][timestamp][instance][counter]</c>. Because the timestamp occupies the most
+/// significant bits, ids sort chronologically by millisecond, which makes them well suited to clustered database keys.
 /// </para>
 /// <para>
-/// The timestamp, instance, and sequence bit widths are configurable and must sum to 63 or fewer.
-/// Generation is lock-free: state is packed into a single 64-bit word and advanced with a
-/// compare-and-swap loop, so there is no mutex on the hot path and any number of threads may call
-/// <see cref="NextId"/> concurrently.
+/// Internally the counter is sequential within each millisecond. Before it is embedded in the id, it is passed
+/// through a bijective permutation keyed by the timestamp and a per-generator random secret. Every counter value
+/// is therefore usable and unique, but ids within the same millisecond appear in a shuffled order and are hard
+/// to enumerate from one another. Ids are ordered by millisecond only; ordering within a millisecond is not preserved.
 /// </para>
 /// <para>
-/// Uniqueness is only guaranteed per <see cref="InstanceId"/>. Deployments with more than a handful of
-/// nodes should assign each node an explicit, coordinated instance id rather than relying on the
-/// randomly chosen default.
+/// Generation never blocks. If the system clock moves backwards, the last issued timestamp is reused and
+/// the counter keeps advancing. If the counter is exhausted within a millisecond, the generator borrows the
+/// next millisecond. In both cases the embedded timestamp may briefly run ahead of wall-clock time until
+/// the clock catches up.
 /// </para>
 /// <para>
-/// Ids are time-ordered and their layout is public, so they are predictable by design. Do not use them
+/// Uniqueness is guaranteed per <see cref="InstanceId"/>. When instance ids are chosen randomly (the default),
+/// uniqueness across nodes is probabilistic; assign explicit, coordinated instance ids for strict guarantees.
+/// </para>
+/// <para>
+/// The random component makes ids harder to guess but is not a security boundary. Do not use these ids
 /// where an unguessable identifier is required.
 /// </para>
 /// </summary>
@@ -39,24 +44,115 @@ public sealed class Snowflake
     /// </summary>
     public static readonly DateTime DefaultEpoch = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+    #region Default Instance
+    private static Snowflake? _default;
+
     /// <summary>
-    /// A shared generator using the default configuration and a randomly assigned instance id.
+    /// A shared generator. Uses the instance set via <see cref="Configure(Snowflake)"/>, otherwise
+    /// the default configuration with a randomly assigned instance id.
     /// </summary>
     /// <remarks>
-    /// Safe for concurrent use. Because the instance id is random rather than coordinated, prefer a
-    /// dedicated instance constructed with an explicit instance id when running multiple nodes.
+    /// Safe for concurrent use. Because the default instance id is random rather than coordinated, call
+    /// <see cref="Configure(Snowflake)"/> at startup with an explicit instance id when running multiple nodes.
     /// </remarks>
-    public static Snowflake Default { get; } = new();
+    public static Snowflake Default
+    {
+        get
+        {
+            var current = Volatile.Read(ref _default);
+            if (current != null)
+                return current;
+
+            var created = new Snowflake();
+            return Interlocked.CompareExchange(ref _default, created, comparand: null) ?? created;
+        }
+    }
+
+    /// <summary>
+    /// Sets the shared <see cref="Default"/> generator. Must be called at startup, before <see cref="Default"/> is first used.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Default"/> can only be set once. Reading <see cref="Default"/> before calling this method lazily creates
+    /// a generator with a random instance id and locks it in, so any later call to <see cref="Configure(Snowflake)"/> fails.
+    /// </para>
+    /// <para>
+    /// Calling this method again with the same instance that is already configured is a no-op, which makes it safe
+    /// to call from idempotent startup code. This method is thread-safe.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Program.cs
+    /// var snowflake = new Snowflake(instanceId: 3);
+    /// Snowflake.Configure(snowflake);
+    /// </code>
+    /// </example>
+    /// <param name="snowflake">The generator to use as <see cref="Default"/>.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="snowflake"/> is <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// <see cref="Default"/> has already been set to a different instance, or has already been read and therefore
+    /// initialized with the default configuration.
+    /// </exception>
+    public static void Configure(Snowflake snowflake)
+    {
+        ArgumentNullException.ThrowIfNull(snowflake);
+
+        var existing = Interlocked.CompareExchange(ref _default, snowflake, comparand: null);
+        if (existing != null && !ReferenceEquals(existing, snowflake))
+            throw new InvalidOperationException("Snowflake.Default has already been set or used. Call Configure at startup before any ids are generated.");
+    }
+
+    /// <summary>
+    /// Sets the shared <see cref="Default"/> generator to a new <see cref="Snowflake"/> using the specified
+    /// <paramref name="instanceId"/> and the default configuration. Must be called at startup, before
+    /// <see cref="Default"/> is first used.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Equivalent to calling <see cref="Configure(Snowflake)"/> with <c>new Snowflake(instanceId)</c>.
+    /// </para>
+    /// <para>
+    /// Because a new instance is created on every call, calling this method more than once always fails, even
+    /// with the same <paramref name="instanceId"/>. Use <see cref="Configure(Snowflake)"/> with a shared instance
+    /// when startup code may run more than once.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Program.cs
+    /// Snowflake.Configure(instanceId: 3);
+    /// </code>
+    /// </example>
+    /// <param name="instanceId">
+    /// Worker id, 0 .. 63 with the default 6 instance bits. Assign a unique, coordinated id to each node.
+    /// A negative value selects a random instance id.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="instanceId"/> exceeds the width of the default instance bits.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// <see cref="Default"/> has already been set, or has already been read and therefore initialized with the
+    /// default configuration.
+    /// </exception>
+    public static void Configure(long instanceId)
+    {
+        var snowflake = new Snowflake(instanceId);
+        Configure(snowflake);
+    }
+
+    #endregion
 
     private readonly long _epochTicks;
-    private readonly int _sequenceBits;
-    private readonly int _timestampShift;       // instanceBits + sequenceBits, precomputed
-    private readonly long _maxSequence;         // doubles as the sequence mask
+    private readonly int _counterBits;
+    private readonly int _timestampShift;       // instanceBits + counterBits, precomputed
+    private readonly long _maxCounter;          // doubles as the counter mask
+    private readonly int _mixShift;             // xorshift distance used by the counter permutation
+    private readonly ulong _secret;             // per-generator key for the counter permutation
     private readonly long _maxTimestamp;
-    private readonly long _instanceShifted;     // instanceId << sequenceBits, precomputed
-    private readonly long _maxClockDriftMs;
+    private readonly long _instanceShifted;     // instanceId << counterBits, precomputed
 
-    // Packed state: (lastTimestamp << sequenceBits) | sequence. Advanced via CAS only.
+    // Packed state: (lastTimestamp << counterBits) | counter. Advanced via CAS only.
     private long _state;
 
     /// <summary>
@@ -74,37 +170,32 @@ public sealed class Snowflake
     /// </param>
     /// <param name="epoch">Custom epoch. Defaults to <see cref="DefaultEpoch"/>. Coerced to UTC.</param>
     /// <param name="timestampBits">Bits for the millisecond timestamp (default 41 ≈ 69 years).</param>
-    /// <param name="instanceBits">Bits for the instance id (default 10 = 1024 workers).</param>
-    /// <param name="sequenceBits">Bits for the per-ms sequence (default 12 = 4096 ids/ms).</param>
-    /// <param name="maxClockDriftMs">
-    /// How long to wait out a backward clock jump before giving up. If the clock regresses by
-    /// more than this, <see cref="NextId"/> throws instead of blocking. 0 fails fast.
+    /// <param name="instanceBits">Bits for the instance id (default 6 = 64 workers).</param>
+    /// <param name="counterBits">
+    /// Bits for the per-ms counter (default 16). 2^counterBits ids are available per millisecond before the
+    /// generator borrows the next millisecond.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// A bit width or <paramref name="maxClockDriftMs"/> is negative, <paramref name="timestampBits"/> is
-    /// not positive, or <paramref name="instanceId"/> exceeds the width of <paramref name="instanceBits"/>.
+    /// A bit width is out of range, or <paramref name="instanceId"/> exceeds the width of <paramref name="instanceBits"/>.
     /// </exception>
     /// <exception cref="ArgumentException">The combined bit widths exceed 63.</exception>
     public Snowflake(
         long instanceId = -1,
         DateTime? epoch = null,
         int timestampBits = 41,
-        int instanceBits = 10,
-        int sequenceBits = 12,
-        int maxClockDriftMs = 100)
+        int instanceBits = 6,
+        int counterBits = 16)
     {
         if (timestampBits <= 0)
             throw new ArgumentOutOfRangeException(nameof(timestampBits), "Must be greater than zero.");
         if (instanceBits < 0)
             throw new ArgumentOutOfRangeException(nameof(instanceBits), "Must be non-negative.");
-        if (sequenceBits < 0)
-            throw new ArgumentOutOfRangeException(nameof(sequenceBits), "Must be non-negative.");
-        if (maxClockDriftMs < 0)
-            throw new ArgumentOutOfRangeException(nameof(maxClockDriftMs), "Must be non-negative.");
+        if (counterBits <= 0)
+            throw new ArgumentOutOfRangeException(nameof(counterBits), "Must be greater than zero.");
 
-        int total = timestampBits + instanceBits + sequenceBits;
+        int total = timestampBits + instanceBits + counterBits;
         if (total > 63)
-            throw new ArgumentException($"timestampBits + instanceBits + sequenceBits must be 63 or fewer (got {total}) to keep the id a positive long.", nameof(timestampBits));
+            throw new ArgumentException($"timestampBits + instanceBits + counterBits must be 63 or fewer (got {total}) to keep the id a positive long.", nameof(timestampBits));
 
         var e = epoch ?? DefaultEpoch;
         if (e.Kind != DateTimeKind.Utc)
@@ -112,8 +203,7 @@ public sealed class Snowflake
 
         long maxInstance = (1L << instanceBits) - 1;
 
-        // Negative means "pick an instance id". A random draw distributes evenly across the available
-        // slots, unlike process ids which cluster at low values and are heavily reused.
+        // Negative means "pick an instance id". A random draw distributes evenly across the available slots.
         if (instanceId < 0)
             instanceId = Random.Shared.NextInt64(maxInstance + 1);
 
@@ -121,69 +211,66 @@ public sealed class Snowflake
             throw new ArgumentOutOfRangeException(nameof(instanceId), $"Instance id must be between 0 and {maxInstance}.");
 
         _epochTicks = e.Ticks;
-        _sequenceBits = sequenceBits;
-        _timestampShift = instanceBits + sequenceBits;
-        _maxSequence = (1L << sequenceBits) - 1;
+        _counterBits = counterBits;
+        _timestampShift = instanceBits + counterBits;
+        _maxCounter = (1L << counterBits) - 1;
+        _mixShift = (counterBits + 1) / 2;
+        _secret = (ulong)Random.Shared.NextInt64() ^ ((ulong)Random.Shared.NextInt64() << 1);
         _maxTimestamp = (1L << timestampBits) - 1;
-        _instanceShifted = instanceId << sequenceBits;
-        _maxClockDriftMs = maxClockDriftMs;
+        _instanceShifted = instanceId << counterBits;
 
         InstanceId = instanceId;
     }
 
     /// <summary>
-    /// Generates the next id. Ids from a single generator are strictly increasing.
+    /// Generates the next id. Ids from a single generator never have a smaller timestamp than previously issued ids;
+    /// ids sharing a millisecond are unique but in a shuffled order.
     /// </summary>
-    /// <returns>A positive 63-bit id combining the timestamp, <see cref="InstanceId"/>, and sequence.</returns>
+    /// <returns>A positive 63-bit id combining the timestamp, <see cref="InstanceId"/>, and counter.</returns>
     /// <remarks>
-    /// Thread-safe and lock-free. If the sequence for the current millisecond is exhausted, or the system
-    /// clock has moved backwards within the configured tolerance, the call spins until the clock advances.
+    /// Thread-safe, lock-free, and non-blocking. Clock regressions reuse the last issued timestamp and
+    /// counter exhaustion borrows the next millisecond rather than waiting for the clock.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">
-    /// The timestamp has outgrown its bit width, or the clock regressed beyond the drift tolerance.
-    /// </exception>
+    /// <exception cref="InvalidOperationException">The timestamp has outgrown its bit width.</exception>
     public long NextId()
     {
         // The CAS loop is the hot path. It reads the current state, computes the next state, and attempts to swap it in.
         while (true)
         {
             long state = Volatile.Read(ref _state);
-            long lastTs = state >> _sequenceBits;
-            long seq = state & _maxSequence;
+            long lastTs = state >> _counterBits;
+            long counter = state & _maxCounter;
             long now = CurrentTimestamp();
 
-            long newTs, newSeq;
+            long newTs;
+            long newCounter;
             if (now > lastTs)
             {
                 newTs = now;
-                newSeq = 0;
-            }
-            else if (now == lastTs)
-            {
-                newSeq = (seq + 1) & _maxSequence;
-                if (newSeq == 0)
-                {
-                    // Sequence exhausted this ms — block until the clock advances.
-                    WaitPastTimestamp(lastTs);
-                    continue;
-                }
-                newTs = lastTs;
+                newCounter = 0;
             }
             else
             {
-                // Clock regression: never emit a smaller timestamp than already issued.
-                WaitPastTimestamp(lastTs);
-                continue;
+                // Same millisecond or clock regression: never emit a smaller timestamp than already issued.
+                newTs = lastTs;
+                newCounter = counter + 1;
+
+                if (newCounter > _maxCounter)
+                {
+                    // Counter exhausted: borrow the next millisecond instead of blocking.
+                    newTs = lastTs + 1;
+                    newCounter = 0;
+                }
             }
 
             if (newTs > _maxTimestamp)
                 throw new InvalidOperationException("Timestamp has exceeded the configured bit width; the generator is exhausted.");
 
-            long newState = (newTs << _sequenceBits) | newSeq;
+            long newState = (newTs << _counterBits) | newCounter;
 
             // Attempt to swap in the new state. If another thread beat us to it, retry.
             if (Interlocked.CompareExchange(ref _state, newState, state) == state)
-                return (newTs << _timestampShift) | _instanceShifted | newSeq;
+                return (newTs << _timestampShift) | _instanceShifted | Permute(newCounter, newTs);
 
             // Lost the CAS race — another thread advanced the state; retry immediately.
         }
@@ -194,7 +281,8 @@ public sealed class Snowflake
     /// <returns>The UTC timestamp, to millisecond precision, encoded in <paramref name="id"/>.</returns>
     /// <remarks>
     /// The bit widths and epoch of this generator are used to interpret the value. Reading an id created
-    /// with a different configuration yields meaningless results.
+    /// with a different configuration yields meaningless results. Under clock regression or heavy bursts the
+    /// value may be slightly ahead of the actual creation time.
     /// </remarks>
     public DateTime GetTimestamp(long id)
     {
@@ -209,29 +297,34 @@ public sealed class Snowflake
     private long CurrentTimestamp() => (DateTime.UtcNow.Ticks - _epochTicks) / TimeSpan.TicksPerMillisecond;
 
     /// <summary>
-    /// Blocks until the clock passes <paramref name="lastTs"/>. Re-checks drift every iteration,
-    /// so a clock that keeps sliding backwards mid-wait still trips the tolerance.
+    /// Bijective permutation of <paramref name="counter"/> over [0, 2^counterBits), keyed by the timestamp and
+    /// the per-generator secret. Each step (xor, odd multiply, add, xorshift) is invertible modulo 2^counterBits,
+    /// so distinct counters within a millisecond always map to distinct values. Obfuscation only, not cryptographic.
     /// </summary>
-    /// <param name="lastTs">The most recently issued timestamp, in milliseconds since the epoch.</param>
-    /// <exception cref="InvalidOperationException">The clock regressed beyond the drift tolerance.</exception>
-    private void WaitPastTimestamp(long lastTs)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private long Permute(long counter, long timestamp)
     {
-        var spin = new SpinWait();
-        long now;
+        ulong key = Mix((ulong)timestamp ^ _secret);
+        ulong mask = (ulong)_maxCounter;
+        ulong mul1 = key | 1;
+        ulong mul2 = (key >> 32) | 1;
 
-        // Wait until the clock advances past the last timestamp. If the clock regresses too far, throw.
-        while ((now = CurrentTimestamp()) <= lastTs)
-        {
-            long drift = lastTs - now;
-            if (drift > _maxClockDriftMs)
-            {
-                throw new InvalidOperationException(
-                    $"System clock moved backwards by {drift} ms, exceeding the configured " +
-                    $"tolerance of {_maxClockDriftMs} ms. Refusing to wait or to reissue ids " +
-                    "for a timestamp already used.");
-            }
+        ulong x = (ulong)counter;
 
-            spin.SpinOnce();
-        }
+        x = (((x ^ key) * mul1) + (key >> 16)) & mask;
+        x ^= x >> _mixShift;
+        x = (((x ^ (key >> 8)) * mul2) + (key >> 24)) & mask;
+        x ^= x >> _mixShift;
+
+        return (long)x;
+    }
+
+    /// <summary>SplitMix64 finalizer, used to derive a well-distributed per-millisecond key.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong Mix(ulong z)
+    {
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL;
+        return z ^ (z >> 31);
     }
 }
