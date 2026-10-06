@@ -46,6 +46,21 @@ public static class ClaimNames
     public const string PreferredUserName = "preferred_username";
 
     /// <summary>
+    /// The claim name for the given name (first name) of the user.
+    /// </summary>
+    public const string GivenName = "given_name";
+
+    /// <summary>
+    /// The claim name for the family name (last name) of the user.
+    /// </summary>
+    public const string FamilyName = "family_name";
+
+    /// <summary>
+    /// The claim name for the phone number of the user.
+    /// </summary>
+    public const string PhoneNumber = "phone_number";
+
+    /// <summary>
     /// The claim name for the identity provider.
     /// </summary>
     public const string IdentityClaim = "http://schemas.microsoft.com/identity/claims/identityprovider";

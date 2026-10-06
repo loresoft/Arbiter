@@ -26,9 +26,7 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public string? GetEmail(ClaimsPrincipal? principal)
     {
-        var email = principal.GetValue(ClaimTypes.Email)
-            ?? principal.GetValue(ClaimNames.EmailClaim)
-            ?? principal.GetValue(ClaimNames.EmailsClaim);
+        var email = principal.GetEmail();
 
         LogPrincipal(_logger, "Email", email);
 
@@ -38,7 +36,7 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public string? GetIdentifier(ClaimsPrincipal? principal)
     {
-        var name = principal?.Identity?.Name;
+        var name = principal.GetIdentifier();
 
         LogPrincipal(_logger, "Identifier", name);
 
@@ -48,10 +46,7 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public string? GetName(ClaimsPrincipal? principal)
     {
-        var name = principal.GetValue(ClaimNames.NameClaim)
-            ?? principal.GetValue(ClaimTypes.Name)
-            ?? principal.GetValue(ClaimNames.Subject)
-            ?? principal?.Identity?.Name;
+        var name = principal.GetName();
 
         LogPrincipal(_logger, "Name", name);
 
@@ -61,12 +56,7 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public string? GetDisplayName(ClaimsPrincipal? principal)
     {
-        var displayName = principal.GetValue(ClaimNames.DisplayName)
-            ?? principal.GetValue(ClaimNames.NameClaim)
-            ?? principal.GetValue(ClaimTypes.Name)
-            ?? principal.GetValue(ClaimNames.PreferredUserName)
-            ?? principal.GetValue(ClaimNames.Subject)
-            ?? principal?.Identity?.Name;
+        var displayName = principal.GetDisplayName();
 
         LogPrincipal(_logger, "DisplayName", displayName);
 
@@ -76,19 +66,17 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public Guid? GetObjectId(ClaimsPrincipal? principal)
     {
-        var value = principal.GetValue(ClaimNames.IdentifierClaim)
-            ?? principal.GetValue(ClaimNames.ObjectIdentifier)
-            ?? principal.GetValue(ClaimTypes.NameIdentifier);
+        var objectId = principal.GetObjectId();
 
-        LogPrincipal(_logger, "ObjectId", value);
+        LogPrincipal(_logger, "ObjectId", objectId?.ToString());
 
-        return Guid.TryParse(value, out var objectId) ? objectId : null;
+        return objectId;
     }
 
     /// <inheritdoc />
     public string? GetUserId(ClaimsPrincipal? principal)
     {
-        var userId = principal.GetValue(ClaimNames.UserId);
+        var userId = principal.GetUserId<string>();
 
         LogPrincipal(_logger, "UserId", userId);
 
@@ -98,7 +86,7 @@ public sealed partial class PrincipalReader : IPrincipalReader
     /// <inheritdoc />
     public string? GetTenantId(ClaimsPrincipal? principal)
     {
-        var tenantId = principal.GetValue(ClaimNames.TenantId);
+        var tenantId = principal.GetTenantId<string>();
 
         LogPrincipal(_logger, "TenantId", tenantId);
 

@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Services;
+
 namespace Arbiter.CommandQuery.Extensions;
 
 /// <summary>
@@ -13,6 +15,200 @@ namespace Arbiter.CommandQuery.Extensions;
 /// </remarks>
 public static class ClaimsExtensions
 {
+    /// <summary>
+    /// Gets the email address of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimTypes.Email"/>, <see cref="ClaimNames.EmailClaim"/>
+    /// and <see cref="ClaimNames.EmailsClaim"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetEmail(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimTypes.Email)
+            ?? claimsPrincipal.GetValue(ClaimNames.EmailClaim)
+            ?? claimsPrincipal.GetValue(ClaimNames.EmailsClaim);
+    }
+
+    /// <summary>
+    /// Gets the name identifier of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the <see cref="ClaimTypes.NameIdentifier"/> claim if found; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetIdentifier(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimTypes.NameIdentifier);
+    }
+
+    /// <summary>
+    /// Gets the object identifier of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The first claim value found in order of <see cref="ClaimNames.IdentifierClaim"/>, <see cref="ClaimNames.ObjectIdentifier"/>
+    /// and <see cref="ClaimTypes.NameIdentifier"/> parsed as a <see cref="Guid"/>; otherwise, <see langword="null"/>
+    /// if no claim is found or the value is not a valid <see cref="Guid"/>.
+    /// </returns>
+    public static Guid? GetObjectId(this ClaimsPrincipal? claimsPrincipal)
+    {
+        var value = claimsPrincipal.GetValue(ClaimNames.IdentifierClaim)
+            ?? claimsPrincipal.GetValue(ClaimNames.ObjectIdentifier)
+            ?? claimsPrincipal.GetValue(ClaimTypes.NameIdentifier);
+
+        return Guid.TryParse(value, out var oid) ? oid : null;
+    }
+
+    /// <summary>
+    /// Gets the name of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.NameClaim"/>, <see cref="ClaimTypes.Name"/>
+    /// and <see cref="ClaimNames.Subject"/>; otherwise, the identity name, or <see langword="null"/> if not available.
+    /// </returns>
+    public static string? GetName(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.NameClaim)
+            ?? claimsPrincipal.GetValue(ClaimTypes.Name)
+            ?? claimsPrincipal.GetValue(ClaimNames.Subject)
+            ?? claimsPrincipal?.Identity?.Name;
+    }
+
+    /// <summary>
+    /// Gets the identity provider of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.ProviderClaim"/> and
+    /// <see cref="ClaimNames.IdentityClaim"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetProvider(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.ProviderClaim)
+            ?? claimsPrincipal.GetValue(ClaimNames.IdentityClaim);
+    }
+
+    /// <summary>
+    /// Gets the user name of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.PreferredUserName"/>, <see cref="ClaimTypes.Name"/>
+    /// and <see cref="ClaimNames.Subject"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetUserName(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.PreferredUserName)
+            ?? claimsPrincipal.GetValue(ClaimTypes.Name)
+            ?? claimsPrincipal.GetValue(ClaimNames.Subject);
+    }
+
+    /// <summary>
+    /// Gets the display name of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.DisplayName"/>, <see cref="ClaimNames.NameClaim"/>,
+    /// <see cref="ClaimTypes.Name"/> and <see cref="ClaimNames.Subject"/>; otherwise, the identity name, or
+    /// <see langword="null"/> if not available.
+    /// </returns>
+    public static string? GetDisplayName(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.DisplayName)
+            ?? claimsPrincipal.GetValue(ClaimNames.NameClaim)
+            ?? claimsPrincipal.GetValue(ClaimTypes.Name)
+            ?? claimsPrincipal.GetValue(ClaimNames.Subject)
+            ?? claimsPrincipal?.Identity?.Name;
+    }
+
+    /// <summary>
+    /// Gets the given name (first name) of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.GivenName"/> and
+    /// <see cref="ClaimTypes.GivenName"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetGivenName(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.GivenName)
+            ?? claimsPrincipal.GetValue(ClaimTypes.GivenName);
+    }
+
+    /// <summary>
+    /// Gets the family name (last name) of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.FamilyName"/> and
+    /// <see cref="ClaimTypes.Surname"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetFamilyName(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.FamilyName)
+            ?? claimsPrincipal.GetValue(ClaimTypes.Surname);
+    }
+
+    /// <summary>
+    /// Gets the phone number of the user.
+    /// </summary>
+    /// <param name="claimsPrincipal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The value of the first claim found in order of <see cref="ClaimNames.PhoneNumber"/>,
+    /// <see cref="ClaimTypes.MobilePhone"/> and <see cref="ClaimTypes.HomePhone"/>; otherwise, <see langword="null"/>.
+    /// </returns>
+    public static string? GetPhoneNumber(this ClaimsPrincipal? claimsPrincipal)
+    {
+        return claimsPrincipal.GetValue(ClaimNames.PhoneNumber)
+            ?? claimsPrincipal.GetValue(ClaimTypes.MobilePhone)
+            ?? claimsPrincipal.GetValue(ClaimTypes.HomePhone);
+    }
+
+    /// <summary>
+    /// Gets the user identifier from the <see cref="ClaimNames.UserId"/> claim parsed as <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to parse the claim value as.</typeparam>
+    /// <param name="principal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The parsed claim value if found and parsable; otherwise, the default value of <typeparamref name="T"/>.
+    /// </returns>
+    public static T? GetUserId<T>(this ClaimsPrincipal? principal)
+        where T : IParsable<T>
+    {
+        return principal.GetValue<T>(ClaimNames.UserId);
+    }
+
+    /// <summary>
+    /// Gets the tenant identifier from the <see cref="ClaimNames.TenantId"/> claim parsed as <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to parse the claim value as.</typeparam>
+    /// <param name="principal">The principal to read the claim from.</param>
+    /// <returns>
+    /// The parsed claim value if found and parsable; otherwise, the default value of <typeparamref name="T"/>.
+    /// </returns>
+    public static T? GetTenantId<T>(this ClaimsPrincipal? principal)
+        where T : IParsable<T>
+    {
+        return principal.GetValue<T>(ClaimNames.TenantId);
+    }
+
+    /// <summary>
+    /// Gets the tenant identifiers from all <see cref="ClaimNames.TenantId"/> claims parsed as <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to parse the claim values as.</typeparam>
+    /// <param name="principal">The principal to read the claims from.</param>
+    /// <returns>
+    /// A read-only list of parsed claim values. If no claims are found or none are parsable, an empty list is returned.
+    /// </returns>
+    public static IReadOnlyList<T> GetTenantIds<T>(this ClaimsPrincipal? principal)
+        where T : IParsable<T>
+    {
+        return principal.GetValues<T>(ClaimNames.TenantId);
+    }
+
+
     /// <summary>
     /// Gets the value of the first claim with the specified <paramref name="type"/>.
     /// </summary>

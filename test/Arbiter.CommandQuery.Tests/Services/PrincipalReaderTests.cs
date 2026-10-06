@@ -15,13 +15,13 @@ public class PrincipalReaderTests
         => new(new ClaimsIdentity(claims, "Identity.Application", ClaimTypes.Name, ClaimTypes.Role));
 
     [Test]
-    public void GetIdentifierWhenIdentityNameReturnsName()
+    public void GetIdentifierWhenNameIdentifierClaimReturnsValue()
     {
-        var principal = CreatePrincipal(new Claim(ClaimTypes.Name, "William Adama"));
+        var principal = CreatePrincipal(new Claim(ClaimTypes.NameIdentifier, "wadama"));
 
         var result = CreateReader().GetIdentifier(principal);
 
-        result.Should().Be("William Adama");
+        result.Should().Be("wadama");
     }
 
     [Test]
@@ -137,9 +137,9 @@ public class PrincipalReaderTests
     }
 
     [Test]
-    public void GetDisplayNameWhenOnlyPreferredUserNameReturnsValue()
+    public void GetDisplayNameWhenOnlySubjectReturnsValue()
     {
-        var principal = CreatePrincipal(new Claim(ClaimNames.PreferredUserName, "wadama"));
+        var principal = CreatePrincipal(new Claim(ClaimNames.Subject, "wadama"));
 
         var result = CreateReader().GetDisplayName(principal);
 

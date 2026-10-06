@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
@@ -27,9 +26,7 @@ public static class PrincipalReaderExtensions
     {
         ArgumentNullException.ThrowIfNull(principalReader);
 
-        var userId = principalReader.GetUserId(principal);
-
-        return TKey.TryParse(userId, CultureInfo.InvariantCulture, out var key) ? key : default;
+        return principal.GetUserId<TKey>();
     }
 
     /// <summary>
@@ -49,8 +46,6 @@ public static class PrincipalReaderExtensions
     {
         ArgumentNullException.ThrowIfNull(principalReader);
 
-        var tenantId = principalReader.GetTenantId(principal);
-
-        return TKey.TryParse(tenantId, CultureInfo.InvariantCulture, out var key) ? key : default;
+        return principal.GetTenantId<TKey>();
     }
 }
