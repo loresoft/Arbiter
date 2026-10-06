@@ -56,16 +56,13 @@
                                 <label for="TenantId" class="form-label">
                                     Tenant: <span class="text-danger" title="Required Field">*</span>
                                 </label>
-
                                 <EntitySelect TModel="TenantReadModel"
                                               TValue="int"
-                                              @bind-Value="Model!.TenantId"
                                               DisplayName="Tenant"
-                                              CacheTime="TimeSpan.FromMinutes(5)"
+                                              @bind-Value="Model!.TenantId"
                                               id="TenantId"
                                               name="TenantId"
-                                              class="form-select"
-                                              placeholder="Tenant" />
+                                              class="form-select" />
                                 <ValidationMessage For="@(() => Model.TenantId)" />
                             </div>
                             <div class="mb-3">
@@ -74,13 +71,11 @@
                                 </label>
                                 <EntitySelect TModel="StatusReadModel"
                                               TValue="int"
-                                              @bind-Value="Model!.StatusId"
                                               DisplayName="Status"
-                                              CacheTime="TimeSpan.FromMinutes(5)"
+                                              @bind-Value="Model!.StatusId"
                                               id="StatusId"
                                               name="StatusId"
-                                              class="form-select"
-                                              placeholder="Status" />
+                                              class="form-select" />
                                 <ValidationMessage For="@(() => Model.StatusId)" />
                             </div>
                             <div class="mb-3">
@@ -89,13 +84,11 @@
                                 </label>
                                 <EntitySelect TModel="PriorityReadModel"
                                               TValue="int?"
-                                              @bind-Value="Model!.PriorityId"
                                               DisplayName="Priority"
-                                              CacheTime="TimeSpan.FromMinutes(5)"
+                                              @bind-Value="Model!.PriorityId"
                                               id="PriorityId"
                                               name="PriorityId"
-                                              class="form-select"
-                                              placeholder="Priority" />
+                                              class="form-select" />
                                 <ValidationMessage For="@(() => Model.PriorityId)" />
                             </div>
                         </div>
@@ -104,15 +97,14 @@
                                 <label for="AssignedId" class="form-label">
                                     Assigned:
                                 </label>
-                                <EntitySelect TModel="UserReadModel"
-                                              TValue="int?"
-                                              @bind-Value="Model!.AssignedId"
-                                              DisplayName="Assigned"
-                                              CacheTime="TimeSpan.FromMinutes(5)"
-                                              id="AssignedId"
-                                              name="AssignedId"
-                                              class="form-select"
-                                              placeholder="Assigned" />
+                                <EntityTypeahead TItem="UserReadModel"
+                                                 TValue="int?"
+                                                 TKey="int"
+                                                 Placeholder="Assigned"
+                                                 ResultTemplate="SharedFragment.UserResult"
+                                                 @bind-Value="Model!.AssignedId"
+                                                 id="AssignedId"
+                                                 name="AssignedId" />
                                 <ValidationMessage For="@(() => Model.AssignedId)" />
                             </div>
                             <div class="mb-3">
