@@ -162,6 +162,11 @@ public abstract class ViewPageBase<TKey, TReadModel> : ModelComponentBase<TReadM
             // component was disposed or navigated away; nothing to report
             return;
         }
+        catch (NavigationException)
+        {
+            // static rendering signals a redirect by throwing; let the framework handle it
+            throw;
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading {ModelLabel} '{ModelId}': {ErrorMessage}", ModelLabel, Id, ex.Message);

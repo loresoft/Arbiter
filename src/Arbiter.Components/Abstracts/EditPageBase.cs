@@ -217,8 +217,21 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
         base.OnInitialized();
 
         Store.OnStateChanged += HandleModelChange;
-        _locationChangingHandler = Navigation.RegisterLocationChangingHandler(HandleLocationChange);
     }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (!firstRender)
+            return;
+
+        // navigation locks are only supported in interactive render modes;
+        // OnAfterRender is not called during static server-side rendering or prerendering
+        _locationChangingHandler ??= Navigation.RegisterLocationChangingHandler(HandleLocationChange);
+    }
+
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -297,6 +310,11 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
             // component was disposed or navigated away; nothing to report
             return;
         }
+        catch (NavigationException)
+        {
+            // static rendering signals a redirect by throwing; let the framework handle it
+            throw;
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error saving {ModelLabel} '{ModelId}': {ErrorMessage}", ModelLabel, Id, ex.Message);
@@ -342,6 +360,11 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
         {
             // component was disposed or navigated away; nothing to report
         }
+        catch (NavigationException)
+        {
+            // static rendering signals a redirect by throwing; let the framework handle it
+            throw;
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error canceling {ModelLabel} '{ModelId}': {ErrorMessage}", ModelLabel, Id, ex.Message);
@@ -379,6 +402,11 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
         catch (OperationCanceledException)
         {
             // component was disposed or navigated away; nothing to report
+        }
+        catch (NavigationException)
+        {
+            // static rendering signals a redirect by throwing; let the framework handle it
+            throw;
         }
         catch (Exception ex)
         {
@@ -560,6 +588,11 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
         {
             // component was disposed or navigated away; nothing to report
             return;
+        }
+        catch (NavigationException)
+        {
+            // static rendering signals a redirect by throwing; let the framework handle it
+            throw;
         }
         catch (Exception ex)
         {
