@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Tracker.Data.Entities;
 
 public partial class Tenant

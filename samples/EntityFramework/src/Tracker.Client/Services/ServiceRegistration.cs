@@ -1,15 +1,15 @@
 using System.Text.Json;
 
+using Arbiter.CommandQuery.Extensions;
+using Arbiter.CommandQuery.Options;
 using Arbiter.Components;
 using Arbiter.Dispatcher;
-using Arbiter.Dispatcher.Client;
 
 using LoreSoft.Blazor.Controls;
 
 using Microsoft.Extensions.Options;
 
 using Tracker.Extensions;
-using Tracker.Options;
 
 namespace Tracker.Client.Services;
 
@@ -40,7 +40,7 @@ public static class ServiceRegistration
                 .AddMessagePackDispatcher((sp, client) =>
                 {
                     var hostEnvironment = sp.GetRequiredService<IOptions<EnvironmentOptions>>();
-                    client.BaseAddress = new Uri(hostEnvironment.Value.BaseAddress);
+                    client.BaseAddress = hostEnvironment.Value.BaseAddress.ToUri();
                 })
                 .AddHttpMessageHandler<ProgressBarHandler>();
 

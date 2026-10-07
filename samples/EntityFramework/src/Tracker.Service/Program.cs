@@ -1,6 +1,6 @@
 
+using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Endpoints;
-using Arbiter.Messaging.WebPubSub;
 using Arbiter.OpenTelemetry.Server;
 
 using AspNetCore.SecurityKey;
@@ -11,7 +11,6 @@ using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 using Tracker.Extensions;
-using Tracker.Options;
 
 namespace Tracker.Service;
 
@@ -89,7 +88,7 @@ public static class Program
         services
             .AddResponseCompression(options => options.EnableForHttps = true);
 
-        services.Configure<EnvironmentOptions>(options => options.EnvironmentName = builder.Environment.EnvironmentName);
+        services.AddEnvironmentOptions(options => options.EnvironmentName = builder.Environment.EnvironmentName);
     }
 
     private static void ConfigureMiddleware(WebApplication app)

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 using MessagePack;
 
 namespace Tracker.Domain.Models;

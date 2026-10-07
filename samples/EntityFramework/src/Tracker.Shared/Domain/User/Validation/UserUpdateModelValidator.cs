@@ -1,5 +1,5 @@
-using System;
 using FluentValidation;
+
 using Tracker.Domain.Models;
 
 namespace Tracker.Domain.Validation;

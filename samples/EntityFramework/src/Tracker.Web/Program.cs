@@ -1,14 +1,12 @@
+using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Endpoints;
 using Arbiter.Dispatcher.Server;
-using Arbiter.Messaging.WebPubSub;
 using Arbiter.OpenTelemetry.Server;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Identity.Web;
 
 using Tracker.Extensions;
-using Tracker.Options;
 using Tracker.Web.Components;
 
 namespace Tracker.Web;
@@ -91,7 +89,7 @@ public static class Program
             .AddResponseCompression(options => options.EnableForHttps = true);
 
         services
-            .Configure<EnvironmentOptions>(options => options.EnvironmentName = builder.Environment.EnvironmentName);
+            .AddEnvironmentOptions(options => options.EnvironmentName = builder.Environment.EnvironmentName);
 
         // change authentication cookie name
         services

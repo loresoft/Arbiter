@@ -2,8 +2,6 @@
 
 using Arbiter.Mapping;
 
-using Models = Tracker.Domain.Models;
-
 namespace Tracker.Domain.Mapping;
 
 [GenerateMapper]

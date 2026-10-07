@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 using Arbiter.CommandQuery.Definitions;
 
 using MessagePack;

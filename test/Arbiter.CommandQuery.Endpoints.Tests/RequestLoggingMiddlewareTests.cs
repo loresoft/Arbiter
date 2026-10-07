@@ -163,12 +163,12 @@ public class RequestLoggingMiddlewareTests
                 var claimLogging = new ClaimLoggingMiddleware(
                     next: _ => Task.CompletedTask,
                     logger: claimLogger,
-                    options: Options.Create(requestOptions));
+                    options: global::Microsoft.Extensions.Options.Options.Create(requestOptions));
 
                 await claimLogging.InvokeAsync(ctx);
             },
             logger: logger,
-            options: Options.Create(requestOptions)
+            options: global::Microsoft.Extensions.Options.Options.Create(requestOptions)
         );
 
         var context = CreateHttpContext("GET", "/api/test");
@@ -200,7 +200,7 @@ public class RequestLoggingMiddlewareTests
         var middleware = new ClaimLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
-            options: Options.Create(new RequestLoggingOptions())
+            options: global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions())
         );
 
         var context = CreateHttpContext("GET", "/api/test");
@@ -225,7 +225,7 @@ public class RequestLoggingMiddlewareTests
     {
         // Arrange
         var logger = new FakeLogger<ClaimLoggingMiddleware>();
-        var options = Options.Create(new RequestLoggingOptions()
+        var options = global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions()
             .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id")
             .IncludeClaim("location_id", "LocationId", "enduser.location_id"));
 
@@ -259,7 +259,7 @@ public class RequestLoggingMiddlewareTests
     {
         // Arrange
         var logger = new FakeLogger<ClaimLoggingMiddleware>();
-        var options = Options.Create(new RequestLoggingOptions()
+        var options = global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions()
             .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id"));
 
         var middleware = new ClaimLoggingMiddleware(
@@ -292,7 +292,7 @@ public class RequestLoggingMiddlewareTests
         activity.Start();
 
         var logger = new FakeLogger<ClaimLoggingMiddleware>();
-        var options = Options.Create(new RequestLoggingOptions()
+        var options = global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions()
             .IncludeClaim("partner_id", "PartnerId", "enduser.partner_id"));
 
         var middleware = new ClaimLoggingMiddleware(
@@ -325,7 +325,7 @@ public class RequestLoggingMiddlewareTests
     {
         // Arrange
         var logger = new FakeLogger<ClaimLoggingMiddleware>();
-        var options = Options.Create(new RequestLoggingOptions()
+        var options = global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions()
             .IncludeClaim(["missing_partner_id", "partner_id"], "PartnerId", "enduser.partner_id"));
 
         var middleware = new ClaimLoggingMiddleware(
@@ -359,7 +359,7 @@ public class RequestLoggingMiddlewareTests
         var middleware = new ClaimLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
-            options: Options.Create(new RequestLoggingOptions())
+            options: global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions())
         );
 
         var context = CreateHttpContext("GET", "/api/test");
@@ -387,7 +387,7 @@ public class RequestLoggingMiddlewareTests
         var middleware = new ClaimLoggingMiddleware(
             next: _ => Task.CompletedTask,
             logger: logger,
-            options: Options.Create(new RequestLoggingOptions())
+            options: global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions())
         );
 
         var context = CreateHttpContext("GET", "/api/test");
@@ -902,7 +902,7 @@ public class RequestLoggingMiddlewareTests
         LogLevel logLevel = LogLevel.Information,
         ISet<string>? mimeTypes = null)
     {
-        return Options.Create(new RequestLoggingOptions
+        return global::Microsoft.Extensions.Options.Options.Create(new RequestLoggingOptions
         {
             IncludeRequestBody = includeRequestBody,
             RequestBodyMaxSize = maxBodySize,

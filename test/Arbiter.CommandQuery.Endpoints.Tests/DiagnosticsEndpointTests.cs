@@ -184,7 +184,10 @@ public class DiagnosticsEndpointTests
     }
 
     private static DiagnosticsEndpoint CreateEndpoint(DiagnosticsEndpointOptions options)
-        => new(NullLogger<DiagnosticsEndpoint>.Instance, Options.Create(options));
+    {
+        var optionsWrapper = global::Microsoft.Extensions.Options.Options.Create(options);
+        return new(NullLogger<DiagnosticsEndpoint>.Instance, optionsWrapper);
+    }
 
     private static WebApplication CreateApplication()
         => WebApplication.CreateSlimBuilder().Build();

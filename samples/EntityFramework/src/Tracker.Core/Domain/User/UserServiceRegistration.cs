@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Context = Tracker.Data;
 using Entities = Tracker.Data.Entities;
-using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain;
 

@@ -3,7 +3,6 @@
 using Arbiter.Mapping;
 
 using Entities = Tracker.Data.Entities;
-using Models = Tracker.Domain.Models;
 
 namespace Tracker.Domain.Mapping;
 

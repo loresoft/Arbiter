@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Arbiter.CommandQuery;
 
-using Tracker.Options;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace Tracker.Client;
 
@@ -19,7 +19,7 @@ public static class Program
             .AddTrackerShared()
             .AddTrackerClient("WebAssembly");
 
-        builder.Services.Configure<EnvironmentOptions>(options =>
+        builder.Services.AddEnvironmentOptions(options =>
         {
             options.BaseAddress = builder.HostEnvironment.BaseAddress;
             options.EnvironmentName = builder.HostEnvironment.Environment;
