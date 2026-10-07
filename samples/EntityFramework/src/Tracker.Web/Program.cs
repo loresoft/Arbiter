@@ -134,6 +134,8 @@ public static class Program
             .AddAdditionalAssemblies(typeof(Client.Routes).Assembly);
 
         app.MapEndpointRoutes();
+        app.MapEndpointRoutes(prefix: "/", serviceKey: Endpoints.AuthenticationEndpoint.ServiceKey);
+
         app.MapDispatcherService().RequireAuthorization();
 
     }

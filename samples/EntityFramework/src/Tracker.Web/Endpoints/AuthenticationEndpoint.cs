@@ -9,9 +9,11 @@ using Microsoft.Extensions.Options;
 
 namespace Tracker.Web.Endpoints;
 
-[RegisterSingleton<IEndpointRoute>(Duplicate = DuplicateStrategy.Append)]
+[RegisterSingleton<IEndpointRoute>(Duplicate = DuplicateStrategy.Append, ServiceKey = ServiceKey)]
 public class AuthenticationEndpoint : IEndpointRoute
 {
+    public const string ServiceKey = "Authentication";
+
     private readonly Options.AuthenticationOptions _options;
 
     public AuthenticationEndpoint(IOptions<Options.AuthenticationOptions> options)

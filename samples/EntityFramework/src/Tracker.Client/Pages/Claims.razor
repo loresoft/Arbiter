@@ -1,0 +1,72 @@
+@page "/claims"
+@inherits PrincipalComponentBase
+
+<PageTitle>Claims</PageTitle>
+
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header d-flex align-items-center">
+            <h5 class="m-0 me-auto">
+                Claims
+            </h5>
+        </div>
+        <div class="card-body">
+            <table class="table" style="overflow-wrap: anywhere;">
+                <colgroup>
+                    <col style="">
+                    <col style="">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Claim</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var claim in Data)
+                    {
+                        <tr>
+                            <td>
+                                @claim.Item1
+                            </td>
+                            <td>
+                                @claim.Item2
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    public required INotificationService Notification { get; set; }
+
+    protected IReadOnlyCollection<Tuple<string, string>> Data { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await GetUser();
+            if (user is null)
+                return;
+
+            var claims = user.Claims
+                .Select(c => new Tuple<string, string>(c.Type, c.Value))
+                .ToList();
+
+            Data = claims;
+        }
+        catch (Exception ex)
+        {
+            Notification.ShowError(ex);
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

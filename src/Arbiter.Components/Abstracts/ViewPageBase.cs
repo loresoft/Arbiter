@@ -53,9 +53,10 @@ public abstract class ViewPageBase<TKey, TReadModel> : ModelComponentBase<TReadM
     protected TReadModel? Model => Store.Model;
 
     /// <summary>
-    /// Gets a value indicating whether the <see cref="Store"/> is currently loading data.
+    /// Gets a value indicating whether the <see cref="Store"/> is currently loading data or the page is
+    /// prerendering and waiting for the interactive render to load the model.
     /// </summary>
-    protected bool IsBusy => Store.IsBusy;
+    protected bool IsBusy => IsPrerendering || Store.IsBusy;
 
     /// <inheritdoc />
     /// <remarks>
@@ -107,7 +108,14 @@ public abstract class ViewPageBase<TKey, TReadModel> : ModelComponentBase<TReadM
     }
 
     /// <inheritdoc />
-    protected override Task OnParametersSetAsync() => LoadModel(force: false);
+    protected override Task OnParametersSetAsync()
+    {
+        // skip loading while prerendering; the interactive render creates a new store and loads the model
+        if (IsPrerendering)
+            return Task.CompletedTask;
+
+        return LoadModel(force: false);
+    }
 
 
     /// <summary>

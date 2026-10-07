@@ -51,6 +51,20 @@ public abstract partial class ModelComponentBase<TReadModel> : PrincipalComponen
     protected bool IsDisposed => _disposed;
 
     /// <summary>
+    /// Gets a value indicating whether this component is being prerendered ahead of an interactive render.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="true"/> when an interactive render mode is assigned but the component is not yet interactive.
+    /// Pure static server-side rendering, where no render mode is assigned, returns <see langword="false"/>.
+    /// Always <see langword="false"/> on .NET 8, where renderer information is not available.
+    /// </remarks>
+#if NET9_0_OR_GREATER
+    protected bool IsPrerendering => AssignedRenderMode != null && !RendererInfo.IsInteractive;
+#else
+    protected bool IsPrerendering => false;
+#endif
+
+    /// <summary>
     /// Gets a token that is canceled when this component is disposed.
     /// </summary>
     protected CancellationToken CancellationToken

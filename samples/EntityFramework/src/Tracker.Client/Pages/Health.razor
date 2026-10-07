@@ -68,7 +68,7 @@
 
 @code {
     [Inject]
-    public NotificationService NotificationService { get; set; } = null!;
+    public INotificationService NotificationService { get; set; } = null!;
 
     [Inject]
     public IDispatcher Dispatcher { get; set; } = null!;

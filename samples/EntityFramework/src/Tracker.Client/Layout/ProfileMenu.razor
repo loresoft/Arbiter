@@ -11,25 +11,41 @@
                data-bs-toggle="dropdown"
                aria-haspopup="true"
                aria-expanded="false">
-                <i class="fas fa-user-circle fa-lg"></i>
+                <i class="bi bi-person-circle fs-5"></i>
                 <span id="navbar-identity-username">@user.User.GetName()</span>
             </a>
-            <div class="dropdown-menu dropdown-menu-end"
-                 aria-labelledby="navbar-dropdown-user">
-                <a id="navbar-identity-logout-link"
-                   class="dropdown-item"
-                   href="@AuthenticationEndpointOptions.Value.SignOutUrl(NavigationManager.Uri)">
-                    <i class="fas fa-power-off"></i> Logout
-                </a>
-            </div>
+            <ul class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="navbar-dropdown-user">
+                <li>
+                    <a id="navbar-item-administrative-claims-link"
+                       class="dropdown-item"
+                       title="Claims"
+                       href="/claims">
+                        <i class="bi bi-person-vcard"></i> Claims
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a id="navbar-identity-logout-link"
+                       class="dropdown-item"
+                       href="@AuthenticationEndpointOptions.Value.SignOutUrl(NavigationManager.Uri)"
+                       @onclick="NavigateSignOut"
+                       @onclick:preventDefault>
+                        <i class="bi bi-power"></i> Logout
+                    </a>
+
+                </li>
+            </ul>
         </li>
     </Authorized>
     <NotAuthorized>
         <li class="nav-item">
             <a id="navbar-identity-login-link"
                class="nav-link"
-               href="@AuthenticationEndpointOptions.Value.SignInUrl(NavigationManager.Uri)">
-                <i class="fas fa-user-circle fa-lg"></i>
+               href="@AuthenticationEndpointOptions.Value.SignInUrl(NavigationManager.Uri)"
+               @onclick="NavigateSignIn"
+               @onclick:preventDefault>
+                <i class="bi bi-person-circle fs-5"></i>
                 Sign In
             </a>
         </li>

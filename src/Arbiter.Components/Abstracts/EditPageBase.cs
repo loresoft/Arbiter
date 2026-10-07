@@ -133,9 +133,10 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     protected override bool IsDirty => Store.IsDirty;
 
     /// <summary>
-    /// Gets a value indicating whether the store is currently loading or saving the model.
+    /// Gets a value indicating whether the store is currently loading or saving the model, or the page is
+    /// prerendering and waiting for the interactive render to load the model.
     /// </summary>
-    protected bool IsBusy => Store.IsBusy;
+    protected bool IsBusy => IsPrerendering || Store.IsBusy;
 
     /// <summary>
     /// Gets the edit context bound to the current <see cref="Model"/>.
@@ -237,6 +238,10 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+
+        // skip loading while prerendering; the interactive render creates a new store and loads the model
+        if (IsPrerendering)
+            return;
 
         await LoadModel(force: false);
 
