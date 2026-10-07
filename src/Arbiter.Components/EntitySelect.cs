@@ -1,6 +1,7 @@
 using System.Globalization;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Options;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Components.Services;
 using Arbiter.Dispatcher;
@@ -8,6 +9,7 @@ using Arbiter.Dispatcher;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Components;
 
@@ -24,6 +26,13 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     private string? _loadedSort;
     private bool _hasLoaded;
     private int _loadVersion;
+    private bool _initialized;
+
+    /// <summary>
+    /// Gets or sets the environment options used to provide the default <see cref="CacheTime"/>.
+    /// </summary>
+    [Inject]
+    public required IOptions<EnvironmentOptions> EnvironmentOptions { get; set; }
 
     /// <summary>
     /// Gets or sets the service used to display error notifications.
@@ -73,8 +82,9 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// <summary>
     /// Gets or sets how long the loaded entities are cached. Set to <see langword="null"/> to disable caching.
     /// </summary>
+    /// <value>Defaults to <see cref="EnvironmentOptions.DefaultCacheTime"/>.</value>
     [Parameter]
-    public TimeSpan? CacheTime { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan? CacheTime { get; set; }
 
     /// <summary>
     /// Gets or sets the text displayed in the empty option while entities are loading.
@@ -93,6 +103,19 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// </summary>
     protected bool IsLoading { get; set; }
 
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // apply the default before parameters are set so an explicit value, including null, takes precedence
+        if (!_initialized)
+        {
+            _initialized = true;
+            CacheTime = EnvironmentOptions.Value.DefaultCacheTime;
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

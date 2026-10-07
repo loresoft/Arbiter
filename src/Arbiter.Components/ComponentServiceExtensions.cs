@@ -1,6 +1,7 @@
+using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Options;
 using Arbiter.Components.Abstracts;
-using Arbiter.Components.Options;
 using Arbiter.Components.Services;
 using Arbiter.Dispatcher;
 
@@ -66,13 +67,8 @@ public static class ComponentServiceExtensions
         if (configureNotifications != null)
             services.Configure(configureNotifications);
 
-        var environmentOptions = services
-            .AddOptions<EnvironmentOptions>()
-            .Configure<IConfiguration>((settings, configuration) => configuration.Bind(settings));
-
-        // configure actions run in registration order, so the delegate overrides values bound from configuration
-        if (configureEnvironment != null)
-            environmentOptions.Configure(configureEnvironment);
+        // binding is registered once and the delegate runs as post-configure, so it overrides configuration in any call order
+        services.AddEnvironmentOptions(configureEnvironment);
 
         // register the IToaster used by NotificationService
         services.AddBlazorControls();

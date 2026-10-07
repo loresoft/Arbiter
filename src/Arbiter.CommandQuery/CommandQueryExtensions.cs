@@ -2,12 +2,14 @@ using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.Extensions;
+using Arbiter.CommandQuery.Options;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 using Arbiter.Mapping;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.CommandQuery;
 
@@ -23,17 +25,70 @@ public static class CommandQueryExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     /// <remarks>
     /// This method registers the core command query services including the mediator,
-    /// principal reader, mapper, and tenant resolver.
+    /// principal reader, mapper, tenant resolver, and <see cref="EnvironmentOptions"/> bound from configuration.
     /// </remarks>
     public static IServiceCollection AddCommandQuery(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddMediator();
+        services.AddEnvironmentOptions();
 
         services.TryAddSingleton<IPrincipalReader, PrincipalReader>();
         services.TryAddSingleton<IMapper, ServiceProviderMapper>();
         services.TryAddSingleton(typeof(ITenantResolver<>), typeof(TenantResolver<>));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds <see cref="EnvironmentOptions"/> bound from <see cref="Microsoft.Extensions.Configuration.IConfiguration"/> to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configure">
+    /// An optional delegate used to configure the <see cref="EnvironmentOptions"/>. The delegate runs as a post-configure
+    /// action, so any values it sets override configured values regardless of registration order.
+    /// </param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// <para>
+    /// The options are bound from the root of <see cref="Microsoft.Extensions.Configuration.IConfiguration"/>, so each
+    /// property of <see cref="EnvironmentOptions"/> is set as a top level key in <c>appsettings.json</c>
+    /// (for Blazor WebAssembly, <c>wwwroot/appsettings.json</c>). Values from other configuration sources, such as
+    /// environment variables, are bound the same way.
+    /// </para>
+    /// <para>
+    /// This method can be called multiple times; the configuration binding is only registered once.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <para>Configure the options in <c>appsettings.json</c>:</para>
+    /// <code language="json">
+    /// {
+    ///   "ApplicationName": "Tracker",
+    ///   "CompanyName": "LoreSoft",
+    ///   "ProjectName": "Arbiter",
+    ///   "EnvironmentName": "Production",
+    ///   "BaseAddress": "https://tracker.example.com/",
+    ///   "DefaultCacheTime": "00:10:00"
+    /// }
+    /// </code>
+    /// <para>Register the options, optionally overriding configured values in code:</para>
+    /// <code language="csharp">
+    /// builder.Services.AddEnvironmentOptions(options => options.EnvironmentName = "Staging");
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddEnvironmentOptions(this IServiceCollection services, Action<EnvironmentOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddOptions();
+
+        // register the binding once and run the delegate as post-configure, so it overrides configuration in any call order
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<EnvironmentOptions>, EnvironmentOptionsSetup>());
+
+        if (configure != null)
+            services.PostConfigure(configure);
 
         return services;
     }

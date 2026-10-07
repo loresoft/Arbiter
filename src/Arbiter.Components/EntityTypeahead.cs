@@ -1,6 +1,7 @@
 // Ignore Spelling: Typeahead
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Options;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Components.Services;
 using Arbiter.Dispatcher;
@@ -8,6 +9,7 @@ using Arbiter.Dispatcher;
 using LoreSoft.Blazor.Controls;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Components;
 
@@ -20,6 +22,8 @@ namespace Arbiter.Components;
 public class EntityTypeahead<TItem, TValue, TKey> : Typeahead<TItem, TValue>
      where TItem : class, IHaveIdentifier<TKey>, ISupportSearch
 {
+    private bool _initialized;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityTypeahead{TItem, TValue, TKey}"/> class.
     /// </summary>
@@ -46,6 +50,12 @@ public class EntityTypeahead<TItem, TValue, TKey> : Typeahead<TItem, TValue>
     public required IDispatcherDataService DataService { get; set; }
 
     /// <summary>
+    /// Gets or sets the environment options used to provide the default <see cref="CacheTime"/>.
+    /// </summary>
+    [Inject]
+    public required IOptions<EnvironmentOptions> EnvironmentOptions { get; set; }
+
+    /// <summary>
     /// Gets or sets the sort expression used when loading items. Defaults to <c>TItem.SortField()</c> when not set.
     /// </summary>
     [Parameter]
@@ -58,16 +68,30 @@ public class EntityTypeahead<TItem, TValue, TKey> : Typeahead<TItem, TValue>
     public EntityFilter? Filter { get; set; }
 
     /// <summary>
-    /// Gets or sets the duration to cache query results. Defaults to 5 minutes.
+    /// Gets or sets the duration to cache query results. Set to <see langword="null"/> to disable caching.
     /// </summary>
+    /// <value>Defaults to <see cref="EnvironmentOptions.DefaultCacheTime"/>.</value>
     [Parameter]
-    public TimeSpan? CacheTime { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan? CacheTime { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether items should be preloaded. Defaults to <see langword="true"/>.
     /// </summary>
     [Parameter]
     public bool Preload { get; set; } = true;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // apply the default before parameters are set so an explicit value, including null, takes precedence
+        if (!_initialized)
+        {
+            _initialized = true;
+            CacheTime = EnvironmentOptions.Value.DefaultCacheTime;
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
 
     /// <summary>
     /// Loads the initial list of items using the configured <see cref="Filter"/> and <see cref="Sort"/>.

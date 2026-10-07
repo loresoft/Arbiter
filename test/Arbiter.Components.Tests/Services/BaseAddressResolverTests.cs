@@ -1,4 +1,4 @@
-using Arbiter.Components.Options;
+using Arbiter.CommandQuery.Options;
 using Arbiter.Components.Services;
 
 using Microsoft.AspNetCore.Components;
