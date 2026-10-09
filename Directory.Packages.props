@@ -29,11 +29,11 @@
     <PackageVersion Include="Fluid.Core" Version="2.40.0" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="Injectio" Version="6.2.0" />
-    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.10.0" />
+    <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.11.0" />
     <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="MessagePack" Version="3.1.11" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.294" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.296" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
@@ -84,7 +84,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.1" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.16.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.16.0" />
-    <PackageVersion Include="TUnit" Version="1.72.16" />
+    <PackageVersion Include="TUnit" Version="1.73.19" />
     <PackageVersion Include="Twilio" Version="8.0.2" />
     <PackageVersion Include="Ulid" Version="1.4.1" />
     <PackageVersion Include="Verify.TUnit" Version="[32.0.1,33.0.0)" />
