@@ -93,4 +93,18 @@ internal static class MapperDiagnostics
         description: "Calls inside ConfigureMapping must follow the pattern mapping.Property(d => d.Prop).From(...), .Value(...), or .Ignore(). " +
                      "Other call patterns are not recognized by the source generator.");
 
+    /// <summary>
+    /// ARB0007: A configured nested mapping references a type pair that is already being mapped,
+    /// forming a cycle. Recursion stops and the member is assigned by reference.
+    /// </summary>
+    public static readonly DiagnosticDescriptor NestedMappingCycle = new(
+        id: "ARB0007",
+        title: "Nested mapping cycle detected",
+        messageFormat: "Mapper '{0}' has a nested mapping cycle for '{1}' to '{2}'; the member will be assigned by reference instead of deep cloned",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "A type pair configured with Map<,> or MapWith<,> is reached again while it is already being mapped. " +
+                     "The source generator stops recursion at that point and assigns the value directly (reference copy).");
+
 }

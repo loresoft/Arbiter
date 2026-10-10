@@ -14,7 +14,9 @@ namespace Arbiter.Mapping;
 /// <para>
 /// To customize the generated mapping, override <see cref="MapperProfile{TSource, TDestination}.ConfigureMapping"/>
 /// and use the <see cref="MappingBuilder{TSource, TDestination}"/> to define custom source expressions,
-/// constant values, or ignored properties.
+/// constant values, or ignored properties. Nested objects and collections are deep cloned only when
+/// configured with <c>Map&lt;TNestedSource, TNestedDestination&gt;</c> or <c>MapWith&lt;TNestedSource, TNestedDestination&gt;</c>;
+/// otherwise they are assigned by reference.
 /// </para>
 /// <para>
 /// The attribute is conditional on the <c>ARBITER_GENERATOR</c> symbol and is omitted from the compiled assembly.

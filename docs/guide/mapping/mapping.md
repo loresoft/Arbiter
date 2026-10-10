@@ -246,6 +246,58 @@ mapping.Property(d => d.InternalNotes).Ignore();
 mapping.Property(d => d.Department).Ignore();
 ```
 
+### Nested Objects and Deep Cloning
+
+By default, nested objects, collections and dictionaries are assigned **by reference** — the destination shares the same instances as the source. Deep cloning is opt-in and configured through `MappingBuilder`.
+
+#### Map&lt;TSource, TDestination&gt;() — Type-Level Nested Mapping
+
+Deep clone every member of the given nested type pair, at any depth (including collection elements and dictionary values):
+
+```csharp
+protected override void ConfigureMapping(MappingBuilder<Order, OrderModel> mapping)
+{
+    mapping.Map<Customer, CustomerModel>();
+    mapping.Map<Address, AddressModel>();
+    mapping.Map<OrderLine, OrderLineModel>(line =>
+    {
+        line.Property(d => d.Total).From(s => s.Price * s.Quantity);
+    });
+}
+```
+
+The optional configuration lambda accepts the same `Property`, `Map` and `MapWith` calls as `ConfigureMapping`. A `Map` declared inside a nested configuration applies only within that scope.
+
+#### Property().MapWith&lt;TSource, TDestination&gt;() — Property-Level Nested Mapping
+
+Deep clone a single property, overriding any type-level configuration. For collections and dictionaries, the type arguments are the element (or value) types:
+
+```csharp
+mapping.Property(d => d.ShippingAddress).MapWith<Address, AddressModel>();
+mapping.Property(d => d.Lines).MapWith<OrderLine, OrderLineModel>();
+```
+
+#### Resolution Order
+
+1. Property-level `MapWith`
+2. The closest enclosing `Map` scope, then outer scopes
+3. Direct (reference) assignment
+
+#### Supported Collections
+
+- Arrays, `List<T>`, `IList<T>`, `ICollection<T>`, `IEnumerable<T>`, `IReadOnlyList<T>`, `IReadOnlyCollection<T>`
+- `HashSet<T>`, `ISet<T>`
+- `Dictionary<TKey, TValue>`, `IDictionary<TKey, TValue>`, `IReadOnlyDictionary<TKey, TValue>` (values are cloned, keys are copied)
+
+#### Copy Mapping and Projection
+
+- `Map(source, destination)` assigns newly cloned nested instances to the existing destination; existing nested instances are replaced, not merged.
+- `ProjectTo` inlines configured nested objects and collections (`Select(...).ToList()`) into the query expression. Dictionaries are assigned directly in projections.
+
+#### Cycles
+
+When a configured type pair is reached while it is already being mapped (for example, a self-referencing `Node.Child`), recursion stops, the member is assigned by reference, and warning `ARB0007` is reported.
+
 ### ConfigureMapping Guidelines
 
 Because the `ConfigureMapping` method body is only parsed as syntax by the source generator, it must contain only `MappingBuilder` configuration calls. Arbitrary runtime logic such as conditionals, loops, or service calls is not supported and will be silently ignored by the generator.

@@ -170,6 +170,7 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol destinationType)
     {
         var customMappedProperties = new HashSet<string>(StringComparer.Ordinal);
+        var configuredPairs = new List<(string Source, string Destination)>();
 
         foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
@@ -193,12 +194,12 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
                 // Get the mapping parameter name for validation
                 var mappingParameterName = GetMappingParameterName(method);
 
-                ValidateMethodBody(context, method.Body, mappingParameterName, customMappedProperties);
+                ValidateMethodBody(context, method.Body, mappingParameterName, customMappedProperties, configuredPairs);
             }
         }
 
         // ARB0004: check auto-matched properties for type compatibility
-        ValidateAutoMatchedPropertyTypes(context, typeSymbol, sourceType, destinationType, customMappedProperties);
+        ValidateAutoMatchedPropertyTypes(context, typeSymbol, sourceType, destinationType, customMappedProperties, configuredPairs);
     }
 
     /// <summary>
@@ -220,13 +221,21 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
         SymbolAnalysisContext context,
         BlockSyntax body,
         string? mappingParameterName,
-        HashSet<string> customMappedProperties)
+        HashSet<string> customMappedProperties,
+        List<(string Source, string Destination)> configuredPairs)
     {
         var seenDestinations = new Dictionary<string, Location>(StringComparer.Ordinal);
 
         foreach (var statement in body.Statements)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
+
+            // type-level nested configuration: mapping.Map<TSource, TDestination>(...)
+            if (TryGetNestedConfiguration(statement, mappingParameterName, out var mapInvocation))
+            {
+                ProcessNestedConfiguration(context, mapInvocation!, configuredPairs);
+                continue;
+            }
 
             var kind = ClassifyMappingStatement(
                 statement,
@@ -250,6 +259,12 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
                 continue;
 
             customMappedProperties.Add(destName);
+
+            if (outerInvocation != null
+                && outerInvocation.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: MapperConstants.MapWithMethodName })
+            {
+                ProcessNestedConfiguration(context, outerInvocation, configuredPairs);
+            }
 
             // ARB0005: duplicate destination mapping
             var destLocation = propertyInvocation!.GetLocation();
@@ -322,7 +337,114 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
     {
         return string.Equals(methodName, MapperConstants.FromMethodName, StringComparison.Ordinal)
             || string.Equals(methodName, MapperConstants.ValueMethodName, StringComparison.Ordinal)
-            || string.Equals(methodName, MapperConstants.IgnoreMethodName, StringComparison.Ordinal);
+            || string.Equals(methodName, MapperConstants.IgnoreMethodName, StringComparison.Ordinal)
+            || string.Equals(methodName, MapperConstants.MapWithMethodName, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the statement is a type-level <c>mapping.Map&lt;TSource, TDestination&gt;(...)</c> call.
+    /// </summary>
+    private static bool TryGetNestedConfiguration(
+        StatementSyntax statement,
+        string? mappingParameterName,
+        out InvocationExpressionSyntax? invocation)
+    {
+        invocation = null;
+
+        if (mappingParameterName == null
+            || statement is not ExpressionStatementSyntax { Expression: InvocationExpressionSyntax candidate }
+            || candidate.Expression is not MemberAccessExpressionSyntax memberAccess
+            || memberAccess.Name is not GenericNameSyntax genericName
+            || !string.Equals(genericName.Identifier.Text, MapperConstants.MapMethodName, StringComparison.Ordinal)
+            || memberAccess.Expression is not IdentifierNameSyntax identifier
+            || !string.Equals(identifier.Identifier.Text, mappingParameterName, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        invocation = candidate;
+        return true;
+    }
+
+    /// <summary>
+    /// Records the configured nested type pair and validates the optional nested configuration lambda body.
+    /// </summary>
+    private static void ProcessNestedConfiguration(
+        SymbolAnalysisContext context,
+        InvocationExpressionSyntax invocation,
+        List<(string Source, string Destination)> configuredPairs)
+    {
+        if (invocation.Expression is MemberAccessExpressionSyntax { Name: GenericNameSyntax { TypeArgumentList.Arguments.Count: 2 } genericName })
+        {
+            var arguments = genericName.TypeArgumentList.Arguments;
+            configuredPairs.Add((GetSimpleTypeName(arguments[0]), GetSimpleTypeName(arguments[1])));
+        }
+
+        if (invocation.ArgumentList.Arguments.Count != 1
+            || invocation.ArgumentList.Arguments[0].Expression is not LambdaExpressionSyntax lambda)
+        {
+            return;
+        }
+
+        var parameterName = lambda switch
+        {
+            SimpleLambdaExpressionSyntax simple => simple.Parameter.Identifier.Text,
+            ParenthesizedLambdaExpressionSyntax { ParameterList.Parameters.Count: 1 } parenthesized => parenthesized.ParameterList.Parameters[0].Identifier.Text,
+            _ => null,
+        };
+
+        if (lambda.Block != null)
+        {
+            var nestedProperties = new HashSet<string>(StringComparer.Ordinal);
+            ValidateMethodBody(context, lambda.Block, parameterName, nestedProperties, configuredPairs);
+        }
+    }
+
+    /// <summary>
+    /// Gets the simple (unqualified, non-generic) name of a type syntax, e.g. <c>Address</c> for <c>Models.Address?</c>.
+    /// </summary>
+    private static string GetSimpleTypeName(TypeSyntax type)
+    {
+        return type switch
+        {
+            NullableTypeSyntax nullable => GetSimpleTypeName(nullable.ElementType),
+            QualifiedNameSyntax qualified => qualified.Right.Identifier.Text,
+            AliasQualifiedNameSyntax alias => alias.Name.Identifier.Text,
+            SimpleNameSyntax simple => simple.Identifier.Text,
+            _ => type.ToString(),
+        };
+    }
+
+    /// <summary>
+    /// Determines whether a source/destination property pair is deep cloned through a configured nested mapping,
+    /// either directly or as collection elements / dictionary values.
+    /// </summary>
+    private static bool IsConfiguredPair(
+        ITypeSymbol source,
+        ITypeSymbol destination,
+        List<(string Source, string Destination)> configuredPairs)
+    {
+        if (configuredPairs.Count == 0)
+            return false;
+
+        var sourceElement = TypeClassifier.GetSourceDictionaryTypes(source, out _)
+            ?? TypeClassifier.GetSourceElementType(source)
+            ?? source;
+
+        var destinationElement = TypeClassifier.GetDestinationDictionaryTypes(destination, out _)
+            ?? TypeClassifier.GetDestinationElementType(destination, out _)
+            ?? destination;
+
+        foreach (var pair in configuredPairs)
+        {
+            if (string.Equals(pair.Source, sourceElement.Name, StringComparison.Ordinal)
+                && string.Equals(pair.Destination, destinationElement.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -376,7 +498,8 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol typeSymbol,
         INamedTypeSymbol sourceType,
         INamedTypeSymbol destinationType,
-        HashSet<string> customMappedProperties)
+        HashSet<string> customMappedProperties,
+        List<(string Source, string Destination)> configuredPairs)
     {
         var sourceProperties = GetReadableProperties(sourceType);
         var destinationProperties = GetSettableProperties(destinationType);
@@ -406,6 +529,9 @@ public sealed class MapperAnalyzer : DiagnosticAnalyzer
             var destUnderlying = GetUnderlyingType(destTypeSymbol);
 
             if (SymbolEqualityComparer.Default.Equals(sourceUnderlying, destUnderlying))
+                continue;
+
+            if (IsConfiguredPair(sourceTypeSymbol, destTypeSymbol, configuredPairs))
                 continue;
 
             var conversion = context.Compilation.ClassifyConversion(sourceTypeSymbol, destTypeSymbol);

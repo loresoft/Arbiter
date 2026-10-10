@@ -57,4 +57,15 @@ public record PropertyMapping : IEquatable<PropertyMapping>
     /// Read-only properties can be assigned via constructor or object initializer but not via direct assignment.
     /// </summary>
     public bool IsReadOnly { get; init; }
+
+    /// <summary>
+    /// How the destination value is produced from the source value.
+    /// </summary>
+    public MappingKind Kind { get; init; }
+
+    /// <summary>
+    /// The generated helper method used to deep clone the source value when <see cref="Kind"/>
+    /// is not <see cref="MappingKind.Direct"/>.
+    /// </summary>
+    public string NestedMethodName { get; init; } = string.Empty;
 }

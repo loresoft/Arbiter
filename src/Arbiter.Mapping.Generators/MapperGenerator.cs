@@ -3,6 +3,7 @@
 using Arbiter.Mapping.Generators.Models;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Arbiter.Mapping.Generators;
@@ -48,6 +49,13 @@ public class MapperGenerator : IIncrementalGenerator
         if (mapperClass == null)
             return;
 
+        foreach (var diagnosticInfo in mapperClass.Diagnostics)
+        {
+            var arguments = diagnosticInfo.Arguments.AsArray();
+            var diagnostic = Diagnostic.Create(MapperDiagnostics.NestedMappingCycle, diagnosticInfo.ToLocation(), arguments);
+            context.ReportDiagnostic(diagnostic);
+        }
+
         var source = MapperWriter.Generate(mapperClass);
 
         context.AddSource(mapperClass.OutputFile, source);
@@ -85,12 +93,21 @@ public class MapperGenerator : IIncrementalGenerator
             return null;
         }
 
-        var customMappings = ParseCreateMapMethod(targetSymbol, cancellationToken);
+        var rootScope = ParseCreateMapMethod(targetSymbol, context.SemanticModel.Compilation, cancellationToken);
         var constructorParameters = GetConstructorParameterNames(destinationType);
-        var mappings = BuildPropertyMappings(sourceType, destinationType, customMappings, constructorParameters, cancellationToken);
+        var buildContext = new BuildContext(targetSymbol, cancellationToken);
+        buildContext.InProgress.Add(GetPairKey(sourceType, destinationType));
+
+        var mappings = BuildPropertyMappings(sourceType, destinationType, rootScope, constructorParameters, buildContext);
         var imports = CollectImports(context.TargetNode);
 
-        return CreateMapperClassModel(targetSymbol, sourceType, destinationType, constructorParameters, mappings, imports);
+        var mapperClass = CreateMapperClassModel(targetSymbol, sourceType, destinationType, constructorParameters, mappings, imports);
+
+        return mapperClass with
+        {
+            NestedMappings = [.. buildContext.Helpers],
+            Diagnostics = [.. buildContext.Diagnostics],
+        };
     }
 
     /// <summary>
@@ -134,19 +151,19 @@ public class MapperGenerator : IIncrementalGenerator
     /// </summary>
     /// <param name="sourceType">The source type symbol.</param>
     /// <param name="destinationType">The destination type symbol.</param>
-    /// <param name="customMappings">Custom mappings parsed from <c>ConfigureMapping</c>.</param>
+    /// <param name="scope">The configuration scope parsed from <c>ConfigureMapping</c> or a nested configuration.</param>
     /// <param name="constructorParameters">Constructor parameter names matched to property names.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation.</param>
+    /// <param name="buildContext">The shared build state for nested helpers and diagnostics.</param>
     /// <returns>A list of resolved property mappings.</returns>
     private static List<PropertyMapping> BuildPropertyMappings(
         INamedTypeSymbol sourceType,
         INamedTypeSymbol destinationType,
-        List<CustomMapping> customMappings,
+        MappingScope scope,
         string[] constructorParameters,
-        CancellationToken cancellationToken)
+        BuildContext buildContext)
     {
         var customDestinationMappings = new Dictionary<string, CustomMapping>(StringComparer.Ordinal);
-        foreach (var mapping in customMappings)
+        foreach (var mapping in scope.CustomMappings)
             customDestinationMappings[mapping.DestinationName] = mapping;
 
         var destinationProperties = GetDestinationProperties(destinationType, constructorParameters);
@@ -155,9 +172,9 @@ public class MapperGenerator : IIncrementalGenerator
         var mappings = new List<PropertyMapping>();
         foreach (var property in destinationProperties)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            buildContext.CancellationToken.ThrowIfCancellationRequested();
 
-            var mapping = CreatePropertyMapping(property, sourceType, sourcePropertyNames, customDestinationMappings);
+            var mapping = CreatePropertyMapping(property, sourceType, sourcePropertyNames, customDestinationMappings, scope, buildContext);
             if (mapping != null)
                 mappings.Add(mapping);
         }
@@ -203,20 +220,339 @@ public class MapperGenerator : IIncrementalGenerator
     /// <param name="sourceType">The source type symbol for resolving segment nullability.</param>
     /// <param name="sourcePropertyNames">Set of readable source property names.</param>
     /// <param name="customDestinationMappings">Custom mappings keyed by destination property name.</param>
+    /// <param name="scope">The configuration scope used to resolve nested type mappings.</param>
+    /// <param name="buildContext">The shared build state for nested helpers and diagnostics.</param>
     /// <returns>A <see cref="PropertyMapping"/>, or <see langword="null"/> if ignored or unmatched.</returns>
     private static PropertyMapping? CreatePropertyMapping(
         IPropertySymbol property,
         INamedTypeSymbol sourceType,
         HashSet<string> sourcePropertyNames,
-        Dictionary<string, CustomMapping> customDestinationMappings)
+        Dictionary<string, CustomMapping> customDestinationMappings,
+        MappingScope scope,
+        BuildContext buildContext)
     {
-        if (customDestinationMappings.TryGetValue(property.Name, out var custom))
-            return custom.IsIgnored ? null : CreateCustomPropertyMapping(property, sourceType, custom);
+        PropertyMapping mapping;
+        ITypeSymbol? sourceValueType;
+        TypeConfiguration? propertyConfiguration = null;
 
-        if (sourcePropertyNames.Contains(property.Name))
-            return CreateAutoPropertyMapping(property);
+        if (customDestinationMappings.TryGetValue(property.Name, out var custom) && custom.Nested == null)
+        {
+            if (custom.IsIgnored)
+                return null;
+
+            mapping = CreateCustomPropertyMapping(property, sourceType, custom);
+            sourceValueType = string.IsNullOrEmpty(custom.SourceExpression)
+                ? GetPathLeafType(sourceType, custom.SourcePath)
+                : null;
+        }
+        else if (sourcePropertyNames.Contains(property.Name))
+        {
+            mapping = CreateAutoPropertyMapping(property);
+            sourceValueType = FindProperty(sourceType, property.Name)?.Type;
+            propertyConfiguration = custom.Nested;
+        }
+        else
+        {
+            return null;
+        }
+
+        if (sourceValueType == null)
+            return mapping;
+
+        var (kind, methodName) = ResolveNestedMapping(sourceValueType, property.Type, propertyConfiguration, scope, buildContext);
+        if (kind == MappingKind.Direct)
+            return mapping;
+
+        return mapping with
+        {
+            Kind = kind,
+            NestedMethodName = methodName,
+        };
+    }
+
+    /// <summary>
+    /// Resolves whether a source value should be deep cloned into the destination type, and creates
+    /// the required helper methods. Only type pairs configured with <c>Map&lt;,&gt;</c> or
+    /// <c>MapWith&lt;,&gt;</c> are deep cloned; all other values are assigned directly.
+    /// </summary>
+    /// <param name="sourceType">The source value type.</param>
+    /// <param name="destinationType">The destination property type.</param>
+    /// <param name="propertyConfiguration">The property-level <c>MapWith</c> configuration, if any.</param>
+    /// <param name="scope">The configuration scope to resolve type-level configurations from.</param>
+    /// <param name="buildContext">The shared build state.</param>
+    /// <returns>The mapping kind and generated helper method name.</returns>
+    private static (MappingKind Kind, string MethodName) ResolveNestedMapping(
+        ITypeSymbol sourceType,
+        ITypeSymbol destinationType,
+        TypeConfiguration? propertyConfiguration,
+        MappingScope scope,
+        BuildContext buildContext)
+    {
+        // nested object
+        if (TypeClassifier.IsComplex(sourceType) && TypeClassifier.IsComplex(destinationType))
+        {
+            var elementMethod = ResolveComplexHelper(sourceType, destinationType, propertyConfiguration, scope, buildContext);
+            return elementMethod == null
+                ? (MappingKind.Direct, string.Empty)
+                : (MappingKind.Complex, elementMethod);
+        }
+
+        // dictionary
+        var destinationValueType = TypeClassifier.GetDestinationDictionaryTypes(destinationType, out var destinationKeyType);
+        if (destinationValueType != null)
+        {
+            var sourceValueType = TypeClassifier.GetSourceDictionaryTypes(sourceType, out var sourceKeyType);
+            if (sourceValueType == null || !SymbolEqualityComparer.Default.Equals(sourceKeyType, destinationKeyType))
+                return (MappingKind.Direct, string.Empty);
+
+            var valueMethod = ResolveComplexHelper(sourceValueType, destinationValueType, propertyConfiguration, scope, buildContext);
+            if (valueMethod == null)
+                return (MappingKind.Direct, string.Empty);
+
+            var dictionaryMethod = GetOrCreateCollectionHelper(
+                MappingKind.Dictionary,
+                CollectionKind.Dictionary,
+                sourceValueType,
+                destinationValueType,
+                destinationKeyType,
+                valueMethod,
+                buildContext);
+
+            return (MappingKind.Dictionary, dictionaryMethod);
+        }
+
+        // collection
+        var destinationElementType = TypeClassifier.GetDestinationElementType(destinationType, out var collectionKind);
+        if (destinationElementType != null)
+        {
+            var sourceElementType = TypeClassifier.GetSourceElementType(sourceType);
+            if (sourceElementType == null)
+                return (MappingKind.Direct, string.Empty);
+
+            var elementMethod = ResolveComplexHelper(sourceElementType, destinationElementType, propertyConfiguration, scope, buildContext);
+            if (elementMethod == null)
+                return (MappingKind.Direct, string.Empty);
+
+            var collectionMethod = GetOrCreateCollectionHelper(
+                MappingKind.Collection,
+                collectionKind,
+                sourceElementType,
+                destinationElementType,
+                null,
+                elementMethod,
+                buildContext);
+
+            return (MappingKind.Collection, collectionMethod);
+        }
+
+        return (MappingKind.Direct, string.Empty);
+    }
+
+    /// <summary>
+    /// Finds the configuration for a nested object type pair and returns the name of the helper that clones it.
+    /// </summary>
+    /// <returns>The helper method name, or <see langword="null"/> if the pair is not configured, not constructible, or cyclic.</returns>
+    private static string? ResolveComplexHelper(
+        ITypeSymbol sourceType,
+        ITypeSymbol destinationType,
+        TypeConfiguration? propertyConfiguration,
+        MappingScope scope,
+        BuildContext buildContext)
+    {
+        if (!TypeClassifier.IsComplex(sourceType) || !TypeClassifier.IsComplex(destinationType))
+            return null;
+
+        var configuration = propertyConfiguration != null && propertyConfiguration.Matches(sourceType, destinationType)
+            ? propertyConfiguration
+            : FindTypeConfiguration(scope, sourceType, destinationType);
+
+        if (configuration == null)
+            return null;
+
+        return GetOrCreateComplexHelper(
+            (INamedTypeSymbol)sourceType,
+            (INamedTypeSymbol)destinationType,
+            configuration.Scope,
+            buildContext);
+    }
+
+    /// <summary>
+    /// Finds the closest type-level <c>Map&lt;,&gt;</c> configuration for the type pair, walking from the
+    /// specified scope up to the root scope. Within a scope, the last declaration wins.
+    /// </summary>
+    private static TypeConfiguration? FindTypeConfiguration(MappingScope? scope, ITypeSymbol sourceType, ITypeSymbol destinationType)
+    {
+        while (scope != null)
+        {
+            for (var i = scope.TypeMaps.Count - 1; i >= 0; i--)
+            {
+                if (scope.TypeMaps[i].Matches(sourceType, destinationType))
+                    return scope.TypeMaps[i];
+            }
+
+            scope = scope.Parent;
+        }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets or creates the helper that deep clones a nested object using the specified configuration scope.
+    /// Reports a cycle diagnostic and returns <see langword="null"/> when the type pair is already being built.
+    /// </summary>
+    private static string? GetOrCreateComplexHelper(
+        INamedTypeSymbol sourceType,
+        INamedTypeSymbol destinationType,
+        MappingScope configurationScope,
+        BuildContext buildContext)
+    {
+        var sourceName = sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var destinationName = destinationType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        var key = $"complex|{configurationScope.Id}|{sourceName}|{destinationName}";
+        if (buildContext.HelperNames.TryGetValue(key, out var existing))
+            return existing;
+
+        var pairKey = GetPairKey(sourceType, destinationType);
+        if (buildContext.InProgress.Contains(pairKey))
+        {
+            buildContext.ReportCycle(sourceType, destinationType);
+            return null;
+        }
+
+        var constructorParameters = GetConstructorParameterNames(destinationType);
+        if (constructorParameters.Length == 0 && !HasPublicParameterlessConstructor(destinationType))
+            return null;
+
+        var methodName = buildContext.ReserveMethodName($"Map{sourceType.Name}To{destinationType.Name}");
+
+        buildContext.InProgress.Add(pairKey);
+        var properties = BuildPropertyMappings(sourceType, destinationType, configurationScope, constructorParameters, buildContext);
+        buildContext.InProgress.Remove(pairKey);
+
+        buildContext.HelperNames[key] = methodName;
+        buildContext.Helpers.Add(new NestedMapping
+        {
+            MethodName = methodName,
+            Kind = MappingKind.Complex,
+            SourceType = sourceName,
+            DestinationType = destinationName,
+            ConstructorParameters = [.. constructorParameters],
+            Properties = [.. properties],
+        });
+
+        return methodName;
+    }
+
+    /// <summary>
+    /// Gets or creates the helper that deep clones a collection or dictionary element by element.
+    /// </summary>
+    private static string GetOrCreateCollectionHelper(
+        MappingKind kind,
+        CollectionKind collectionKind,
+        ITypeSymbol sourceElementType,
+        ITypeSymbol destinationElementType,
+        ITypeSymbol? keyType,
+        string elementMethodName,
+        BuildContext buildContext)
+    {
+        var sourceElementName = sourceElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var destinationElementName = destinationElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var keyName = keyType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? string.Empty;
+        var isElementNullable = destinationElementType.NullableAnnotation == NullableAnnotation.Annotated;
+
+        var key = $"{collectionKind}|{elementMethodName}|{keyName}|{isElementNullable}";
+        if (buildContext.HelperNames.TryGetValue(key, out var existing))
+            return existing;
+
+        var methodName = buildContext.ReserveMethodName($"{elementMethodName}{collectionKind}");
+
+        string sourceTypeName;
+        string destinationTypeName;
+
+        if (collectionKind == CollectionKind.Dictionary)
+        {
+            sourceTypeName = $"global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{keyName}, {sourceElementName}>>";
+            destinationTypeName = $"global::System.Collections.Generic.Dictionary<{keyName}, {destinationElementName}>";
+        }
+        else
+        {
+            sourceTypeName = $"global::System.Collections.Generic.IEnumerable<{sourceElementName}>";
+            destinationTypeName = collectionKind switch
+            {
+                CollectionKind.Array => $"{destinationElementName}[]",
+                CollectionKind.HashSet => $"global::System.Collections.Generic.HashSet<{destinationElementName}>",
+                _ => $"global::System.Collections.Generic.List<{destinationElementName}>",
+            };
+        }
+
+        buildContext.HelperNames[key] = methodName;
+        buildContext.Helpers.Add(new NestedMapping
+        {
+            MethodName = methodName,
+            Kind = kind,
+            SourceType = sourceTypeName,
+            DestinationType = destinationTypeName,
+            CollectionKind = collectionKind,
+            ElementMethodName = elementMethodName,
+            ElementSourceType = sourceElementName,
+            ElementDestinationType = destinationElementName,
+            IsElementNullable = isElementNullable,
+            KeyType = keyName,
+        });
+
+        return methodName;
+    }
+
+    /// <summary>
+    /// Determines whether the type has an accessible public parameterless constructor.
+    /// </summary>
+    private static bool HasPublicParameterlessConstructor(INamedTypeSymbol type)
+    {
+        foreach (var ctor in type.InstanceConstructors)
+        {
+            if (ctor.DeclaredAccessibility == Accessibility.Public && ctor.Parameters.Length == 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Resolves the type of the leaf property in a source property path.
+    /// </summary>
+    private static ITypeSymbol? GetPathLeafType(INamedTypeSymbol sourceType, string[] sourcePath)
+    {
+        if (sourcePath == null || sourcePath.Length == 0)
+            return null;
+
+        INamedTypeSymbol? current = sourceType;
+        ITypeSymbol? leaf = null;
+
+        foreach (var segment in sourcePath)
+        {
+            if (current == null)
+                return null;
+
+            var property = FindProperty(current, segment);
+            if (property == null)
+                return null;
+
+            leaf = property.Type;
+            current = property.Type as INamedTypeSymbol;
+        }
+
+        return leaf;
+    }
+
+    /// <summary>
+    /// Creates a key that identifies a source/destination type pair, used for cycle detection.
+    /// </summary>
+    private static string GetPairKey(ITypeSymbol sourceType, ITypeSymbol destinationType)
+    {
+        return sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            + "|"
+            + destinationType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
     /// <summary>
@@ -546,11 +882,12 @@ public class MapperGenerator : IIncrementalGenerator
     /// Parses the <c>ConfigureMapping</c> method body across all partial declarations to extract custom mappings.
     /// </summary>
     /// <param name="targetSymbol">The mapper class symbol.</param>
+    /// <param name="compilation">The compilation used to resolve nested mapping type arguments.</param>
     /// <param name="cancellationToken">Token to monitor for cancellation.</param>
-    /// <returns>A list of custom mapping configurations.</returns>
-    private static List<CustomMapping> ParseCreateMapMethod(INamedTypeSymbol targetSymbol, CancellationToken cancellationToken)
+    /// <returns>The root mapping scope containing custom mappings and nested type configurations.</returns>
+    private static MappingScope ParseCreateMapMethod(INamedTypeSymbol targetSymbol, Compilation compilation, CancellationToken cancellationToken)
     {
-        var results = new List<CustomMapping>();
+        var scope = new MappingScope(null);
 
         // search all partial declarations for CreateMap method
         foreach (var syntaxRef in targetSymbol.DeclaringSyntaxReferences)
@@ -560,6 +897,8 @@ public class MapperGenerator : IIncrementalGenerator
             var syntax = syntaxRef.GetSyntax(cancellationToken);
             if (syntax is not ClassDeclarationSyntax classDeclaration)
                 continue;
+
+            SemanticModel? semanticModel = null;
 
             foreach (var member in classDeclaration.Members)
             {
@@ -572,43 +911,101 @@ public class MapperGenerator : IIncrementalGenerator
                 if (method.Body == null)
                     continue;
 
-                ParseCreateMapBody(method.Body, results);
+                semanticModel ??= compilation.GetSemanticModel(syntaxRef.SyntaxTree);
+
+                ParseCreateMapBody(method.Body.Statements, scope, semanticModel, cancellationToken);
             }
         }
 
-        return results;
+        return scope;
     }
 
     /// <summary>
     /// Extracts custom mapping configurations from <c>Property(...).From(...)</c>,
-    /// <c>Property(...).Value(...)</c>, and <c>Property(...).Ignore()</c> call chains.
+    /// <c>Property(...).Value(...)</c>, <c>Property(...).Ignore()</c>, <c>Property(...).MapWith&lt;,&gt;(...)</c>
+    /// and <c>Map&lt;,&gt;(...)</c> call chains.
     /// </summary>
-    /// <param name="body">The method body block syntax.</param>
-    /// <param name="results">The list to append parsed custom mappings to.</param>
-    private static void ParseCreateMapBody(BlockSyntax body, List<CustomMapping> results)
+    /// <param name="statements">The statements of the configuration body.</param>
+    /// <param name="scope">The scope to append parsed mappings to.</param>
+    /// <param name="semanticModel">The semantic model used to resolve nested mapping type arguments.</param>
+    /// <param name="cancellationToken">Token to monitor for cancellation.</param>
+    private static void ParseCreateMapBody(
+        IEnumerable<StatementSyntax> statements,
+        MappingScope scope,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
-        foreach (var statement in body.Statements)
+        foreach (var statement in statements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (statement is not ExpressionStatementSyntax expressionStatement)
                 continue;
 
-            if (expressionStatement.Expression is not InvocationExpressionSyntax outerInvocation)
-                continue;
+            ParseCreateMapExpression(expressionStatement.Expression, scope, semanticModel, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Parses a single mapping configuration expression into the specified scope.
+    /// </summary>
+    /// <param name="expression">The configuration expression.</param>
+    /// <param name="scope">The scope to append parsed mappings to.</param>
+    /// <param name="semanticModel">The semantic model used to resolve nested mapping type arguments.</param>
+    /// <param name="cancellationToken">Token to monitor for cancellation.</param>
+    private static void ParseCreateMapExpression(
+        ExpressionSyntax expression,
+        MappingScope scope,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        {
+            if (expression is not InvocationExpressionSyntax outerInvocation)
+                return;
 
             if (outerInvocation.Expression is not MemberAccessExpressionSyntax outerMemberAccess)
-                continue;
+                return;
 
             var methodName = outerMemberAccess.Name.Identifier.Text;
 
+            // type-level nested configuration: mapping.Map<TSource, TDestination>(...), optionally chained
+            if (string.Equals(methodName, MapperConstants.MapMethodName, StringComparison.Ordinal))
+            {
+                var typeConfiguration = ParseNestedConfiguration(outerInvocation, scope, semanticModel, cancellationToken);
+                if (typeConfiguration != null)
+                    scope.TypeMaps.Add(typeConfiguration);
+
+                if (outerMemberAccess.Expression is InvocationExpressionSyntax chained)
+                    ParseCreateMapExpression(chained, scope, semanticModel, cancellationToken);
+
+                return;
+            }
+
             // the receiver should be the Property(...) invocation
             if (outerMemberAccess.Expression is not InvocationExpressionSyntax propertyInvocation)
-                continue;
+                return;
 
             var destName = GetDestinationPropertyName(propertyInvocation);
             if (destName == null)
-                continue;
+                return;
 
-            if (string.Equals(methodName, MapperConstants.IgnoreMethodName, StringComparison.Ordinal))
+            var results = scope.CustomMappings;
+
+            if (string.Equals(methodName, MapperConstants.MapWithMethodName, StringComparison.Ordinal))
+            {
+                var nested = ParseNestedConfiguration(outerInvocation, scope, semanticModel, cancellationToken);
+                if (nested != null)
+                {
+                    results.Add(new CustomMapping
+                    {
+                        DestinationName = destName,
+                        SourcePath = [],
+                        IsIgnored = false,
+                        Nested = nested,
+                    });
+                }
+            }
+            else if (string.Equals(methodName, MapperConstants.IgnoreMethodName, StringComparison.Ordinal))
             {
                 results.Add(new CustomMapping
                 {
@@ -640,6 +1037,50 @@ public class MapperGenerator : IIncrementalGenerator
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Parses a <c>Map&lt;TSource, TDestination&gt;(...)</c> or <c>MapWith&lt;TSource, TDestination&gt;(...)</c>
+    /// invocation into a <see cref="TypeConfiguration"/> with its own child scope.
+    /// </summary>
+    /// <param name="invocation">The invocation syntax.</param>
+    /// <param name="parent">The declaring scope.</param>
+    /// <param name="semanticModel">The semantic model used to resolve type arguments.</param>
+    /// <param name="cancellationToken">Token to monitor for cancellation.</param>
+    /// <returns>The parsed configuration, or <see langword="null"/> if the type arguments cannot be resolved.</returns>
+    private static TypeConfiguration? ParseNestedConfiguration(
+        InvocationExpressionSyntax invocation,
+        MappingScope parent,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        var symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
+        var method = symbolInfo.Symbol as IMethodSymbol;
+        if (method == null && symbolInfo.CandidateSymbols.Length > 0)
+            method = symbolInfo.CandidateSymbols[0] as IMethodSymbol;
+
+        if (method == null || method.TypeArguments.Length != 2)
+            return null;
+
+        var nestedScope = new MappingScope(parent);
+
+        if (invocation.ArgumentList.Arguments.Count == 1)
+        {
+            var argument = invocation.ArgumentList.Arguments[0].Expression;
+            var body = argument switch
+            {
+                SimpleLambdaExpressionSyntax simple => (CSharpSyntaxNode)simple.Body,
+                ParenthesizedLambdaExpressionSyntax paren => paren.Body,
+                _ => null,
+            };
+
+            if (body is BlockSyntax block)
+                ParseCreateMapBody(block.Statements, nestedScope, semanticModel, cancellationToken);
+            else if (body is ExpressionSyntax expressionBody)
+                ParseCreateMapExpression(expressionBody, nestedScope, semanticModel, cancellationToken);
+        }
+
+        return new TypeConfiguration(method.TypeArguments[0], method.TypeArguments[1], nestedScope);
     }
 
     /// <summary>
@@ -819,6 +1260,100 @@ public class MapperGenerator : IIncrementalGenerator
         public string SourceExpression;
         public string SourceExpressionParameter;
         public bool IsIgnored;
+        public TypeConfiguration? Nested;
+    }
+
+    /// <summary>
+    /// A configuration scope corresponding to a <c>ConfigureMapping</c> body or a nested
+    /// <c>Map&lt;,&gt;</c> / <c>MapWith&lt;,&gt;</c> lambda body.
+    /// </summary>
+    private sealed class MappingScope
+    {
+        private static int _nextId;
+
+        public MappingScope(MappingScope? parent)
+        {
+            Parent = parent;
+            Id = Interlocked.Increment(ref _nextId);
+        }
+
+        public int Id { get; }
+
+        public MappingScope? Parent { get; }
+
+        public List<CustomMapping> CustomMappings { get; } = [];
+
+        public List<TypeConfiguration> TypeMaps { get; } = [];
+    }
+
+    /// <summary>
+    /// A nested type pair configuration declared by <c>Map&lt;,&gt;</c> or <c>MapWith&lt;,&gt;</c>.
+    /// </summary>
+    private sealed class TypeConfiguration(ITypeSymbol sourceType, ITypeSymbol destinationType, MappingScope scope)
+    {
+        public ITypeSymbol SourceType { get; } = sourceType;
+
+        public ITypeSymbol DestinationType { get; } = destinationType;
+
+        public MappingScope Scope { get; } = scope;
+
+        public bool Matches(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return SymbolEqualityComparer.Default.Equals(SourceType, source)
+                && SymbolEqualityComparer.Default.Equals(DestinationType, destination);
+        }
+    }
+
+    /// <summary>
+    /// Shared state while building the mapper model: generated helpers, reserved method names,
+    /// type pairs currently being built (for cycle detection), and diagnostics.
+    /// </summary>
+    private sealed class BuildContext(INamedTypeSymbol mapperSymbol, CancellationToken cancellationToken)
+    {
+        private readonly HashSet<string> _methodNames = new(StringComparer.Ordinal);
+        private readonly HashSet<string> _reportedCycles = new(StringComparer.Ordinal);
+
+        public CancellationToken CancellationToken { get; } = cancellationToken;
+
+        public List<NestedMapping> Helpers { get; } = [];
+
+        public Dictionary<string, string> HelperNames { get; } = new(StringComparer.Ordinal);
+
+        public HashSet<string> InProgress { get; } = new(StringComparer.Ordinal);
+
+        public List<DiagnosticInfo> Diagnostics { get; } = [];
+
+        public string ReserveMethodName(string baseName)
+        {
+            var name = baseName;
+            var counter = 2;
+
+            while (!_methodNames.Add(name))
+                name = baseName + counter++;
+
+            return name;
+        }
+
+        public void ReportCycle(ITypeSymbol sourceType, ITypeSymbol destinationType)
+        {
+            var sourceName = sourceType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            var destinationName = destinationType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+            if (!_reportedCycles.Add(sourceName + "|" + destinationName))
+                return;
+
+            var location = mapperSymbol.Locations.Length > 0 ? mapperSymbol.Locations[0] : null;
+            var lineSpan = location?.GetLineSpan();
+
+            Diagnostics.Add(new DiagnosticInfo
+            {
+                Id = MapperDiagnostics.NestedMappingCycle.Id,
+                FilePath = lineSpan?.Path ?? string.Empty,
+                TextSpan = location?.SourceSpan ?? default,
+                LineSpan = lineSpan?.Span ?? default,
+                Arguments = [mapperSymbol.Name, sourceName, destinationName],
+            });
+        }
     }
 }
 

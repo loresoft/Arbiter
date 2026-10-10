@@ -11,3 +11,4 @@ ARB0003 | Usage    | Warning  | MapperAnalyzer
 ARB0004 | Usage    | Warning  | MapperAnalyzer
 ARB0005 | Usage    | Warning  | MapperAnalyzer
 ARB0006 | Usage    | Warning  | MapperAnalyzer
+ARB0007 | Usage    | Warning  | MapperGenerator

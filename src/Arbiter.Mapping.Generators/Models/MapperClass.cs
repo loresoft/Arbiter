@@ -58,4 +58,14 @@ public record MapperClass
     /// referencing constants from an imported namespace) continue to compile.
     /// </summary>
     public EquatableArray<string> Imports { get; init; } = new();
+
+    /// <summary>
+    /// Gets the generated helper methods used to deep clone nested objects and collections.
+    /// </summary>
+    public EquatableArray<NestedMapping> NestedMappings { get; init; } = new();
+
+    /// <summary>
+    /// Gets the diagnostics produced while building the mapper model.
+    /// </summary>
+    public EquatableArray<DiagnosticInfo> Diagnostics { get; init; } = new();
 }

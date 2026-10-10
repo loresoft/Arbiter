@@ -15,6 +15,11 @@ namespace Arbiter.Mapping;
 /// name and compatible type between source and destination, and applies any custom expressions
 /// defined in <see cref="ConfigureMapping"/>.
 /// </para>
+/// <para>
+/// Nested objects and collections are assigned by reference unless the nested type pair is opted into
+/// deep cloning with <see cref="MappingBuilder{TSource, TDestination}.Map{TNestedSource, TNestedDestination}"/>
+/// or <see cref="PropertyBuilder{TSource, TDestination, TMember}.MapWith{TNestedSource, TNestedDestination}"/>.
+/// </para>
 /// </remarks>
 /// <typeparam name="TSource">Source type to map from.</typeparam>
 /// <typeparam name="TDestination">Destination type to map to.</typeparam>

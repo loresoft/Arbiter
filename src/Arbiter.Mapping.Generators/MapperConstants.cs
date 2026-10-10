@@ -44,4 +44,14 @@ internal static class MapperConstants
     /// Name of the <c>Value</c> method in a mapping call chain.
     /// </summary>
     public const string ValueMethodName = "Value";
+
+    /// <summary>
+    /// Name of the type-level <c>Map&lt;TNestedSource, TNestedDestination&gt;</c> method on the mapping builder.
+    /// </summary>
+    public const string MapMethodName = "Map";
+
+    /// <summary>
+    /// Name of the property-level <c>MapWith&lt;TNestedSource, TNestedDestination&gt;</c> method in a mapping call chain.
+    /// </summary>
+    public const string MapWithMethodName = "MapWith";
 }

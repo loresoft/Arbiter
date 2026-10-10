@@ -84,6 +84,7 @@ public static class MapperWriter
         GenerateCreateMapper(builder, mapperClass);
         GenerateCopyMapper(builder, mapperClass);
         GenerateProjectMapper(builder, mapperClass);
+        GenerateNestedMappers(builder, mapperClass);
 
         // close class
         builder
@@ -122,13 +123,22 @@ public static class MapperWriter
 
         var ctorParams = mapperClass.ConstructorParameters.AsArray();
 
+        var properties = mapperClass.Properties.AsArray();
+        var destinationType = mapperClass.DestinationClass.FullyQualified;
+
+        builder.AppendLine();
+
         if (ctorParams.Length > 0)
         {
-            WriteConstructorCreation(builder, mapperClass, ctorParams, "source", isExpressionTree: false);
+            builder.Append("return ");
+            WriteConstructorCreation(builder, mapperClass, destinationType, properties, ctorParams, "source", isExpressionTree: false);
+            builder.AppendLine(";");
         }
         else
         {
-            WriteInitializerCreation(builder, mapperClass, "source", isExpressionTree: false);
+            builder.Append("return ");
+            WriteInitializerCreation(builder, mapperClass, destinationType, properties, "source", isExpressionTree: false);
+            builder.AppendLine(";");
         }
 
         // function close
@@ -195,7 +205,7 @@ public static class MapperWriter
                     continue;
 
                 builder.Append("destination.").Append(property.DestinationName).Append(" = ");
-                WriteSourceExpression(builder, "source", property, isExpressionTree: false);
+                WriteSourceExpression(builder, mapperClass, "source", property, isExpressionTree: false);
                 builder.AppendLine(";");
             }
         }
@@ -223,14 +233,26 @@ public static class MapperWriter
             .Append(mapperClass.DestinationClass.FullyQualified)
             .AppendLine(">> _projectExpression =");
 
+        var properties = mapperClass.Properties.AsArray();
+        var destinationType = mapperClass.DestinationClass.FullyQualified;
+
+        builder
+            .IncrementIndent()
+            .Append("src => ");
+
         if (ctorParams.Length > 0)
         {
-            WriteProjectConstructorExpression(builder, mapperClass, ctorParams);
+            WriteConstructorCreation(builder, mapperClass, destinationType, properties, ctorParams, "src", isExpressionTree: true);
         }
         else
         {
-            WriteProjectInitializerExpression(builder, mapperClass);
+            WriteInitializerCreation(builder, mapperClass, destinationType, properties, "src", isExpressionTree: true);
         }
+
+        builder
+            .AppendLine(";")
+            .DecrementIndent()
+            .AppendLine();
 
         // emit ProjectTo implementation
         builder
@@ -267,138 +289,29 @@ public static class MapperWriter
 
 
     /// <summary>
-    /// Emits the projection expression field body using constructor syntax:
-    /// <c>src => new TDest(arg1, arg2, ...) { remaining = value, ... }</c>.
-    /// </summary>
-    private static void WriteProjectConstructorExpression(
-        IndentedStringBuilder builder,
-        MapperClass mapperClass,
-        string[] ctorParams)
-    {
-        var ctorParamSet = new HashSet<string>(ctorParams, StringComparer.Ordinal);
-        var propertyLookup = new Dictionary<string, PropertyMapping>(StringComparer.Ordinal);
-        foreach (var property in mapperClass.Properties)
-            propertyLookup[property.DestinationName] = property;
-
-        builder
-            .IncrementIndent()
-            .Append("src => new ")
-            .Append(mapperClass.DestinationClass.FullyQualified)
-            .AppendLine("(")
-            .IncrementIndent();
-
-        // emit constructor arguments
-        for (var i = 0; i < ctorParams.Length; i++)
-        {
-            if (propertyLookup.TryGetValue(ctorParams[i], out var property) && !property.IsIgnored)
-            {
-                WriteSourceExpression(builder, "src", property, isExpressionTree: true);
-            }
-            else
-            {
-                builder.Append("default!");
-            }
-
-            if (i < ctorParams.Length - 1)
-                builder.AppendLine(",");
-        }
-
-        builder.DecrementIndent();
-
-        // collect remaining properties
-        var remaining = new List<PropertyMapping>();
-        foreach (var property in mapperClass.Properties)
-        {
-            if (property.IsIgnored || ctorParamSet.Contains(property.DestinationName))
-                continue;
-
-            remaining.Add(property);
-        }
-
-        if (remaining.Count > 0)
-        {
-            builder
-                .AppendLine()
-                .AppendLine(")")
-                .AppendLine("{")
-                .IncrementIndent();
-
-            foreach (var property in remaining)
-            {
-                builder.Append(property.DestinationName).Append(" = ");
-                WriteSourceExpression(builder, "src", property, isExpressionTree: true);
-                builder.AppendLine(",");
-            }
-
-            builder
-                .DecrementIndent()
-                .AppendLine("};");
-        }
-        else
-        {
-            builder.AppendLine().AppendLine(");");
-        }
-
-        builder
-            .DecrementIndent()
-            .AppendLine();
-    }
-
-    /// <summary>
-    /// Emits the projection expression field body using object initializer syntax:
-    /// <c>src => new TDest { Prop = value, ... }</c>.
-    /// </summary>
-    private static void WriteProjectInitializerExpression(
-        IndentedStringBuilder builder,
-        MapperClass mapperClass)
-    {
-        builder
-            .IncrementIndent()
-            .Append("src => new ")
-            .AppendLine(mapperClass.DestinationClass.FullyQualified)
-            .AppendLine("{")
-            .IncrementIndent();
-
-        foreach (var property in mapperClass.Properties)
-        {
-            if (property.IsIgnored)
-                continue;
-
-            builder.Append(property.DestinationName).Append(" = ");
-            WriteSourceExpression(builder, "src", property, isExpressionTree: true);
-            builder.AppendLine(",");
-        }
-
-        builder
-            .DecrementIndent()
-            .AppendLine("};")
-            .DecrementIndent()
-            .AppendLine();
-    }
-
-
-    /// <summary>
-    /// Emits a <c>return new TDest(arg1, arg2, ...) { remaining = value, ... };</c> statement
+    /// Emits a <c>new TDest(arg1, arg2, ...) { remaining = value, ... }</c> expression
     /// using constructor arguments for matched parameters and an object initializer for the rest.
     /// </summary>
     private static void WriteConstructorCreation(
         IndentedStringBuilder builder,
         MapperClass mapperClass,
+        string destinationType,
+        PropertyMapping[] properties,
         string[] ctorParams,
         string parameterName,
-        bool isExpressionTree)
+        bool isExpressionTree,
+        int depth = 0)
     {
         var ctorParamSet = new HashSet<string>(ctorParams, StringComparer.Ordinal);
         var propertyLookup = new Dictionary<string, PropertyMapping>(StringComparer.Ordinal);
 
-        foreach (var property in mapperClass.Properties)
+        foreach (var property in properties)
             propertyLookup[property.DestinationName] = property;
 
         // open constructor call
         builder
-            .AppendLine()
-            .Append("return new ")
-            .Append(mapperClass.DestinationClass.FullyQualified)
+            .Append("new ")
+            .Append(destinationType)
             .AppendLine("(")
             .IncrementIndent();
 
@@ -407,7 +320,7 @@ public static class MapperWriter
         {
             if (propertyLookup.TryGetValue(ctorParams[i], out var property) && !property.IsIgnored)
             {
-                WriteSourceExpression(builder, parameterName, property, isExpressionTree);
+                WriteSourceExpression(builder, mapperClass, parameterName, property, isExpressionTree, depth);
             }
             else
             {
@@ -422,7 +335,7 @@ public static class MapperWriter
 
         // collect remaining properties not covered by the constructor
         var remaining = new List<PropertyMapping>();
-        foreach (var property in mapperClass.Properties)
+        foreach (var property in properties)
         {
             if (property.IsIgnored || ctorParamSet.Contains(property.DestinationName))
                 continue;
@@ -430,65 +343,293 @@ public static class MapperWriter
             remaining.Add(property);
         }
 
-        if (remaining.Count > 0)
-        {
-            // close constructor, open initializer
-            builder
-                .AppendLine()
-                .AppendLine(")")
-                .AppendLine("{")
-                .IncrementIndent();
-
-            foreach (var property in remaining)
-            {
-                builder.Append(property.DestinationName).Append(" = ");
-                WriteSourceExpression(builder, parameterName, property, isExpressionTree);
-                builder.AppendLine(",");
-            }
-
-            builder
-                .DecrementIndent()
-                .AppendLine("};");
-        }
-        else
+        if (remaining.Count == 0)
         {
             // close constructor only
-            builder.AppendLine().AppendLine(");");
+            builder.AppendLine().Append(")");
+            return;
         }
+
+        // close constructor, open initializer
+        builder
+            .AppendLine()
+            .AppendLine(")")
+            .AppendLine("{")
+            .IncrementIndent();
+
+        foreach (var property in remaining)
+        {
+            builder.Append(property.DestinationName).Append(" = ");
+            WriteSourceExpression(builder, mapperClass, parameterName, property, isExpressionTree, depth);
+            builder.AppendLine(",");
+        }
+
+        builder
+            .DecrementIndent()
+            .Append("}");
     }
 
     /// <summary>
-    /// Emits a <c>return new TDest { Prop = value, ... };</c> statement using object initializer syntax.
+    /// Emits a <c>new TDest { Prop = value, ... }</c> expression using object initializer syntax.
     /// </summary>
     private static void WriteInitializerCreation(
         IndentedStringBuilder builder,
         MapperClass mapperClass,
+        string destinationType,
+        PropertyMapping[] properties,
         string parameterName,
-        bool isExpressionTree)
+        bool isExpressionTree,
+        int depth = 0)
     {
         // open object initializer
         builder
-            .AppendLine()
-            .Append("return new ")
-            .AppendLine(mapperClass.DestinationClass.FullyQualified)
+            .Append("new ")
+            .AppendLine(destinationType)
             .AppendLine("{")
             .IncrementIndent();
 
-        // foreach property mapping
-        foreach (var property in mapperClass.Properties)
+        foreach (var property in properties)
         {
             if (property.IsIgnored)
                 continue;
 
             builder.Append(property.DestinationName).Append(" = ");
-            WriteSourceExpression(builder, parameterName, property, isExpressionTree);
+            WriteSourceExpression(builder, mapperClass, parameterName, property, isExpressionTree, depth);
             builder.AppendLine(",");
         }
 
         // close object initializer
         builder
             .DecrementIndent()
-            .AppendLine("};");
+            .Append("}");
+    }
+
+    /// <summary>
+    /// Emits the private static helper methods that deep clone configured nested objects,
+    /// collections and dictionaries.
+    /// </summary>
+    private static void GenerateNestedMappers(IndentedStringBuilder builder, MapperClass mapperClass)
+    {
+        foreach (var nested in mapperClass.NestedMappings)
+        {
+            builder
+                .Append("[GeneratedCode(\"")
+                .Append(ThisAssembly.AssemblyName)
+                .Append("\", \"")
+                .Append(ThisAssembly.FileVersion)
+                .AppendLine("\")]")
+                .Append("private static ")
+                .Append(nested.DestinationType)
+                .Append("? ")
+                .Append(nested.MethodName)
+                .Append("(")
+                .Append(nested.SourceType)
+                .AppendLine("? source)")
+                .AppendLine("{")
+                .IncrementIndent()
+                .AppendLine("if (source is null)")
+                .AppendLine("    return default;")
+                .AppendLine()
+                .Append("return ");
+
+            if (nested.Kind == MappingKind.Complex)
+            {
+                var properties = nested.Properties.AsArray();
+                var ctorParams = nested.ConstructorParameters.AsArray();
+
+                if (ctorParams.Length > 0)
+                    WriteConstructorCreation(builder, mapperClass, nested.DestinationType, properties, ctorParams, "source", isExpressionTree: false);
+                else
+                    WriteInitializerCreation(builder, mapperClass, nested.DestinationType, properties, "source", isExpressionTree: false);
+            }
+            else
+            {
+                WriteCollectionExpression(builder, nested, "source", "item", isExpressionTree: false, mapperClass, depth: 0);
+            }
+
+            builder
+                .AppendLine(";")
+                .DecrementIndent()
+                .AppendLine("}")
+                .AppendLine();
+        }
+    }
+
+    /// <summary>
+    /// Emits a LINQ expression that clones each element (or dictionary value) of <paramref name="sourceExpression"/>.
+    /// In expression trees the element mapping is inlined; otherwise the element helper method is called.
+    /// </summary>
+    private static void WriteCollectionExpression(
+        IndentedStringBuilder builder,
+        NestedMapping nested,
+        string sourceExpression,
+        string itemName,
+        bool isExpressionTree,
+        MapperClass mapperClass,
+        int depth)
+    {
+        var suppress = nested.IsElementNullable ? string.Empty : "!";
+
+        if (nested.CollectionKind == CollectionKind.Dictionary)
+        {
+            builder
+                .Append("global::System.Linq.Enumerable.ToDictionary(")
+                .Append(sourceExpression)
+                .Append(", ")
+                .Append(itemName)
+                .Append(" => ")
+                .Append(itemName)
+                .Append(".Key, ")
+                .Append(itemName)
+                .Append(" => ");
+
+            WriteElementExpression(builder, nested, itemName + ".Value", isExpressionTree, mapperClass, depth);
+            builder.Append(suppress).Append(")");
+            return;
+        }
+
+        var prefix = nested.CollectionKind == CollectionKind.HashSet
+            ? "new global::System.Collections.Generic.HashSet<" + nested.ElementDestinationType + ">("
+            : string.Empty;
+
+        builder
+            .Append(prefix)
+            .Append("global::System.Linq.Enumerable.Select(")
+            .Append(sourceExpression)
+            .Append(", ")
+            .Append(itemName)
+            .Append(" => ");
+
+        WriteElementExpression(builder, nested, itemName, isExpressionTree, mapperClass, depth);
+        builder.Append(suppress).Append(")");
+
+        if (nested.CollectionKind == CollectionKind.HashSet)
+            builder.Append(")");
+        else if (nested.CollectionKind == CollectionKind.Array)
+            builder.Append(".ToArray()");
+        else
+            builder.Append(".ToList()");
+    }
+
+    /// <summary>
+    /// Emits the clone expression for a single collection element.
+    /// </summary>
+    private static void WriteElementExpression(
+        IndentedStringBuilder builder,
+        NestedMapping nested,
+        string elementExpression,
+        bool isExpressionTree,
+        MapperClass mapperClass,
+        int depth)
+    {
+        if (!isExpressionTree)
+        {
+            builder.Append(nested.ElementMethodName).Append("(").Append(elementExpression).Append(")");
+            return;
+        }
+
+        var element = FindNestedMapping(mapperClass, nested.ElementMethodName);
+        if (element == null)
+        {
+            builder.Append(elementExpression);
+            return;
+        }
+
+        WriteInlineComplexExpression(builder, mapperClass, element, elementExpression, depth + 1);
+    }
+
+    /// <summary>
+    /// Emits an inline, expression-tree compatible clone of a nested object:
+    /// <c>value == null ? null : new TDest { ... }</c>.
+    /// </summary>
+    private static void WriteInlineComplexExpression(
+        IndentedStringBuilder builder,
+        MapperClass mapperClass,
+        NestedMapping nested,
+        string valueExpression,
+        int depth)
+    {
+        builder
+            .Append(valueExpression)
+            .Append(" == null ? null : ");
+
+        var properties = nested.Properties.AsArray();
+        var ctorParams = nested.ConstructorParameters.AsArray();
+
+        if (ctorParams.Length > 0)
+            WriteConstructorCreation(builder, mapperClass, nested.DestinationType, properties, ctorParams, valueExpression, isExpressionTree: true, depth);
+        else
+            WriteInitializerCreation(builder, mapperClass, nested.DestinationType, properties, valueExpression, isExpressionTree: true, depth);
+    }
+
+    /// <summary>
+    /// Finds a nested helper model by method name.
+    /// </summary>
+    private static NestedMapping? FindNestedMapping(MapperClass mapperClass, string methodName)
+    {
+        foreach (var nested in mapperClass.NestedMappings)
+        {
+            if (string.Equals(nested.MethodName, methodName, StringComparison.Ordinal))
+                return nested;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Writes the value expression for a configured nested property, wrapping the source access with
+    /// a helper call (in-memory) or an inline clone (expression tree).
+    /// </summary>
+    private static void WriteNestedExpression(
+        IndentedStringBuilder builder,
+        MapperClass mapperClass,
+        string parameterName,
+        PropertyMapping property,
+        bool isExpressionTree,
+        int depth)
+    {
+        var nested = FindNestedMapping(mapperClass, property.NestedMethodName);
+        var direct = property with { Kind = MappingKind.Direct, NestedMethodName = string.Empty, IsDestinationNullable = true };
+
+        if (nested == null || (isExpressionTree && nested.Kind == MappingKind.Dictionary))
+        {
+            var fallback = property with { Kind = MappingKind.Direct, NestedMethodName = string.Empty };
+            WriteSourceExpression(builder, mapperClass, parameterName, fallback, isExpressionTree, depth);
+            return;
+        }
+
+        var valueBuilder = new IndentedStringBuilder();
+        WriteSourceExpression(valueBuilder, mapperClass, parameterName, direct, isExpressionTree, depth);
+        var valueExpression = valueBuilder.ToString();
+
+        if (!isExpressionTree)
+        {
+            builder.Append(property.NestedMethodName).Append("(").Append(valueExpression).Append(")");
+            if (!property.IsDestinationNullable)
+                builder.Append("!");
+            return;
+        }
+
+        builder.Append("(");
+
+        if (nested.Kind == MappingKind.Complex)
+        {
+            WriteInlineComplexExpression(builder, mapperClass, nested, "(" + valueExpression + ")", depth);
+        }
+        else
+        {
+            builder
+                .Append("(")
+                .Append(valueExpression)
+                .Append(") == null ? null : ");
+
+            var itemName = "item" + depth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            WriteCollectionExpression(builder, nested, "(" + valueExpression + ")", itemName, isExpressionTree: true, mapperClass, depth);
+        }
+
+        builder.Append(")");
+        if (!property.IsDestinationNullable)
+            builder.Append("!");
     }
 
 
@@ -498,11 +639,19 @@ public static class MapperWriter
     /// </summary>
     private static void WriteSourceExpression(
         IndentedStringBuilder builder,
+        MapperClass mapperClass,
         string parameterName,
         PropertyMapping property,
-        bool isExpressionTree)
+        bool isExpressionTree,
+        int depth = 0)
     {
-        // raw expression mode: emit directly with parameter substitution
+        if (property.Kind != MappingKind.Direct && !string.IsNullOrEmpty(property.NestedMethodName))
+        {
+            WriteNestedExpression(builder, mapperClass, parameterName, property, isExpressionTree, depth);
+            return;
+        }
+
+        // raw expression mode
         if (!string.IsNullOrEmpty(property.SourceExpression))
         {
             WriteRawExpression(builder, parameterName, property);

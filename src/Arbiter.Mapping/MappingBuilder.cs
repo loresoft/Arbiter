@@ -25,4 +25,36 @@ public class MappingBuilder<TSource, TDestination>
     {
         return new PropertyBuilder<TSource, TDestination, TMember>(destinationMember);
     }
+
+    /// <summary>
+    /// Opts a nested type pair into deep clone mapping.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Wherever a property of type <typeparamref name="TNestedSource"/> is mapped to a property of type
+    /// <typeparamref name="TNestedDestination"/> (at any depth, including collection elements and dictionary values),
+    /// the generator emits a new destination instance instead of copying the reference.
+    /// </para>
+    /// <para>
+    /// Nested types that are not configured are assigned directly (reference copy).
+    /// When <paramref name="configure"/> is omitted, properties are matched by name.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="TNestedSource">The nested source type.</typeparam>
+    /// <typeparam name="TNestedDestination">The nested destination type.</typeparam>
+    /// <param name="configure">Optional configuration for the nested mapping.</param>
+    /// <returns>The current <see cref="MappingBuilder{TSource, TDestination}"/> for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// mapping.Map&lt;AddressEntity, AddressModel&gt;(address =>
+    /// {
+    ///     address.Property(d => d.Zip).From(s => s.PostalCode);
+    /// });
+    /// </code>
+    /// </example>
+    public MappingBuilder<TSource, TDestination> Map<TNestedSource, TNestedDestination>(
+        Action<MappingBuilder<TNestedSource, TNestedDestination>>? configure = null)
+    {
+        return this;
+    }
 }

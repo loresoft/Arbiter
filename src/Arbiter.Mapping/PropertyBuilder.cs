@@ -73,4 +73,21 @@ public class PropertyBuilder<TSource, TDestination, TMember>
     {
         IsIgnored = true;
     }
+
+    /// <summary>
+    /// Configures the destination property to be deep cloned from a nested source type.
+    /// </summary>
+    /// <remarks>
+    /// For collection and dictionary properties, <typeparamref name="TNestedSource"/> and
+    /// <typeparamref name="TNestedDestination"/> are the element (or value) types.
+    /// This configuration overrides any type-level
+    /// <see cref="MappingBuilder{TSource, TDestination}.Map{TNestedSource, TNestedDestination}"/> for this property only.
+    /// </remarks>
+    /// <typeparam name="TNestedSource">The nested source type.</typeparam>
+    /// <typeparam name="TNestedDestination">The nested destination type.</typeparam>
+    /// <param name="configure">Optional configuration for the nested mapping.</param>
+    public void MapWith<TNestedSource, TNestedDestination>(
+        Action<MappingBuilder<TNestedSource, TNestedDestination>>? configure = null)
+    {
+    }
 }
