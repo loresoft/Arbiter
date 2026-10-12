@@ -15,7 +15,7 @@ namespace Arbiter.Services;
 /// </summary>
 /// <remarks>
 /// Identifiers are stored inline (no heap allocation) as up to 32 ASCII characters.
-/// Generation requires platform support for SHA3-512; see <see cref="IsSupported"/>.
+/// Uses the platform SHA3-512 when available, otherwise a managed implementation (e.g. WebAssembly).
 /// </remarks>
 [StructLayout(LayoutKind.Sequential)]
 [SuppressMessage("Design", "MA0097:A class that implements IComparable<T> or IComparable should override comparison operators", Justification = "Cuid2 is not k-sortable; relational operators would imply chronological ordering.")]
@@ -63,8 +63,11 @@ public readonly struct Cuid2
     /// <summary>An empty (default) identifier.</summary>
     public static Cuid2 Empty => default;
 
-    /// <summary>Gets a value indicating whether Cuid2 generation (SHA3-512) is supported on the current platform.</summary>
-    public static bool IsSupported => SHA3_512.IsSupported;
+    /// <summary>
+    /// Gets a value indicating whether Cuid2 generation is supported on the current platform.
+    /// Always <see langword="true"/>; a managed SHA3-512 is used when the platform lacks native support.
+    /// </summary>
+    public static bool IsSupported => true;
 
 
     /// <summary>Gets the number of characters in this identifier.</summary>
@@ -76,19 +79,16 @@ public readonly struct Cuid2
 
     /// <summary>Creates a new identifier with the <see cref="DefaultLength"/>.</summary>
     /// <returns>A new <see cref="Cuid2"/>.</returns>
-    /// <exception cref="PlatformNotSupportedException">SHA3-512 is not supported on this platform.</exception>
     public static Cuid2 NewCuid() => NewCuid(DefaultLength);
 
     /// <summary>Creates a new identifier with the specified length.</summary>
     /// <param name="length">The identifier length, between <see cref="MinLength"/> and <see cref="MaxLength"/>.</param>
     /// <returns>A new <see cref="Cuid2"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="length"/> is out of range.</exception>
-    /// <exception cref="PlatformNotSupportedException">SHA3-512 is not supported on this platform.</exception>
     public static Cuid2 NewCuid(int length)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(length, MinLength);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(length, MaxLength);
-        EnsureSupported();
 
         var fingerprint = GetFingerprint();
 
@@ -364,10 +364,11 @@ public readonly struct Cuid2
     /// <returns>The number of ASCII characters written.</returns>
     internal static int Hash(ReadOnlySpan<byte> input, Span<byte> destination)
     {
-        EnsureSupported();
-
-        Span<byte> digest = stackalloc byte[SHA3_512.HashSizeInBytes];
-        SHA3_512.HashData(input, digest);
+        Span<byte> digest = stackalloc byte[Sha3512.HashSizeInBytes];
+        if (SHA3_512.IsSupported)
+            SHA3_512.HashData(input, digest);
+        else
+            Sha3512.HashData(input, digest);
 
         Span<byte> encoded = stackalloc byte[HashBase36Capacity];
         int length = EncodeBase36(digest, encoded);
@@ -509,16 +510,6 @@ public readonly struct Cuid2
 
         return hash[..MaxLength].ToArray();
     }
-
-    private static void EnsureSupported()
-    {
-        if (!SHA3_512.IsSupported)
-            ThrowNotSupported();
-    }
-
-    [DoesNotReturn]
-    private static void ThrowNotSupported()
-        => throw new PlatformNotSupportedException("Cuid2 requires SHA3-512, which is not supported on this platform.");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsLower(byte b) => (uint)(b - 'a') <= 'z' - 'a';

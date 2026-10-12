@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 
+using Arbiter.Services;
+
 namespace Arbiter.CommandQuery.Extensions;
 
 /// <summary>
@@ -64,6 +66,24 @@ public static class GuidExtensions
         }
 #endif
 
+        /// <summary>
+        /// Converts a Base62 encoded string back to a <see cref="Guid"/>.
+        /// </summary>
+        /// <param name="value">The Base62 encoded string to decode.</param>
+        /// <returns>The decoded <see cref="Guid"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+        /// <exception cref="FormatException"><paramref name="value"/> is not a valid Base62 encoded <see cref="Guid"/>.</exception>
+        public static Guid FromBase62(string value)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            var bytes = Base62.DecodeFromChars(value);
+            if (bytes.Length != 16)
+                throw new FormatException("The value is not a valid Base62 encoded Guid.");
+
+            return new(bytes);
+        }
+
     }
 
     extension(Guid id)
@@ -124,6 +144,18 @@ public static class GuidExtensions
             src.WriteFromSqlByteOrder(dst);
 
             return new(dst);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Guid"/> to a Base62 encoded string.
+        /// </summary>
+        /// <returns>The Base62 encoded string representation of the <see cref="Guid"/>.</returns>
+        public string ToBase62()
+        {
+            Span<byte> bytes = stackalloc byte[16];
+            id.TryWriteBytes(bytes);
+
+            return Base62.EncodeToString(bytes);
         }
 
     }
