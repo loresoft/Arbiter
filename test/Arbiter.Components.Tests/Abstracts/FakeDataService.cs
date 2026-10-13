@@ -47,6 +47,10 @@ internal sealed class FakeDataService : IDispatcherDataService
     /// </summary>
     public List<object?> RequestedIds { get; } = [];
 
+    public List<Type> RequestedKeyTypes { get; } = [];
+
+    public List<TimeSpan?> RequestedCacheTimes { get; } = [];
+
     /// <summary>
     /// Gets or sets the model returned by <see cref="Save{TKey, TUpdateModel, TReadModel}"/>.
     /// </summary>
@@ -62,9 +66,14 @@ internal sealed class FakeDataService : IDispatcherDataService
     /// </summary>
     public List<object?> SavedModels { get; } = [];
 
+    /// <summary>
+    /// Gets or sets a task that <see cref="Page{TModel}"/> awaits before returning, used to hold a load open.
+    /// </summary>
+    public Task? PageDelay { get; set; }
+
     public IDispatcher Dispatcher => throw new NotSupportedException();
 
-    public ValueTask<EntityPagedResult<TModel>> Page<TModel>(
+    public async ValueTask<EntityPagedResult<TModel>> Page<TModel>(
         EntityQuery? entityQuery = null,
         TimeSpan? cacheTime = null,
         CancellationToken cancellationToken = default)
@@ -72,13 +81,15 @@ internal sealed class FakeDataService : IDispatcherDataService
     {
         PageQueries.Add(entityQuery);
 
+        if (PageDelay != null)
+            await PageDelay;
+
         cancellationToken.ThrowIfCancellationRequested();
 
         if (PageException != null)
             throw PageException;
 
-        var result = PageResult as EntityPagedResult<TModel> ?? new EntityPagedResult<TModel>();
-        return ValueTask.FromResult(result);
+        return PageResult as EntityPagedResult<TModel> ?? new EntityPagedResult<TModel>();
     }
 
     public ValueTask<TReadModel?> Delete<TKey, TReadModel>(
@@ -98,6 +109,8 @@ internal sealed class FakeDataService : IDispatcherDataService
         where TModel : class
     {
         RequestedIds.Add(id);
+        RequestedKeyTypes.Add(typeof(TKey));
+        RequestedCacheTimes.Add(cacheTime);
 
         cancellationToken.ThrowIfCancellationRequested();
 

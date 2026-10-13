@@ -13,7 +13,6 @@ using Microsoft.Extensions.Options;
 
 namespace Arbiter.Components;
 
-
 /// <summary>
 /// A select input component that loads its options from entities queried through <see cref="IDispatcherDataService"/>.
 /// </summary>
@@ -26,7 +25,12 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     private string? _loadedSort;
     private bool _hasLoaded;
     private int _loadVersion;
-    private bool _initialized;
+
+    private bool? _hasPermission;
+    private Task? _permissionTask;
+
+    private IReadOnlyDictionary<string, object>? _sourceAttributes;
+    private IReadOnlyDictionary<string, object>? _mergedAttributes;
 
     /// <summary>
     /// Gets or sets the environment options used to provide the default <see cref="CacheTime"/>.
@@ -92,6 +96,25 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     [Parameter]
     public string LoadingText { get; set; } = "Loading...";
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the select is disabled.
+    /// A value of <see langword="true"/>, or a truthy <c>disabled</c> attribute, takes priority over <see cref="PermissionResolver"/>.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets the function used to determine whether the current user has permission to use the select.
+    /// When it returns <see langword="false"/>, the select is disabled.
+    /// </summary>
+    /// <remarks>
+    /// The function is evaluated once and the result is cached for the lifetime of the component. The select is
+    /// disabled while the function is pending, and remains disabled if it throws. When the select is explicitly
+    /// disabled through <see cref="Disabled"/> or a <c>disabled</c> attribute, the check is skipped.
+    /// </remarks>
+    [Parameter]
+    public Func<Task<bool>>? PermissionResolver { get; set; }
+
 
     /// <summary>
     /// Gets or sets the loaded entities used to render the options.
@@ -103,25 +126,26 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// </summary>
     protected bool IsLoading { get; set; }
 
+    /// <summary>
+    /// Gets a value indicating whether the select is disabled, either explicitly through <see cref="Disabled"/> or a
+    /// <c>disabled</c> attribute, or because the permission check has not granted access.
+    /// </summary>
+    protected bool IsDisabled => IsExplicitlyDisabled || _hasPermission != true;
 
-    /// <inheritdoc />
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        // apply the default before parameters are set so an explicit value, including null, takes precedence
-        if (!_initialized)
-        {
-            _initialized = true;
-            CacheTime = EnvironmentOptions.Value.DefaultCacheTime;
-        }
+    private bool IsExplicitlyDisabled => Disabled || IsDisabledAttribute(_sourceAttributes);
 
-        return base.SetParametersAsync(parameters);
-    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
         ChildContent ??= RenderOptions;
+
+        // a new dictionary means the caller supplied the attributes; otherwise keep the last caller supplied source
+        if (!ReferenceEquals(AdditionalAttributes, _mergedAttributes))
+            _sourceAttributes = AdditionalAttributes;
+
+        ApplyDisabledAttribute();
     }
 
     /// <inheritdoc />
@@ -129,6 +153,40 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     {
         await base.OnParametersSetAsync();
 
+        // start loading first so the data load and permission check run concurrently
+        var loadTask = LoadItems();
+
+        // an explicit disable wins, and a resolved permission is cached for the component lifetime
+        if (!IsExplicitlyDisabled && !_hasPermission.HasValue)
+        {
+            // reuse the in-flight check so parameter updates while the resolver is pending don't invoke it again
+            _permissionTask ??= ResolvePermission();
+            await _permissionTask;
+
+            // apply the permission as soon as it resolves rather than waiting for the load to finish
+            ApplyDisabledAttribute();
+            StateHasChanged();
+        }
+
+        await loadTask;
+    }
+
+    /// <summary>
+    /// Determines whether the current user has permission to use the select.
+    /// </summary>
+    /// <returns>
+    /// The result of <see cref="PermissionResolver"/>, or <see langword="true"/> when no resolver is set.
+    /// </returns>
+    protected virtual Task<bool> HasPermission()
+    {
+        if (PermissionResolver is null)
+            return Task.FromResult(true);
+
+        return PermissionResolver();
+    }
+
+    private async Task LoadItems()
+    {
         var changed = !_hasLoaded
             || !Equals(_loadedFilter, Filter)
             || !string.Equals(_loadedSort, Sort, StringComparison.Ordinal);
@@ -164,7 +222,8 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
             var query = new EntityQuery { Filter = Filter };
             query.AddSort(Sort ?? TModel.SortField());
 
-            var result = await DataService.Page<TModel>(query, CacheTime);
+            var cacheTime = CacheTime ?? EnvironmentOptions.Value.DefaultCacheTime;
+            var result = await DataService.Page<TModel>(query, cacheTime);
 
             return result?.Data ?? [];
         }
@@ -203,6 +262,61 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
         }
     }
 
+
+    private async Task ResolvePermission()
+    {
+        try
+        {
+            _hasPermission = await HasPermission();
+        }
+        catch (Exception ex)
+        {
+            _hasPermission = false;
+            Notification.ShowError(ex);
+        }
+    }
+
+    private void ApplyDisabledAttribute()
+    {
+        var attributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+        if (_sourceAttributes != null)
+        {
+            foreach (var attribute in _sourceAttributes)
+            {
+                if (!string.Equals(attribute.Key, "disabled", StringComparison.OrdinalIgnoreCase))
+                    attributes[attribute.Key] = attribute.Value;
+            }
+        }
+
+        if (IsDisabled)
+            attributes["disabled"] = true;
+
+        _mergedAttributes = attributes;
+        AdditionalAttributes = attributes;
+    }
+
+    private static bool IsDisabledAttribute(IReadOnlyDictionary<string, object>? attributes)
+    {
+        if (attributes is null)
+            return false;
+
+        foreach (var attribute in attributes)
+        {
+            if (!string.Equals(attribute.Key, "disabled", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            return attribute.Value switch
+            {
+                null => false,
+                bool value => value,
+                string value => !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase),
+                _ => true,
+            };
+        }
+
+        return false;
+    }
 
     private string ConvertText(TModel model)
     {

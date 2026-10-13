@@ -154,6 +154,23 @@ Inputs bind directly to `Model`. Related entities can be selected with a compone
 <ValidationMessage For="@(() => Model.TenantId)" />
 ```
 
+`EntityTypeahead<TItem, TValue>` also supports nullable foreign keys, such as `TValue="int?"`.
+Identifier lookups use the underlying key type (`int` in this example), so no nullable-key
+handler registration or separate `TKey` component parameter is needed. A `null` value
+does not issue a lookup.
+
+### Permission-based disabled state
+
+`EntitySelect` and `EntityTypeahead` accept a `PermissionResolver` (`Func<Task<bool>>`) that returns `true` when the current user may change the value. When it returns `false`, the control is disabled. The resolver is evaluated once and cached for the component's lifetime; the control stays disabled while it is pending and if it throws (the error is shown through `INotificationService`). An explicit `Disabled="true"` (or a `disabled` attribute on `EntitySelect`) takes priority and skips the check. Derived components can override the protected `HasPermission()` method instead of supplying a resolver.
+
+```razor
+<EntitySelect TModel="TenantReadModel"
+              TValue="int"
+              @bind-Value="Model!.TenantId"
+              PermissionResolver="@(() => HasPolicy("TenantAdministrator"))"
+              class="form-select" />
+```
+
 ## Post-save navigation
 
 Override `GetRedirectLocation(RedirectReason reason, TKey id)` to route the user after a create, delete, or cancel. A common pattern navigates to the edit page for a newly created record (so the generated key is in the URL) and back to the list for all other reasons:

@@ -60,6 +60,5 @@ public class EnvironmentOptions
     /// <summary>
     /// Gets or sets the default amount of time cached items are retained.
     /// </summary>
-    /// <value>Defaults to 5 minutes.</value>
-    public TimeSpan DefaultCacheTime { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan? DefaultCacheTime { get; set; } = TimeSpan.FromMinutes(5);
 }
