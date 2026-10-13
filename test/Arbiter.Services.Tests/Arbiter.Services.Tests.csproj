@@ -13,7 +13,6 @@
     <PackageReference Include="Bogus" />
     <PackageReference Include="Rocks" />
     <PackageReference Include="TUnit" />
-    <PackageReference Include="Verify.TUnit" />
   </ItemGroup>
 
   <ItemGroup>
