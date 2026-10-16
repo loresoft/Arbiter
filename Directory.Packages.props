@@ -87,7 +87,7 @@
     <PackageVersion Include="TUnit" Version="1.75.0" />
     <PackageVersion Include="Twilio" Version="8.1.0" />
     <PackageVersion Include="Ulid" Version="1.4.1" />
-    <PackageVersion Include="Verify.TUnit" Version="33.3.3" />
+    <PackageVersion Include="Verify.TUnit" Version="33.3.4" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
   <!-- TFM-specific overrides -->
