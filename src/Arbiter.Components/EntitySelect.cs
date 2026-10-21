@@ -51,6 +51,12 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     public required IDispatcherDataService DataService { get; set; }
 
     /// <summary>
+    /// Gets or sets the service used to check permission when <see cref="PermissionResolver"/> is not set.
+    /// </summary>
+    [Inject]
+    public required IPermissionResolver PermissionService { get; set; }
+
+    /// <summary>
     /// Gets or sets the function used to get the option value for an entity.
     /// When not set, the entity identifier is formatted using the current culture.
     /// </summary>
@@ -108,12 +114,41 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// When it returns <see langword="false"/>, the select is disabled.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The function is evaluated once and the result is cached for the lifetime of the component. The select is
     /// disabled while the function is pending, and remains disabled if it throws. When the select is explicitly
     /// disabled through <see cref="Disabled"/> or a <c>disabled</c> attribute, the check is skipped.
+    /// </para>
+    /// <para>
+    /// When not set, the registered <see cref="IPermissionResolver"/> is used, if any.
+    /// </para>
     /// </remarks>
     [Parameter]
     public Func<Task<bool>>? PermissionResolver { get; set; }
+
+    /// <summary>
+    /// Gets or sets the subject passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to the type name of the cascading <see cref="EditContext"/> model.
+    /// </summary>
+    /// <remarks>
+    /// When there is no subject, the permission check is skipped and access is granted.
+    /// </remarks>
+    [Parameter]
+    public string? Subject { get; set; }
+
+    /// <summary>
+    /// Gets or sets the field passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to the name of the bound field.
+    /// </summary>
+    [Parameter]
+    public string? Field { get; set; }
+
+    /// <summary>
+    /// Gets or sets the action passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to <c>update</c>.
+    /// </summary>
+    [Parameter]
+    public string? Action { get; set; }
 
 
     /// <summary>
@@ -175,14 +210,25 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// Determines whether the current user has permission to use the select.
     /// </summary>
     /// <returns>
-    /// The result of <see cref="PermissionResolver"/>, or <see langword="true"/> when no resolver is set.
+    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the registered
+    /// <see cref="IPermissionResolver"/>, which grants access unless a resolver has been registered.
     /// </returns>
-    protected virtual Task<bool> HasPermission()
+    protected virtual async Task<bool> HasPermission()
     {
-        if (PermissionResolver is null)
-            return Task.FromResult(true);
+        if (PermissionResolver is not null)
+            return await PermissionResolver();
 
-        return PermissionResolver();
+        var subject = Subject ?? EditContext?.Model.GetType().Name;
+        if (string.IsNullOrWhiteSpace(subject))
+            return true;
+
+        var action = Action ?? "update";
+        var field = Field;
+
+        if (field is null && !FieldIdentifier.Equals(default))
+            field = FieldIdentifier.FieldName;
+
+        return await PermissionService.HasPermission(action, subject, field);
     }
 
     private async Task LoadItems()
@@ -317,6 +363,7 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
 
         return false;
     }
+
 
     private string ConvertText(TModel model)
     {

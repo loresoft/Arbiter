@@ -82,6 +82,65 @@ public class ComponentServiceExtensionsTests
     }
 
     [Test]
+    public async Task AddArbiterComponentsRegistersAnAllowAllPermissionResolverAsScoped()
+    {
+        var services = new ServiceCollection();
+
+        services.AddArbiterComponents();
+
+        var descriptor = services.Single(d => d.ServiceType == typeof(IPermissionResolver));
+        await Assert.That(descriptor.ImplementationType).IsEqualTo(typeof(DefaultPermissionResolver));
+        await Assert.That(descriptor.Lifetime).IsEqualTo(ServiceLifetime.Scoped);
+    }
+
+    [Test]
+    public async Task AddArbiterComponentsKeepsAPermissionResolverRegisteredBeforeIt()
+    {
+        var services = new ServiceCollection();
+        services.AddPermissionResolver<SecondPermissionResolver>();
+
+        services.AddArbiterComponents();
+
+        var descriptor = services.Single(d => d.ServiceType == typeof(IPermissionResolver));
+        await Assert.That(descriptor.ImplementationType).IsEqualTo(typeof(SecondPermissionResolver));
+    }
+
+    [Test]
+    public async Task AddPermissionResolverReplacesTheDefaultRegisteredAfterIt()
+    {
+        var services = new ServiceCollection();
+        services.AddArbiterComponents();
+
+        services.AddPermissionResolver<SecondPermissionResolver>();
+
+        var descriptor = services.Single(d => d.ServiceType == typeof(IPermissionResolver));
+        await Assert.That(descriptor.ImplementationType).IsEqualTo(typeof(SecondPermissionResolver));
+    }
+
+    [Test]
+    public async Task AddPermissionResolverRegistersTheResolverAsScopedAndReplacesExisting()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IPermissionResolver, FirstPermissionResolver>();
+
+        services.AddPermissionResolver<SecondPermissionResolver>();
+
+        var descriptor = services.Single(d => d.ServiceType == typeof(IPermissionResolver));
+        await Assert.That(descriptor.ImplementationType).IsEqualTo(typeof(SecondPermissionResolver));
+        await Assert.That(descriptor.Lifetime).IsEqualTo(ServiceLifetime.Scoped);
+    }
+
+    private sealed class FirstPermissionResolver : IPermissionResolver
+    {
+        public ValueTask<bool> HasPermission(string action, string subject, string? field) => ValueTask.FromResult(true);
+    }
+
+    private sealed class SecondPermissionResolver : IPermissionResolver
+    {
+        public ValueTask<bool> HasPermission(string action, string subject, string? field) => ValueTask.FromResult(true);
+    }
+
+    [Test]
     public async Task AddArbiterComponentsReturnsTheServiceCollection()
     {
         var services = new ServiceCollection();

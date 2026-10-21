@@ -171,6 +171,50 @@ does not issue a lookup.
               class="form-select" />
 ```
 
+#### Registering a shared resolver
+
+Supplying a `PermissionResolver` on every control is repetitive. Instead, implement `IPermissionResolver` once and register it; `EntitySelect` and `EntityTypeahead` then call it automatically when no `PermissionResolver` parameter is set.
+
+```csharp
+public interface IPermissionResolver
+{
+    ValueTask<bool> HasPermission(string action, string subject, string? field);
+}
+```
+
+The controls supply the arguments, which can be overridden with parameters:
+
+| Argument  | Default                                                  | Parameter |
+| :-------- | :------------------------------------------------------- | :-------- |
+| `action`  | `update`                                                 | `Action`  |
+| `subject` | The type name of the `EditContext` model                 | `Subject` |
+| `field`   | The name of the field bound through `@bind-Value`        | `Field`   |
+
+When there is no subject (no `EditContext` and no `Subject` parameter), the check is skipped and access is granted.
+
+The resolver is injected into each component, so it can depend on scoped services. `AddArbiterComponents` registers a default that allows everything, and `AddPermissionResolver` replaces it regardless of call order. The same caching and error rules apply as for the `PermissionResolver` parameter. A `PermissionResolver` parameter takes priority over the registered service.
+
+An implementation backed by [Privileged](https://github.com/loresoft/Privileged)'s `PrivilegeService`:
+
+```csharp
+public class PrivilegePermissionResolver(PrivilegeService privilegeService) : IPermissionResolver
+{
+    public async ValueTask<bool> HasPermission(string action, string subject, string? field)
+        => await privilegeService.Allowed(action, subject, field);
+}
+```
+
+```csharp
+builder.Services.AddPrivilegeComponents<MyPrivilegeContextProvider>();
+builder.Services.AddPermissionResolver<PrivilegePermissionResolver>();
+```
+
+The controls are then disabled according to the user's privileges with no extra markup:
+
+```razor
+<EntitySelect TModel="TenantReadModel" TValue="int" @bind-Value="Model!.TenantId" class="form-select" />
+```
+
 ## Post-save navigation
 
 Override `GetRedirectLocation(RedirectReason reason, TKey id)` to route the user after a create, delete, or cancel. A common pattern navigates to the edit page for a newly created record (so the generated key is in the URL) and back to the list for all other reasons:

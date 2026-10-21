@@ -11,6 +11,7 @@ using Arbiter.Dispatcher;
 using LoreSoft.Blazor.Controls;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Components;
@@ -59,6 +60,12 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
     public required IDispatcherDataService DataService { get; set; }
 
     /// <summary>
+    /// Gets or sets the service used to check permission when <see cref="PermissionResolver"/> is not set.
+    /// </summary>
+    [Inject]
+    public required IPermissionResolver PermissionService { get; set; }
+
+    /// <summary>
     /// Gets or sets the environment options used to provide the default <see cref="CacheTime"/>.
     /// </summary>
     [Inject]
@@ -94,12 +101,41 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
     /// When it returns <see langword="false"/>, the control is disabled.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The function is evaluated once and the result is cached for the lifetime of the component. The control is
     /// disabled while the function is pending, and remains disabled if it throws. An explicit
     /// <see cref="Typeahead{TItem, TValue}.Disabled"/> value of <see langword="true"/> takes priority and skips the check.
+    /// </para>
+    /// <para>
+    /// When not set, the registered <see cref="IPermissionResolver"/> is used, if any.
+    /// </para>
     /// </remarks>
     [Parameter]
     public Func<Task<bool>>? PermissionResolver { get; set; }
+
+    /// <summary>
+    /// Gets or sets the subject passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to the type name of the cascading <see cref="Microsoft.AspNetCore.Components.Forms.EditContext"/> model.
+    /// </summary>
+    /// <remarks>
+    /// When there is no subject, the permission check is skipped and access is granted.
+    /// </remarks>
+    [Parameter]
+    public string? Subject { get; set; }
+
+    /// <summary>
+    /// Gets or sets the field passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to the name of the bound field.
+    /// </summary>
+    [Parameter]
+    public string? Field { get; set; }
+
+    /// <summary>
+    /// Gets or sets the action passed to the registered <see cref="IPermissionResolver"/>.
+    /// Defaults to <c>update</c>.
+    /// </summary>
+    [Parameter]
+    public string? Action { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the control is disabled, either explicitly through
@@ -147,14 +183,25 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
     /// Determines whether the current user has permission to use the control.
     /// </summary>
     /// <returns>
-    /// The result of <see cref="PermissionResolver"/>, or <see langword="true"/> when no resolver is set.
+    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the registered
+    /// <see cref="IPermissionResolver"/>, which grants access unless a resolver has been registered.
     /// </returns>
-    protected virtual Task<bool> HasPermission()
+    protected virtual async Task<bool> HasPermission()
     {
-        if (PermissionResolver is null)
-            return Task.FromResult(true);
+        if (PermissionResolver is not null)
+            return await PermissionResolver();
 
-        return PermissionResolver();
+        var subject = Subject ?? EditContext?.Model.GetType().Name;
+        if (string.IsNullOrWhiteSpace(subject))
+            return true;
+
+        var action = Action ?? "update";
+        var field = Field;
+
+        if (field is null && !FieldIdentifier.Equals(default))
+            field = FieldIdentifier.FieldName;
+
+        return await PermissionService.HasPermission(action, subject, field);
     }
 
     /// <summary>

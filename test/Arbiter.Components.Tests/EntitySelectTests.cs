@@ -193,6 +193,64 @@ public class EntitySelectTests
         await Assert.That(cut.Find("select").HasAttribute("disabled")).IsTrue();
     }
 
+    [Test]
+    public async Task IsDisabledWhenTheRegisteredResolverDeniesAccess()
+    {
+        var resolver = new FakePermissionResolver { Result = Task.FromResult(false) };
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderSelect(context, p => p.Add(x => x.Action, "assign"));
+
+        var request = resolver.Requests.Single();
+        await Assert.That(cut.Find("select").HasAttribute("disabled")).IsTrue();
+        await Assert.That(request.Action).IsEqualTo("assign");
+        await Assert.That(request.Subject).IsEqualTo(nameof(TenantHolder));
+        await Assert.That(request.Field).IsEqualTo(nameof(TenantHolder.TenantId));
+    }
+
+    [Test]
+    public async Task RegisteredResolverUsesUpdateAndExplicitSubjectAndField()
+    {
+        var resolver = new FakePermissionResolver();
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        RenderSelect(context, p => p
+            .Add(x => x.Subject, "Tenant")
+            .Add(x => x.Field, "Owner"));
+
+        var request = resolver.Requests.Single();
+        await Assert.That(request.Action).IsEqualTo("update");
+        await Assert.That(request.Subject).IsEqualTo("Tenant");
+        await Assert.That(request.Field).IsEqualTo("Owner");
+    }
+
+    [Test]
+    public async Task IsEnabledWhenTheRegisteredResolverGrantsAccess()
+    {
+        var resolver = new FakePermissionResolver();
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderSelect(context);
+
+        await Assert.That(cut.Find("select").HasAttribute("disabled")).IsFalse();
+    }
+
+    [Test]
+    public async Task PermissionResolverParameterTakesPriorityOverTheRegisteredResolver()
+    {
+        var resolver = new FakePermissionResolver { Result = Task.FromResult(false) };
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderSelect(context, p => p.Add(x => x.PermissionResolver, () => Task.FromResult(true)));
+
+        await Assert.That(cut.Find("select").HasAttribute("disabled")).IsFalse();
+        await Assert.That(resolver.Requests.Count).IsEqualTo(0);
+    }
+
     private static IRenderedComponent<EntitySelect<TenantModel, int>> RenderSelect(
         BunitContext context,
         Action<ComponentParameterCollectionBuilder<EntitySelect<TenantModel, int>>>? configure = null)
@@ -219,6 +277,7 @@ public class EntitySelectTests
         context.Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         context.Services.AddSingleton<IToaster>(toasterInstance);
         context.Services.AddSingleton<INotificationService, NotificationService>();
+        context.Services.AddSingleton<IPermissionResolver, DefaultPermissionResolver>();
         context.Services.AddSingleton<Arbiter.Dispatcher.IDispatcherDataService>(dataServiceInstance);
         context.Services.AddSingleton(options);
 

@@ -276,6 +276,49 @@ public class EntityTypeaheadTests
         await Assert.That(cut.Instance.Disabled).IsFalse();
     }
 
+    [Test]
+    public async Task IsDisabledWhenTheRegisteredResolverDeniesAccess()
+    {
+        var resolver = new FakePermissionResolver { Result = Task.FromResult(false) };
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderTypeahead(context, p => p
+            .Add(x => x.Subject, "Tenant")
+            .Add(x => x.Field, "TenantId"));
+
+        var request = resolver.Requests.Single();
+        await Assert.That(cut.Instance.Disabled).IsTrue();
+        await Assert.That(request.Action).IsEqualTo("update");
+        await Assert.That(request.Subject).IsEqualTo("Tenant");
+        await Assert.That(request.Field).IsEqualTo("TenantId");
+    }
+
+    [Test]
+    public async Task IsEnabledWhenTheRegisteredResolverGrantsAccess()
+    {
+        var resolver = new FakePermissionResolver();
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderTypeahead(context);
+
+        await Assert.That(cut.Instance.Disabled).IsFalse();
+    }
+
+    [Test]
+    public async Task PermissionResolverParameterTakesPriorityOverTheRegisteredResolver()
+    {
+        var resolver = new FakePermissionResolver { Result = Task.FromResult(false) };
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var cut = RenderTypeahead(context, p => p.Add(x => x.PermissionResolver, () => Task.FromResult(true)));
+
+        await Assert.That(cut.Instance.Disabled).IsFalse();
+        await Assert.That(resolver.Requests.Count).IsEqualTo(0);
+    }
+
     private static EntityTypeahead<TenantModel, TValue> CreateTypeahead<TValue>(
         BunitContext context,
         FakeDataService dataService)
@@ -284,6 +327,7 @@ public class EntityTypeaheadTests
         {
             DataService = dataService,
             Notification = context.Services.GetRequiredService<INotificationService>(),
+            PermissionService = context.Services.GetRequiredService<IPermissionResolver>(),
             EnvironmentOptions = context.Services.GetRequiredService<IOptions<EnvironmentOptions>>()
         };
     }
@@ -309,6 +353,7 @@ public class EntityTypeaheadTests
         context.Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         context.Services.AddSingleton<IToaster>(toasterInstance);
         context.Services.AddSingleton<INotificationService, NotificationService>();
+        context.Services.AddSingleton<IPermissionResolver, DefaultPermissionResolver>();
         var dataServiceInstance = dataService ?? new FakeDataService();
         context.Services.AddSingleton<Arbiter.Dispatcher.IDispatcherDataService>(dataServiceInstance);
         context.Services.AddSingleton(options);

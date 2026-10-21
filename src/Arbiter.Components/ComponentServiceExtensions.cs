@@ -38,6 +38,7 @@ public static class ComponentServiceExtensions
     /// <list type="bullet">
     /// <item><description><see cref="INotificationService"/> implemented by <see cref="NotificationService"/> (scoped)</description></item>
     /// <item><description><see cref="IBaseAddressResolver"/> implemented by <see cref="BaseAddressResolver"/> (scoped)</description></item>
+    /// <item><description><see cref="IPermissionResolver"/> implemented by <see cref="DefaultPermissionResolver"/> (scoped); replace it with <see cref="AddPermissionResolver{TResolver}"/></description></item>
     /// <item><description><see cref="IDispatcherDataService"/> implemented by <see cref="PrincipalDataService"/> (transient)</description></item>
     /// </list>
     /// <para>
@@ -75,9 +76,36 @@ public static class ComponentServiceExtensions
 
         services.TryAddScoped<INotificationService, NotificationService>();
         services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
+        services.TryAddScoped<IPermissionResolver, DefaultPermissionResolver>();
 
         // the dispatcher registers a default data service with TryAdd, so replace it to stay order independent
-        services.Replace(ServiceDescriptor.Transient<IDispatcherDataService, PrincipalDataService>());
+        ServiceDescriptor descriptor = ServiceDescriptor.Transient<IDispatcherDataService, PrincipalDataService>();
+        services.Replace(descriptor);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the <see cref="IPermissionResolver"/> used by <see cref="EntitySelect{TModel, TValue}"/> and
+    /// <see cref="EntityTypeahead{TItem, TValue}"/> to disable themselves when the current user lacks permission.
+    /// </summary>
+    /// <typeparam name="TResolver">The <see cref="IPermissionResolver"/> implementation.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="lifetime">The service lifetime of the resolver. Defaults to <see cref="ServiceLifetime.Scoped"/>.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// Any previously registered <see cref="IPermissionResolver"/> is replaced.
+    /// </remarks>
+    public static IServiceCollection AddPermissionResolver<TResolver>(
+        this IServiceCollection services,
+        ServiceLifetime lifetime = ServiceLifetime.Scoped)
+        where TResolver : class, IPermissionResolver
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        ServiceDescriptor descriptor = ServiceDescriptor.Describe(typeof(IPermissionResolver), typeof(TResolver), lifetime);
+        services.Replace(descriptor);
 
         return services;
     }

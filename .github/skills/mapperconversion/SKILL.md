@@ -1,3 +1,8 @@
+---
+name: mapperconversion
+description: MapperConversion
+disable-model-invocation: true
+---
 # Mapper Class Conversion Prompt
 
 Convert the following original Mapper class to the new Mapper pattern using these rules:
