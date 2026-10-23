@@ -107,7 +107,8 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
     /// <see cref="Typeahead{TItem, TValue}.Disabled"/> value of <see langword="true"/> takes priority and skips the check.
     /// </para>
     /// <para>
-    /// When not set, the registered <see cref="IPermissionResolver"/> is used, if any.
+    /// When not set, the injected <see cref="IPermissionResolver"/> is used with the <see cref="Action"/>,
+    /// <see cref="Subject"/> and <see cref="Field"/> values.
     /// </para>
     /// </remarks>
     [Parameter]
@@ -183,8 +184,9 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
     /// Determines whether the current user has permission to use the control.
     /// </summary>
     /// <returns>
-    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the registered
-    /// <see cref="IPermissionResolver"/>, which grants access unless a resolver has been registered.
+    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the injected
+    /// <see cref="IPermissionResolver"/>. Returns <see langword="true"/> without calling the resolver when no
+    /// <see cref="Subject"/> can be determined.
     /// </returns>
     protected virtual async Task<bool> HasPermission()
     {

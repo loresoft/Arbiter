@@ -6,6 +6,17 @@ namespace Arbiter.Health.HealthChecks;
 /// <summary>
 /// Represents a health check that verifies an HTTP endpoint by sending a request to a configured URL.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Requests are sent with an <see cref="HttpClient"/> created from the <see cref="IHttpClientFactory"/> using the
+/// client name <c>nameof(UrlHealthCheck)</c>, so the client can be customized with <c>AddHttpClient</c>. When the
+/// checks are added with <see cref="HealthCheckExtensions.AddUrlCheck(Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder, string, string, HttpMethod?, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus?, IEnumerable{string}?, TimeSpan?)"/>,
+/// the client sends a <c>User-Agent</c> header identifying the probe unless one is configured for the client.
+/// </para>
+/// <para>
+/// Only the response status code is evaluated, so the response body is not read.
+/// </para>
+/// </remarks>
 public sealed class UrlHealthCheck : IHealthCheck
 {
     private readonly string _url;
@@ -42,7 +53,11 @@ public sealed class UrlHealthCheck : IHealthCheck
     /// </summary>
     /// <param name="context">The context associated with the health check execution.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the health check operation.</param>
-    /// <returns>A <see cref="HealthCheckResult"/> that represents the health state of the configured URL.</returns>
+    /// <returns>
+    /// A <see cref="HealthCheckResult"/> that represents the health state of the configured URL. A successful status
+    /// code is healthy, any other status code is unhealthy, and a request failure is reported with the failure status of
+    /// the registration.
+    /// </returns>
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
@@ -52,11 +67,10 @@ public sealed class UrlHealthCheck : IHealthCheck
         try
         {
             using var httpClient = _httpClientFactory.CreateClient(nameof(UrlHealthCheck));
+            using var request = new HttpRequestMessage(_httpMethod, _url);
 
-            var request = new HttpRequestMessage(_httpMethod, _url);
-
-            var response = await httpClient
-                .SendAsync(request, cancellationToken)
+            using var response = await httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)

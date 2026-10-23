@@ -10,6 +10,7 @@ namespace Arbiter.Components.Services;
 public sealed class DefaultPermissionResolver : IPermissionResolver
 {
     /// <inheritdoc />
+    /// <returns>A completed task that resolves to <see langword="true"/>.</returns>
     public ValueTask<bool> HasPermission(string action, string subject, string? field)
         => ValueTask.FromResult(true);
 }

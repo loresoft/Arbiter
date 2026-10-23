@@ -120,7 +120,8 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// disabled through <see cref="Disabled"/> or a <c>disabled</c> attribute, the check is skipped.
     /// </para>
     /// <para>
-    /// When not set, the registered <see cref="IPermissionResolver"/> is used, if any.
+    /// When not set, the injected <see cref="IPermissionResolver"/> is used with the <see cref="Action"/>,
+    /// <see cref="Subject"/> and <see cref="Field"/> values.
     /// </para>
     /// </remarks>
     [Parameter]
@@ -210,8 +211,9 @@ public class EntitySelect<TModel, TValue> : InputSelect<TValue>
     /// Determines whether the current user has permission to use the select.
     /// </summary>
     /// <returns>
-    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the registered
-    /// <see cref="IPermissionResolver"/>, which grants access unless a resolver has been registered.
+    /// The result of <see cref="PermissionResolver"/> when set; otherwise the result of the injected
+    /// <see cref="IPermissionResolver"/>. Returns <see langword="true"/> without calling the resolver when no
+    /// <see cref="Subject"/> can be determined.
     /// </returns>
     protected virtual async Task<bool> HasPermission()
     {

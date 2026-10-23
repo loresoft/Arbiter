@@ -95,7 +95,8 @@ public static class ComponentServiceExtensions
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Any previously registered <see cref="IPermissionResolver"/> is replaced.
+    /// Any previously registered <see cref="IPermissionResolver"/>, including the <see cref="DefaultPermissionResolver"/>
+    /// added by <see cref="AddArbiterComponents"/>, is replaced. The order of the two calls does not matter.
     /// </remarks>
     public static IServiceCollection AddPermissionResolver<TResolver>(
         this IServiceCollection services,

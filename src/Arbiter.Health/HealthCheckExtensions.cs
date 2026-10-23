@@ -7,7 +7,9 @@ using Arbiter.Mediation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Health;
 
@@ -57,6 +59,8 @@ public static class HealthCheckExtensions
         ArgumentNullException.ThrowIfNull(health);
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(url);
+
+        AddUrlCheckClient(health.Services);
 
         // defaults
         httpMethod ??= HttpMethod.Head;
@@ -108,6 +112,8 @@ public static class HealthCheckExtensions
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(urlFactory);
 
+        AddUrlCheckClient(health.Services);
+
         // defaults
         httpMethod ??= HttpMethod.Head;
         failureStatus ??= HealthStatus.Unhealthy;
@@ -134,6 +140,15 @@ public static class HealthCheckExtensions
         health.Add(healthCheckRegistration);
 
         return health;
+    }
+
+    private static void AddUrlCheckClient(IServiceCollection services)
+    {
+        services.AddHttpClient();
+
+        // enumerable add keeps this to a single registration no matter how many URL checks are added
+        ServiceDescriptor descriptor = ServiceDescriptor.Singleton<IConfigureOptions<HttpClientFactoryOptions>, UrlHealthCheckOptions>();
+        services.TryAddEnumerable(descriptor);
     }
 
 }
