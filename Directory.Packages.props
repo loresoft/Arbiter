@@ -59,7 +59,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.11.0" />
-    <PackageVersion Include="Microsoft.Graph" Version="6.8.0" />
+    <PackageVersion Include="Microsoft.Graph" Version="6.9.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.16.1" />
     <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
