@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using Arbiter.CommandQuery.Extensions;
 using Arbiter.Components.Services;
@@ -21,13 +20,11 @@ namespace Arbiter.Components.Abstracts;
 /// and <see cref="ListPageBase{TKey, TReadModel, TListModel}"/>. It does not own a state store; derived pages
 /// declare the store they use and subscribe to its change notifications.
 /// </remarks>
-public abstract partial class ModelComponentBase<TReadModel> : PrincipalComponentBase, IDisposable
+public abstract class ModelComponentBase<TReadModel> : PrincipalComponentBase, IDisposable
     where TReadModel : class
 {
-    [GeneratedRegex(@"^(?<name>\w+)(Read|List|Create|Update|Export)Model$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex ModelTypeRegex();
-    private static readonly string _modelTypeName = ModelTypeRegex().Replace(typeof(TReadModel).Name, "${name}");
-    private static readonly string _modelTypeLabel = _modelTypeName.ToTitle();
+    private static readonly string _modelTypeName = ModelTypeName.GetName<TReadModel>();
+    private static readonly string _modelTypeLabel = ModelTypeName.GetLabel<TReadModel>();
 
     private CancellationTokenSource? _cancellationSource;
     private bool _disposed;

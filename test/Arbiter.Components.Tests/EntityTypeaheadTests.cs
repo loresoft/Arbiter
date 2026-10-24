@@ -7,6 +7,7 @@ using Bunit;
 
 using LoreSoft.Blazor.Controls;
 
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -292,6 +293,26 @@ public class EntityTypeaheadTests
         await Assert.That(request.Action).IsEqualTo("update");
         await Assert.That(request.Subject).IsEqualTo("Tenant");
         await Assert.That(request.Field).IsEqualTo("TenantId");
+    }
+
+    [Test]
+    public async Task RegisteredResolverSubjectRemovesModelSuffix()
+    {
+        var resolver = new FakePermissionResolver();
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var model = new TenantUpdateModel();
+        var editContext = new EditContext(model);
+
+        RenderTypeahead(context, p => p
+            .AddCascadingValue(editContext)
+            .Add(x => x.Value, model.TenantId)
+            .Add(x => x.ValueExpression, () => model.TenantId));
+
+        var request = resolver.Requests.Single();
+        await Assert.That(request.Subject).IsEqualTo("Tenant");
+        await Assert.That(request.Field).IsEqualTo(nameof(TenantUpdateModel.TenantId));
     }
 
     [Test]

@@ -25,3 +25,11 @@ public class TenantHolder
 {
     public int TenantId { get; set; }
 }
+
+/// <summary>
+/// An update model holding the bound value, used to test the default permission subject.
+/// </summary>
+public class TenantUpdateModel
+{
+    public int TenantId { get; set; }
+}

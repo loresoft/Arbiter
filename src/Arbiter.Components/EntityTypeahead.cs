@@ -116,7 +116,9 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
 
     /// <summary>
     /// Gets or sets the subject passed to the registered <see cref="IPermissionResolver"/>.
-    /// Defaults to the type name of the cascading <see cref="Microsoft.AspNetCore.Components.Forms.EditContext"/> model.
+    /// Defaults to the type name of the cascading <see cref="Microsoft.AspNetCore.Components.Forms.EditContext"/> model
+    /// with the <c>Read</c>, <c>List</c>, <c>Create</c>, <c>Update</c> or <c>Export</c> model suffix removed.
+    /// See <see cref="ModelTypeName.GetName(Type?)"/>.
     /// </summary>
     /// <remarks>
     /// When there is no subject, the permission check is skipped and access is granted.
@@ -193,7 +195,7 @@ public class EntityTypeahead<TItem, TValue> : Typeahead<TItem, TValue>
         if (PermissionResolver is not null)
             return await PermissionResolver();
 
-        var subject = Subject ?? EditContext?.Model.GetType().Name;
+        var subject = Subject ?? ModelTypeName.GetName(EditContext?.Model.GetType());
         if (string.IsNullOrWhiteSpace(subject))
             return true;
 

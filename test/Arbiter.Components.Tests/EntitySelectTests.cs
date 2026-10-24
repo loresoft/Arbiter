@@ -227,6 +227,26 @@ public class EntitySelectTests
     }
 
     [Test]
+    public async Task RegisteredResolverSubjectRemovesModelSuffix()
+    {
+        var resolver = new FakePermissionResolver();
+        using var context = CreateContext();
+        context.Services.AddSingleton<IPermissionResolver>(resolver);
+
+        var model = new TenantUpdateModel();
+        var editContext = new EditContext(model);
+
+        context.Render<EntitySelect<TenantModel, int>>(p => p
+            .AddCascadingValue(editContext)
+            .Add(x => x.Value, model.TenantId)
+            .Add(x => x.ValueExpression, () => model.TenantId));
+
+        var request = resolver.Requests.Single();
+        await Assert.That(request.Subject).IsEqualTo("Tenant");
+        await Assert.That(request.Field).IsEqualTo(nameof(TenantUpdateModel.TenantId));
+    }
+
+    [Test]
     public async Task IsEnabledWhenTheRegisteredResolverGrantsAccess()
     {
         var resolver = new FakePermissionResolver();
