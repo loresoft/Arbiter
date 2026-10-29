@@ -84,7 +84,7 @@
     <PackageVersion Include="TestHost.Abstracts" Version="2.0.1" />
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.16.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.16.0" />
-    <PackageVersion Include="TUnit" Version="1.76.28" />
+    <PackageVersion Include="TUnit" Version="1.76.45" />
     <PackageVersion Include="Twilio" Version="8.1.0" />
     <PackageVersion Include="Ulid" Version="1.4.1" />
     <PackageVersion Include="Verify.TUnit" Version="33.3.4" />
