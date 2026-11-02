@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 
 using Arbiter.Services;
@@ -8,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 namespace Arbiter.Benchmarks.Services;
 
 [MemoryDiagnoser]
-public class CsvReaderBenchmark
+public partial class CsvReaderBenchmark
 {
     private string _csvContent = null!;
     private byte[] _csvBytes = null!;
@@ -52,7 +51,7 @@ public class CsvReaderBenchmark
     public List<Person> CsvHelperReadRecords()
     {
         using var reader = new StringReader(_csvContent);
-        using var csv = new CsvHelper.CsvReader(reader, CultureInfo.InvariantCulture);
+        using var csv = CsvHelper.CsvReader.Create(reader);
 
         return csv.GetRecords<Person>().ToList();
     }
@@ -66,5 +65,6 @@ public class CsvReaderBenchmark
             Email: fields[2]);
     }
 
-    public record Person(string Name, int Age, string Email);
+    [CsvHelper.CsvRecord]
+    public partial record Person(string Name, int Age, string Email);
 }

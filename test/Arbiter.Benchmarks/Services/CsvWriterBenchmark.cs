@@ -1,5 +1,3 @@
-using System.Globalization;
-
 using Arbiter.Services;
 
 using BenchmarkDotNet.Attributes;
@@ -7,7 +5,7 @@ using BenchmarkDotNet.Attributes;
 namespace Arbiter.Benchmarks.Services;
 
 [MemoryDiagnoser]
-public class CsvWriterBenchmark
+public partial class CsvWriterBenchmark
 {
     private List<Person> _people = null!;
     private string[]? _headers;
@@ -44,11 +42,11 @@ public class CsvWriterBenchmark
     public string CsvHelperWriteRecords()
     {
         using var writer = new StringWriter();
-        using var csv = new CsvHelper.CsvWriter(writer, CultureInfo.InvariantCulture);
+        using var csv = CsvHelper.CsvWriter.Create(writer, leaveOpen: true);
 
         csv.WriteRecords(_people);
 
-        writer.Flush();
+        csv.Flush();
         return writer.ToString();
     }
 
@@ -56,13 +54,13 @@ public class CsvWriterBenchmark
     public string CsvHelperWriteField()
     {
         using var writer = new StringWriter();
-        using var csv = new CsvHelper.CsvWriter(writer, CultureInfo.InvariantCulture);
+        using var csv = CsvHelper.CsvWriter.Create(writer, leaveOpen: true);
 
         // Write header
         csv.WriteField("Name");
         csv.WriteField("Age");
         csv.WriteField("Email");
-        csv.NextRecord();
+        csv.EndRecord();
 
         // Write records
         foreach (var p in _people)
@@ -70,14 +68,15 @@ public class CsvWriterBenchmark
             csv.WriteField(p.Name);
             csv.WriteField(p.Age);
             csv.WriteField(p.Email);
-            csv.NextRecord();
+            csv.EndRecord();
         }
 
-        writer.Flush();
+        csv.Flush();
         return writer.ToString();
     }
 
-    public record Person(string Name, int Age, string Email) : ISupportWriter<Person>
+    [CsvHelper.CsvRecord]
+    public partial record Person(string Name, int Age, string Email) : ISupportWriter<Person>
     {
         public static IEnumerable<string>? Headers()
             => [nameof(Name), nameof(Age), nameof(Email)];

@@ -826,6 +826,20 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the branch (git push origin feature/amazing-feature)
 5. Open a Pull Request
 
+### Debugging packages
+
+Packages include portable PDBs alongside their assemblies so Blazor WebAssembly consumers receive symbols during package restore. The .NET SDK's built-in GitHub Source Link support maps source files to the exact repository commit; untracked generated sources are embedded in the PDBs.
+
+To copy package PDBs into a Blazor WebAssembly app's debug output, add this property to the app's project file (the Entity Framework sample already enables it):
+
+```xml
+<PropertyGroup>
+  <CopyDebugSymbolFilesFromPackages>true</CopyDebugSymbolFilesFromPackages>
+</PropertyGroup>
+```
+
+Release builds also produce `.snupkg` files, which the tagged-release workflow publishes to NuGet.org's symbol server. GitHub Packages and feedz receive the regular packages with their included PDBs. To step into package code, enable Source Link support and disable **Just My Code** in your debugger; enable NuGet.org's symbol server when symbols aren't available locally.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
