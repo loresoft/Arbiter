@@ -3,6 +3,8 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.CommandQuery.Extensions;
+using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 using Arbiter.Mediation;
 
@@ -42,11 +44,56 @@ public abstract class EntityDataContextHandlerBase<TContext, TEntity, TKey, TRea
     /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <typeparamref name="TContext"/> used to access the data store.</param>
     /// <param name="mapper">The <see cref="IMapper"/> used to map between entity and model types.</param>
-    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler.</param>
+    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler and to entities before changes are saved.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/>, <paramref name="dataContext"/>, or <paramref name="mapper"/> is <see langword="null"/>.</exception>
-    protected EntityDataContextHandlerBase(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+    protected EntityDataContextHandlerBase(
+        ILoggerFactory loggerFactory,
+        TContext dataContext,
+        IMapper mapper,
+        IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
+    }
+
+    /// <summary>
+    /// Applies the registered <see cref="IEntityModifier{TEntity}"/> instances to <paramref name="entity"/>
+    /// using the <see cref="DataContextHandlerBase{TContext, TRequest, TResponse}.Pipeline"/>.
+    /// </summary>
+    /// <param name="entity">The entity being saved.</param>
+    /// <param name="operation">The change operation being performed on the entity.</param>
+    /// <param name="pipelineName">The optional name of the pipeline used to resolve entity modifiers.</param>
+    /// <param name="principal">The optional <see cref="IRequestPrincipal"/> representing the user executing the command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// Called by the command handlers before changes are saved so that modifier changes are persisted in the same
+    /// <see cref="DbContext.SaveChangesAsync(CancellationToken)"/> call. Does nothing when no query pipeline is registered.
+    /// When <paramref name="pipelineName"/> is specified, only modifiers registered for that named pipeline are applied.
+    /// </remarks>
+    protected virtual async ValueTask ApplyModifiers(
+        TEntity entity,
+        EntityChangeOperation operation,
+        string? pipelineName = null,
+        IRequestPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        if (Pipeline is null)
+            return;
+
+        if (pipelineName.HasValue())
+        {
+            await Pipeline
+                .ApplyModifiers(entity, DataContext, operation, pipelineName, principal, cancellationToken)
+                .ConfigureAwait(false);
+
+            return;
+        }
+
+        await Pipeline
+            .ApplyModifiers(entity, DataContext, operation, principal, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>

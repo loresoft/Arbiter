@@ -21,6 +21,11 @@ public static class DomainServiceExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    /// The query pipeline applies registered <see cref="Pipeline.IQueryModifier{TEntity}"/> instances to entity queries,
+    /// and registered <see cref="Pipeline.IEntityModifier{TEntity}"/> instances in the Entity Framework create, update,
+    /// patch, and delete command handlers before changes are saved.
+    /// </remarks>
     /// <seealso cref="Pipeline.IQueryPipeline"/>
     public static IServiceCollection AddQueryPipeline(this IServiceCollection services)
     {

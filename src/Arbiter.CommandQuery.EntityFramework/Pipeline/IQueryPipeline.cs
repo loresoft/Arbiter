@@ -1,11 +1,15 @@
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Notifications;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 /// <summary>
-/// Defines a pipeline that applies registered query modifiers to entity queries.
+/// Defines a pipeline that applies registered query modifiers to entity queries and registered entity modifiers
+/// to entities before they are saved.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -98,6 +102,72 @@ public interface IQueryPipeline
         DbContext context,
         string pipelineName,
         ClaimsPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
+        where TEntity : class;
+
+    /// <summary>
+    /// Applies all registered entity modifiers for the specified entity type in priority order.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of entity being saved.</typeparam>
+    /// <param name="entity">The entity being saved.</param>
+    /// <param name="context">The database context the entity is being saved with.</param>
+    /// <param name="operation">The change operation being performed on the entity.</param>
+    /// <param name="principal">The request principal representing the current user and activation information, if available.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// <para>
+    /// Applies all <see cref="IEntityModifier{TEntity}"/> instances registered without a service key.
+    /// </para>
+    /// <para>
+    /// The Entity Framework command handlers call this method before changes are saved, so changes made by the
+    /// modifiers are persisted in the same <see cref="DbContext.SaveChangesAsync(CancellationToken)"/> call.
+    /// </para>
+    /// <example>
+    /// Example of applying entity modifiers in a custom command handler:
+    /// <code>
+    /// await pipeline.ApplyModifiers(entity, dataContext, EntityChangeOperation.Created, request, cancellationToken);
+    /// await dataContext.SaveChangesAsync(cancellationToken);
+    /// </code>
+    /// </example>
+    /// </remarks>
+    ValueTask ApplyModifiers<TEntity>(
+        TEntity entity,
+        DbContext context,
+        EntityChangeOperation operation,
+        IRequestPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
+        where TEntity : class;
+
+    /// <summary>
+    /// Applies all registered entity modifiers for the specified entity type in priority order using a named pipeline.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of entity being saved.</typeparam>
+    /// <param name="entity">The entity being saved.</param>
+    /// <param name="context">The database context the entity is being saved with.</param>
+    /// <param name="operation">The change operation being performed on the entity.</param>
+    /// <param name="pipelineName">The name of the pipeline to use for resolving entity modifiers.</param>
+    /// <param name="principal">The request principal representing the current user and activation information, if available.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// <para>
+    /// This method resolves entity modifiers that were registered with the specified <paramref name="pipelineName"/>
+    /// as a service key. Only modifiers registered with this exact key will be applied.
+    /// </para>
+    /// <para>
+    /// To register named entity modifiers, use the keyed service registration methods:
+    /// </para>
+    /// <code>
+    /// services.AddKeyedScoped&lt;IEntityModifier&lt;MyEntity&gt;, MyModifier&gt;("pipeline-name");
+    /// </code>
+    /// </remarks>
+    ValueTask ApplyModifiers<TEntity>(
+        TEntity entity,
+        DbContext context,
+        EntityChangeOperation operation,
+        string pipelineName,
+        IRequestPrincipal? principal = null,
         CancellationToken cancellationToken = default)
         where TEntity : class;
 }

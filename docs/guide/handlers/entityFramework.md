@@ -326,6 +326,18 @@ The Entity Framework handlers automatically integrate with various pipeline beha
 
 ## Advanced Configuration
 
+### Entity Modifiers
+
+Use entity modifiers to apply reusable logic to an entity, such as adding related entities, inside the command handlers before changes are saved. This avoids replacing the generic handlers.
+
+```csharp
+// Register the query pipeline and an entity modifier
+services.AddQueryPipeline();
+services.AddScoped<IEntityModifier<Product>, ProductSlugModifier>();
+```
+
+See [Entity Modifiers](entityModifiers.md) for details.
+
 ### Custom Behaviors
 
 ```csharp

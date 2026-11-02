@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +31,13 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
     /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <typeparamref name="TContext"/> used to access the data store.</param>
     /// <param name="mapper">The <see cref="IMapper"/> used to map <typeparamref name="TUpdateModel"/> onto <typeparamref name="TEntity"/> and project to <typeparamref name="TReadModel"/>.</param>
-    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler.</param>
+    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler and to the entity before it is saved.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/>, <paramref name="dataContext"/>, or <paramref name="mapper"/> is <see langword="null"/>.</exception>
-    public EntityUpdateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+    public EntityUpdateCommandHandler(
+        ILoggerFactory loggerFactory,
+        TContext dataContext,
+        IMapper mapper,
+        IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
 
@@ -47,8 +52,11 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
     /// <item><description>If the entity is not found and <see cref="EntityUpdateCommand{TKey, TUpdateModel, TReadModel}.Upsert"/> is <see langword="true"/>, a new <typeparamref name="TEntity"/> is created with <see cref="ITrackCreated"/> audit fields set.</description></item>
     /// </list>
     /// The update model is mapped onto the entity, <see cref="ITrackUpdated"/> audit metadata is applied,
+    /// registered <see cref="IEntityModifier{TEntity}"/> instances are applied with <see cref="EntityChangeOperation.Created"/>
+    /// when the entity was inserted or <see cref="EntityChangeOperation.Updated"/> otherwise,
     /// changes are saved, and the entity is read back and projected to <typeparamref name="TReadModel"/> before being returned.
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Sequential command workflow")]
     protected override async ValueTask<TReadModel?> Process(
         EntityUpdateCommand<TKey, TUpdateModel, TReadModel> request,
         CancellationToken cancellationToken = default)
@@ -73,6 +81,8 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
 
         if (entity == null && !request.Upsert)
             return default!;
+
+        var operation = entity == null ? EntityChangeOperation.Created : EntityChangeOperation.Updated;
 
         // create entity if not found
         if (entity == null)
@@ -100,6 +110,10 @@ public class EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, T
             updateEntity.Updated = request.Activated;
             updateEntity.UpdatedBy = request.ActivatedBy;
         }
+
+        // apply pipeline entity modifiers
+        await ApplyModifiers(entity, operation, request.FilterName, request, cancellationToken)
+            .ConfigureAwait(false);
 
         // save updates
         await DataContext

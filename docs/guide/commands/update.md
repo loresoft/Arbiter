@@ -65,6 +65,8 @@ The Arbiter framework provides built-in handlers for different data access patte
 EntityUpdateCommandHandler<TContext, TEntity, TKey, TUpdateModel, TReadModel>
 ```
 
+The Entity Framework handler applies registered [entity modifiers](../handlers/entityModifiers.md) before saving. It uses the `Updated` operation, or `Created` when an upsert inserts a new entity.
+
 ### MongoDB Handler
 
 ```csharp

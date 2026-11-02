@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +30,13 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <typeparamref name="TContext"/> used to access the data store.</param>
     /// <param name="mapper">The <see cref="IMapper"/> used to project <typeparamref name="TEntity"/> to <typeparamref name="TReadModel"/>.</param>
-    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler.</param>
+    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler and to the entity before it is saved.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/>, <paramref name="dataContext"/>, or <paramref name="mapper"/> is <see langword="null"/>.</exception>
-    public EntityPatchCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+    public EntityPatchCommandHandler(
+        ILoggerFactory loggerFactory,
+        TContext dataContext,
+        IMapper mapper,
+        IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
@@ -41,7 +46,8 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// Queries the <see cref="DbSet{TEntity}"/> for the entity matching <c>request.Id</c>, applying any
     /// optional query pipeline modifiers. Returns <see langword="null"/> if no entity is found.
     /// The JSON patch document from <c>request.Patch</c> is applied directly to the entity, followed by
-    /// <see cref="ITrackUpdated"/> audit metadata. Changes are persisted, then the entity is read back
+    /// <see cref="ITrackUpdated"/> audit metadata and registered <see cref="IEntityModifier{TEntity}"/> instances
+    /// with <see cref="EntityChangeOperation.Updated"/>. Changes are persisted, then the entity is read back
     /// and projected to <typeparamref name="TReadModel"/> before being returned.
     /// </remarks>
     protected override async ValueTask<TReadModel?> Process(
@@ -79,6 +85,10 @@ public class EntityPatchCommandHandler<TContext, TEntity, TKey, TReadModel>
             updateEntity.Updated = request.Activated;
             updateEntity.UpdatedBy = request.ActivatedBy;
         }
+
+        // apply pipeline entity modifiers
+        await ApplyModifiers(entity, EntityChangeOperation.Updated, request.FilterName, request, cancellationToken)
+            .ConfigureAwait(false);
 
         await DataContext
             .SaveChangesAsync(cancellationToken)

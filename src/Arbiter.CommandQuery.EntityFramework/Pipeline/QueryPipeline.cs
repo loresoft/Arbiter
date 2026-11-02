@@ -1,12 +1,17 @@
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Definitions;
+using Arbiter.CommandQuery.Notifications;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Arbiter.CommandQuery.EntityFramework.Pipeline;
 
 /// <summary>
-/// Default implementation of <see cref="IQueryPipeline"/> that applies query modifiers in priority order.
+/// Default implementation of <see cref="IQueryPipeline"/> that applies query modifiers and entity modifiers in priority order.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -35,24 +40,23 @@ namespace Arbiter.CommandQuery.EntityFramework.Pipeline;
 /// // Register named query modifiers (with key)
 /// services.AddKeyedScoped&lt;IQueryModifier&lt;Product&gt;, AdminFilterModifier&gt;("admin-only");
 /// services.AddKeyedScoped&lt;IQueryModifier&lt;Product&gt;, AuditModifier&gt;("admin-only");
+///
+/// // Register entity modifiers applied by the command handlers before saving
+/// services.AddScoped&lt;IEntityModifier&lt;Project&gt;, ProjectOwnerModifier&gt;();
 /// </code>
 /// </example>
 /// </remarks>
 /// <seealso cref="IQueryPipeline"/>
 /// <seealso cref="IQueryModifier{TEntity}"/>
-public class QueryPipeline : IQueryPipeline
+/// <seealso cref="IEntityModifier{TEntity}"/>
+/// <remarks>
+/// Initializes a new instance of the <see cref="QueryPipeline"/> class.
+/// </remarks>
+/// <param name="serviceProvider">The service provider used to resolve query modifiers from the dependency injection container.</param>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
+public sealed class QueryPipeline(IServiceProvider serviceProvider) : IQueryPipeline
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="QueryPipeline"/> class.
-    /// </summary>
-    /// <param name="serviceProvider">The service provider used to resolve query modifiers from the dependency injection container.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is <see langword="null"/>.</exception>
-    public QueryPipeline(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
 
     /// <summary>
     /// Applies all registered standard query modifiers for the specified entity type in priority order.
@@ -176,5 +180,76 @@ public class QueryPipeline : IQueryPipeline
             query = await modifier.Apply(query, context, principal, cancellationToken).ConfigureAwait(false);
 
         return query;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// This method resolves all <see cref="IEntityModifier{TEntity}"/> instances registered without a service key
+    /// and applies them sequentially in ascending priority order (lower values first).
+    /// </para>
+    /// <para>
+    /// If no modifiers are registered for the entity type, the entity is left unchanged.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> or <paramref name="context"/> is <see langword="null"/>.</exception>
+    public async ValueTask ApplyModifiers<TEntity>(
+        TEntity entity,
+        DbContext context,
+        EntityChangeOperation operation,
+        IRequestPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(context);
+
+        // Get all registered modifiers for this entity type
+        var modifiers = _serviceProvider
+            .GetServices<IEntityModifier<TEntity>>()
+            .OrderBy(m => m.Priority)
+            .ToList();
+
+        if (modifiers.Count == 0)
+            return;
+
+        foreach (var modifier in modifiers)
+            await modifier.Apply(entity, context, operation, principal, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// This method resolves all <see cref="IEntityModifier{TEntity}"/> instances registered with the specified
+    /// <paramref name="pipelineName"/> as a service key and applies them sequentially in ascending priority order (lower values first).
+    /// </para>
+    /// <para>
+    /// If no modifiers are registered for the specified pipeline name and entity type, the entity is left unchanged.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="entity"/> or <paramref name="context"/> is <see langword="null"/>.</exception>
+    public async ValueTask ApplyModifiers<TEntity>(
+        TEntity entity,
+        DbContext context,
+        EntityChangeOperation operation,
+        string pipelineName,
+        IRequestPrincipal? principal = null,
+        CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(context);
+
+        // Get all registered modifiers for this entity type using the named service key
+        var modifiers = _serviceProvider
+            .GetKeyedServices<IEntityModifier<TEntity>>(pipelineName)
+            .OrderBy(m => m.Priority)
+            .ToList();
+
+        if (modifiers.Count == 0)
+            return;
+
+        foreach (var modifier in modifiers)
+            await modifier.Apply(entity, context, operation, principal, cancellationToken).ConfigureAwait(false);
     }
 }

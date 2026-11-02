@@ -51,6 +51,8 @@ items:
     items:
       - name: Entity Framework Core
         href: handlers/entityFramework.md
+      - name: Entity Modifiers
+        href: handlers/entityModifiers.md
       - name: Mongo DB
         href: handlers/mongo.md
 

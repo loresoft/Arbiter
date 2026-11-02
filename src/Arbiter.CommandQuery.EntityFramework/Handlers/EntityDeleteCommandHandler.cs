@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +30,13 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <typeparamref name="TContext"/> used to access the data store.</param>
     /// <param name="mapper">The <see cref="IMapper"/> used to project <typeparamref name="TEntity"/> to <typeparamref name="TReadModel"/>.</param>
-    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler.</param>
+    /// <param name="pipeline">An optional <see cref="IQueryPipeline"/> applied to queries executed by this handler and to the entity before it is deleted.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/>, <paramref name="dataContext"/>, or <paramref name="mapper"/> is <see langword="null"/>.</exception>
-    public EntityDeleteCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+    public EntityDeleteCommandHandler(
+        ILoggerFactory loggerFactory,
+        TContext dataContext,
+        IMapper mapper,
+        IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
@@ -47,6 +52,10 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// caller receives the state of the entity prior to deletion.
     /// </para>
     /// <para>
+    /// Registered <see cref="IEntityModifier{TEntity}"/> instances are applied with <see cref="EntityChangeOperation.Deleted"/>
+    /// after update metadata is set and before the entity is marked deleted or removed.
+    /// </para>
+    /// <para>
     /// The delete strategy is determined by the entity's implemented interfaces:
     /// <list type="bullet">
     /// <item><description>If the entity implements <see cref="ITrackDeleted"/>, a soft delete is performed by setting <c>IsDeleted = true</c>.</description></item>
@@ -54,6 +63,7 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
     /// </list>
     /// </para>
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Sequential command workflow")]
     protected override async ValueTask<TReadModel?> Process(
         EntityDeleteCommand<TKey, TReadModel> request,
         CancellationToken cancellationToken = default)
@@ -89,6 +99,10 @@ public class EntityDeleteCommandHandler<TContext, TEntity, TKey, TReadModel>
             updateEntity.UpdatedBy = request.ActivatedBy;
             updateEntity.Updated = request.Activated;
         }
+
+        // apply pipeline entity modifiers
+        await ApplyModifiers(entity, EntityChangeOperation.Deleted, request.FilterName, request, cancellationToken)
+            .ConfigureAwait(false);
 
         // entity supports soft delete
         if (entity is ITrackDeleted deleteEntity)

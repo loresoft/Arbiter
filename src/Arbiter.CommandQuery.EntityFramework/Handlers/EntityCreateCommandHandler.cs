@@ -1,6 +1,7 @@
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
+using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,12 @@ public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, T
     /// <param name="loggerFactory">The logger factory used to create an <see cref="ILogger"/> for this handler.</param>
     /// <param name="dataContext">The <typeparamref name="TContext"/> used to persist the entity.</param>
     /// <param name="mapper">The mapper used to convert between <typeparamref name="TCreateModel"/> and <typeparamref name="TEntity"/>, and to project to <typeparamref name="TReadModel"/>.</param>
-    /// <param name="pipeline">An optional query pipeline applied when reading back the created entity.</param>
-    public EntityCreateCommandHandler(ILoggerFactory loggerFactory, TContext dataContext, IMapper mapper, IQueryPipeline? pipeline = null)
+    /// <param name="pipeline">An optional query pipeline applied to the new entity before it is saved and when reading back the created entity.</param>
+    public EntityCreateCommandHandler(
+        ILoggerFactory loggerFactory,
+        TContext dataContext,
+        IMapper mapper,
+        IQueryPipeline? pipeline = null)
         : base(loggerFactory, dataContext, mapper, pipeline)
     {
     }
@@ -39,8 +44,9 @@ public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, T
     /// <remarks>
     /// Maps <paramref name="request"/>.<c>Model</c> to a new <typeparamref name="TEntity"/>, then sets
     /// <see cref="ITrackCreated"/> and <see cref="ITrackUpdated"/> audit fields when supported.
-    /// The entity is added to the <see cref="DbSet{TEntity}"/> and saved. The newly created entity
-    /// is then read back and projected to <typeparamref name="TReadModel"/> before being returned.
+    /// The entity is added to the <see cref="DbSet{TEntity}"/>, registered <see cref="IEntityModifier{TEntity}"/>
+    /// instances are applied with <see cref="EntityChangeOperation.Created"/>, and changes are saved. The newly
+    /// created entity is then read back and projected to <typeparamref name="TReadModel"/> before being returned.
     /// </remarks>
     protected override async ValueTask<TReadModel?> Process(
         EntityCreateCommand<TCreateModel, TReadModel> request,
@@ -71,6 +77,10 @@ public class EntityCreateCommandHandler<TContext, TEntity, TKey, TCreateModel, T
         // add to data set, id should be generated
         await dbSet
             .AddAsync(entity, cancellationToken)
+            .ConfigureAwait(false);
+
+        // apply pipeline entity modifiers
+        await ApplyModifiers(entity, EntityChangeOperation.Created, request.FilterName, request, cancellationToken)
             .ConfigureAwait(false);
 
         // save to database
