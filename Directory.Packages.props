@@ -26,7 +26,7 @@
     <PackageVersion Include="dbup-sqlserver" Version="7.2.0" />
     <PackageVersion Include="Equatable.Generator" Version="3.0.0" />
     <PackageVersion Include="FluentValidation" Version="12.2.0" />
-    <PackageVersion Include="Fluid.Core" Version="2.40.0" />
+    <PackageVersion Include="Fluid.Core" Version="2.41.1" />
     <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="Injectio" Version="6.3.0" />
     <PackageVersion Include="LoreSoft.Blazor.Controls" Version="13.11.2" />
