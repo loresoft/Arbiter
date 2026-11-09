@@ -20,7 +20,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Blazilla" Version="2.4.3" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
-    <PackageVersion Include="bunit" Version="2.13.3" />
+    <PackageVersion Include="bunit" Version="2.14.0" />
     <PackageVersion Include="CsvHelper" Version="34.0.0" />
     <PackageVersion Include="cuid.net" Version="7.1.0" />
     <PackageVersion Include="dbup-sqlserver" Version="7.2.0" />
