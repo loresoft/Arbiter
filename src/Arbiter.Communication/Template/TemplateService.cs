@@ -15,7 +15,7 @@ namespace Arbiter.Communication.Template;
 /// </remarks>
 public class TemplateService : ITemplateService
 {
-    private readonly ConcurrentDictionary<string, IFluidTemplate> _templateCache = [];
+    private readonly ConcurrentDictionary<string, IFluidTemplate> _templateCache = [with(StringComparer.Ordinal)];
     private readonly FluidParser _fluidParser;
     private readonly IReadOnlyList<ITemplateResolver> _templateResolvers;
     private readonly TemplateOptions _templateOptions;

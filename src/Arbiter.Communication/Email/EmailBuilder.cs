@@ -11,7 +11,7 @@ namespace Arbiter.Communication.Email;
 /// </remarks>
 public class EmailBuilder
 {
-    private readonly Dictionary<string, string> _headers = [];
+    private readonly Dictionary<string, string> _headers = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly List<EmailAttachment> _attachments = [];
     private readonly List<EmailAddress> _replyTo = [];
     private readonly List<EmailAddress> _to = [];

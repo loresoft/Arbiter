@@ -75,7 +75,11 @@ public class PrincipalDataService : DispatcherDataService
 
         try
         {
+            // the state is requested on every call and never cached, so it cannot become stale
+#pragma warning disable BL0013
             var state = await _authenticationStateProvider.GetAuthenticationStateAsync().ConfigureAwait(false);
+#pragma warning restore BL0013
+
             return state?.User;
         }
         catch (InvalidOperationException)

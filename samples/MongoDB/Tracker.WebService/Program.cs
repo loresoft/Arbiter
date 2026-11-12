@@ -107,9 +107,7 @@ public static class Program
             .AddMemoryCache();
 
         services
-            .AddOpenApi(options => options
-                .AddDocumentTransformer<SecurityKeyDocumentTransformer>()
-            );
+            .AddOpenApi();
 
         services
             .AddEndpointRoutes()

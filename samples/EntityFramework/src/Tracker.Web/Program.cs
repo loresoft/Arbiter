@@ -102,11 +102,7 @@ public static class Program
 
     private static void ConfigureMiddleware(WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseWebAssemblyDebugging();
-        }
-        else
+        if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();
             app.UseExceptionHandler("/Error");

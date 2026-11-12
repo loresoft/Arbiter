@@ -1,16 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>7c9c8f9c-0584-4deb-b51d-d30eef94f31a</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Suppress Microsoft.OpenApi advisory, set the max depth for mappings as a remediation -->
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.SecurityKey" />
@@ -23,14 +18,5 @@
     <ProjectReference Include="..\..\..\..\src\Arbiter.OpenTelemetry.Server\Arbiter.OpenTelemetry.Server.csproj" />
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj" />
   </ItemGroup>
-
-  <!-- Disable compile-time OpenAPI XML generator -->
-  <!-- Temporary workaround for issue with OpenAPI source generator -->
-  <!-- https://github.com/dotnet/aspnetcore/issues/64378 -->
-  <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Microsoft.AspNetCore.OpenApi.SourceGenerators.dll'" />
-    </ItemGroup>
-  </Target>
 
 </Project>

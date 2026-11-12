@@ -273,15 +273,25 @@ public abstract class EditPageBase<TKey, TReadModel, TUpdateModel> : ModelCompon
     /// identifier changed.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0051:Method is too long", Justification = "Error handling with comments")]
     protected virtual async Task HandleSave()
     {
+        if (EditContext == null || Store.Model == null)
+            return;
+
         try
         {
             var cancellationToken = CancellationToken;
 
             // guard direct calls that bypass the EditForm submit validation;
             // a missing context means the model has not been loaded, so there is nothing valid to save
-            if (EditContext?.Validate() != true)
+#if NET11_0_OR_GREATER            
+            var isValid = await EditContext.ValidateAsync(cancellationToken);
+#else
+            var isValid = EditContext.Validate();
+#endif
+
+            if (!isValid)
                 return;
 
             if (!await OnSavingAsync(cancellationToken))

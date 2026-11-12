@@ -70,7 +70,7 @@ public static class Program
             .AddTrackerService();
 
         services
-            .AddOpenApi(options => options.AddDocumentTransformer<SecurityKeyDocumentTransformer>());
+            .AddOpenApi();
 
         services
             .AddEndpointRoutes()
