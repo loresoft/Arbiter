@@ -5,7 +5,7 @@ using MessagePack;
 
 namespace Arbiter.CommandQuery.Tests;
 
-public class MessagePackSerializationTests
+public partial class MessagePackSerializationTests
 {
     [Test]
     public void EntityFilterRoundTripSerialization()
@@ -576,6 +576,69 @@ public class MessagePackSerializationTests
     }
 
     [Test]
+    public void ContractlessModelRoundTripSerialization()
+    {
+        // Arrange - a model without MessagePack attributes
+        var model = new ContractlessModel
+        {
+            Id = 42,
+            Name = "Contractless",
+            Tags = ["one", "two"],
+        };
+
+        // Act
+        var bytes = MessagePackSerializer.Serialize(model, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ContractlessModel>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        deserialized.Id.Should().Be(42);
+        deserialized.Name.Should().Be("Contractless");
+        deserialized.Tags.Should().BeEquivalentTo(["one", "two"]);
+    }
+
+    [Test]
+    public void AbstractMemberPreservesRuntimeTypeRoundTripSerialization()
+    {
+        // Arrange - an abstract typed member holding a derived instance
+        var circle = new CircleShape { Name = "circle", Radius = 2.5 };
+        var model = new ShapeContainer { Shape = circle };
+
+        // Act
+        var bytes = MessagePackSerializer.Serialize(model, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<ShapeContainer>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        var shape = deserialized.Shape.Should().BeOfType<CircleShape>().Subject;
+        shape.Name.Should().Be("circle");
+        shape.Radius.Should().Be(2.5);
+    }
+
+    [Test]
+    public void EntityFilterWithComplexObjectValueRoundTripSerialization()
+    {
+        // Arrange - an object value whose runtime type is a POCO
+        var value = new ContractlessModel { Id = 7, Name = "Nested" };
+        var filter = new EntityFilter
+        {
+            Name = "Model",
+            Operator = FilterOperators.Equal,
+            Value = value,
+        };
+
+        // Act
+        var bytes = MessagePackSerializer.Serialize(filter, MessagePackDefaults.DefaultSerializerOptions);
+        var deserialized = MessagePackSerializer.Deserialize<EntityFilter>(bytes, MessagePackDefaults.DefaultSerializerOptions);
+
+        // Assert
+        deserialized.Should().NotBeNull();
+        var model = deserialized.Value.Should().BeOfType<ContractlessModel>().Subject;
+        model.Id.Should().Be(7);
+        model.Name.Should().Be("Nested");
+    }
+
+    [Test]
     public void EntityPagedResultEmptyRoundTripSerialization()
     {
         // Arrange - create an empty paged result
@@ -765,10 +828,33 @@ public class MessagePackSerializationTests
 
     // Helper class for testing complex type serialization
     [MessagePackObject(keyAsPropertyName: true, AllowPrivate = true)]
-    internal class TestModel
+    internal partial class TestModel
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+    }
+
+    // Helper classes without MessagePack attributes for testing contractless serialization
+    public class ContractlessModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public List<string>? Tags { get; set; }
+    }
+
+    public abstract class ShapeBase
+    {
+        public string? Name { get; set; }
+    }
+
+    public class CircleShape : ShapeBase
+    {
+        public double Radius { get; set; }
+    }
+
+    public class ShapeContainer
+    {
+        public ShapeBase? Shape { get; set; }
     }
 }

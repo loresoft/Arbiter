@@ -51,7 +51,9 @@ public class MessagePackDispatcher : RemoteDispatcherBase
     protected override TResponse? Deserialize<TResponse>(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
         where TResponse : default
     {
-        return MessagePackSerializer.Deserialize<TResponse>(buffer, _options, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return MessagePackSerializer.Deserialize<TResponse>(buffer.Span, _options);
     }
 
     /// <inheritdoc/>
@@ -70,6 +72,6 @@ public class MessagePackDispatcher : RemoteDispatcherBase
 
         // deserialize problem details from buffer
         var responseBytes = await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-        return MessagePackSerializer.Deserialize<ProblemDetails>(responseBytes, _options, cancellationToken);
+        return MessagePackSerializer.Deserialize<ProblemDetails>(responseBytes, _options);
     }
 }

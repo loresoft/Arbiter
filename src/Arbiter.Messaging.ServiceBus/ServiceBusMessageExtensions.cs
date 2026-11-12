@@ -71,8 +71,10 @@ public static class ServiceBusMessageExtensions
         Type requestType = Type.GetType(typeName, throwOnError: false, ignoreCase: true)
             ?? typeof(TMessage);
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         var buffer = message.Body.ToMemory();
-        var result = MessagePackSerializer.Deserialize(requestType, buffer, messagePackOptions, cancellationToken);
+        var result = MessagePackSerializer.Deserialize(requestType, buffer.Span, messagePackOptions);
 
         return result == null ? default : (TMessage)result;
     }

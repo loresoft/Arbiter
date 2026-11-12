@@ -133,7 +133,9 @@ public class MessagePackResult :
         if (responseType is not null)
             httpContext.Response.Headers[DispatcherConstants.ResponseTypeHeader] = responseType;
 
-        MessagePackSerializer.Serialize(valueType, httpContext.Response.BodyWriter, Value, options, httpContext.RequestAborted);
+        httpContext.RequestAborted.ThrowIfCancellationRequested();
+
+        MessagePackSerializer.Serialize(valueType, httpContext.Response.BodyWriter, Value, options);
 
         await httpContext.Response.BodyWriter
             .FlushAsync(httpContext.RequestAborted)

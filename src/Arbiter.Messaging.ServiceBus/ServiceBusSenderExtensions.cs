@@ -150,7 +150,9 @@ public static class ServiceBusSenderExtensions
 
             var bufferWriter = new ArrayBufferWriter<byte>();
 
-            MessagePackSerializer.Serialize(messageType, bufferWriter, message, messagePackOptions, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            MessagePackSerializer.Serialize(messageType, bufferWriter, message, messagePackOptions);
 
             var body = BinaryData.FromBytes(bufferWriter.WrittenMemory);
             var serviceMessage = new ServiceBusMessage(body)
