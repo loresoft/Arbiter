@@ -1,6 +1,6 @@
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery;
 using Arbiter.Mediation;
+using Arbiter.Services.Extensions;
 
 using Azure.Messaging.ServiceBus;
 

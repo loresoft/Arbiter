@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// Provides extension methods for reordering raw <see cref="byte"/> span data

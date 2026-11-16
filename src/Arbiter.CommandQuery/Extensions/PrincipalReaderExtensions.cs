@@ -1,6 +1,7 @@
 using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
+using Arbiter.Services.Extensions;
 
 namespace Arbiter.CommandQuery.Extensions;
 

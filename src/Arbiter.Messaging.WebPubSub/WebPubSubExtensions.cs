@@ -1,16 +1,16 @@
+using System.Collections.Frozen;
+
+using Arbiter.Services.Extensions;
+
 using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.WebPubSub;
-
-using System.Collections.Frozen;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
-using Arbiter.CommandQuery.Extensions;
 
 namespace Arbiter.Messaging.WebPubSub;
 

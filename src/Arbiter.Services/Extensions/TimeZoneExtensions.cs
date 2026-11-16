@@ -2,7 +2,7 @@ using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 ///   <see cref="TimeZoneInfo" /> constants and extension methods for converting <see cref="DateTimeOffset" />,

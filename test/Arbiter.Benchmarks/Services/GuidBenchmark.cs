@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using BenchmarkDotNet.Attributes;
 

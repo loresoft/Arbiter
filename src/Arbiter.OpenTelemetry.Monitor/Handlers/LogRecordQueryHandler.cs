@@ -1,11 +1,11 @@
 using System.Globalization;
 
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Handlers;
 using Arbiter.OpenTelemetry.Models;
 using Arbiter.OpenTelemetry.Monitor.Queries;
 using Arbiter.OpenTelemetry.Queries;
 using Arbiter.Services;
+using Arbiter.Services.Extensions;
 
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;

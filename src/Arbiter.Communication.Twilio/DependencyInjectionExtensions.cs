@@ -94,7 +94,8 @@ public static class DependencyInjectionExtensions
         ArgumentException.ThrowIfNullOrEmpty(accountSID);
         ArgumentException.ThrowIfNullOrEmpty(authenticationToken);
 
-        return services.AddTwilioSmsDeliver(options => {
+        return services.AddTwilioSmsDeliver(options =>
+        {
             options.UserName = accountSID;
             options.Password = authenticationToken;
         });

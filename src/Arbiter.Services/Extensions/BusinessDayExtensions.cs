@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// Extension methods for calculating business days on <see cref="DateOnly"/>, <see cref="DateTime"/>, and <see cref="DateTimeOffset"/>.

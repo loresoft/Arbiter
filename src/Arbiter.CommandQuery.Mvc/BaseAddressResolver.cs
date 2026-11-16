@@ -1,5 +1,5 @@
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;

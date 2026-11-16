@@ -2,7 +2,7 @@ using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// Extension methods for converting between <see cref="DateOnly"/>, <see cref="DateTime"/>, and <see cref="DateTimeOffset"/>.

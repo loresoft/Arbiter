@@ -1,5 +1,4 @@
 using Arbiter.Communication.Email;
-using Arbiter.Communication.Extensions;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -48,7 +47,10 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
         CancellationToken cancellationToken = default)
     {
         var recipients = emailMessage.Recipients.ToString();
-        var truncatedSubject = emailMessage.Content.Subject.Truncate(100);
+
+        var truncatedSubject = emailMessage.Content.Subject;
+        if (truncatedSubject.Length > 100)
+            truncatedSubject = truncatedSubject[..100];
 
         LogSendingEmailSendGrid(_logger, recipients, truncatedSubject);
 
@@ -196,11 +198,11 @@ public partial class SendGridEmailDeliveryService : IEmailDeliveryService
         var originalRecipients = emailMessage.Recipients.ToString();
         var overrideAddress = new Email.EmailAddress(recipientOverride);
 
-        var htmlMessage = emailMessage.Content.HtmlBody.HasValue()
+        var htmlMessage = !string.IsNullOrEmpty(emailMessage.Content.HtmlBody)
             ? $"{emailMessage.Content.HtmlBody}<p>Original Recipients: {originalRecipients}</p>"
             : emailMessage.Content.HtmlBody;
 
-        var textMessage = emailMessage.Content.TextBody.HasValue()
+        var textMessage = !string.IsNullOrEmpty(emailMessage.Content.TextBody)
             ? $"{emailMessage.Content.TextBody}\n\nOriginal Recipients: {originalRecipients}"
             : emailMessage.Content.TextBody;
 

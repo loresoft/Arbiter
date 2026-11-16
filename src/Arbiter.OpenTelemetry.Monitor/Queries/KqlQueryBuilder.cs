@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.Services;
+using Arbiter.Services.Extensions;
 
 namespace Arbiter.OpenTelemetry.Monitor.Queries;
 

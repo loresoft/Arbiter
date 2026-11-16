@@ -3,10 +3,10 @@ using System.Security.Claims;
 
 using Arbiter.CommandQuery.Definitions;
 using Arbiter.CommandQuery.EntityFramework.Pipeline;
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Notifications;
 using Arbiter.Mapping;
 using Arbiter.Mediation;
+using Arbiter.Services.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

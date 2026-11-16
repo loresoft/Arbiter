@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

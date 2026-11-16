@@ -1,6 +1,6 @@
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
-namespace Arbiter.CommandQuery.Tests.Extensions;
+namespace Arbiter.Services.Tests.Extensions;
 
 public class TypeExtensionsTests
 {
@@ -59,7 +59,7 @@ public class TypeExtensionsTests
         var result = type.GetPortableName();
 
         // Assert
-        result.Should().Be("Arbiter.CommandQuery.Tests.Extensions.TypeExtensionsTests, Arbiter.CommandQuery.Tests");
+        result.Should().Be("Arbiter.Services.Tests.Extensions.TypeExtensionsTests, Arbiter.Services.Tests");
 
         var resolvedType = Type.GetType(result);
         resolvedType.Should().Be(type);

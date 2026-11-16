@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// <see cref="Random"/> type extension methods

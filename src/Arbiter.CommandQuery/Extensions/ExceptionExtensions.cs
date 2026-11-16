@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 using Arbiter.CommandQuery.Models;
+using Arbiter.Services.Extensions;
 
 namespace Arbiter.CommandQuery.Extensions;
 

@@ -1,6 +1,3 @@
-using System.Globalization;
-
-using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Sms;
 
 using Azure.Communication.Sms;
@@ -43,8 +40,13 @@ public partial class AzureSmsDeliveryService : ISmsDeliveryService
     /// </returns>
     public async Task<SmsResult> Send(SmsMessage message, CancellationToken cancellationToken = default)
     {
-        var truncatedMessage = message.Message.Truncate(50);
-        var senderNumber = message.Sender.HasValue() ? message.Sender : _options.Value.SenderNumber;
+        var truncatedMessage = message.Message;
+        if (truncatedMessage.Length > 50)
+            truncatedMessage = truncatedMessage[..50];
+
+        var senderNumber = !string.IsNullOrEmpty(message.Sender)
+            ? message.Sender
+            : _options.Value.SenderNumber;
 
         LogSendingSms(_logger, message.Recipient, senderNumber, truncatedMessage);
 
@@ -52,7 +54,7 @@ public partial class AzureSmsDeliveryService : ISmsDeliveryService
         {
             var results = await _smsClient
                 .SendAsync(
-                    from: message.Sender,
+                    from: senderNumber,
                     to: message.Recipient,
                     message: message.Message,
                     cancellationToken: cancellationToken

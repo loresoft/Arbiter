@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.Components.Services;
 using Arbiter.Services;
+using Arbiter.Services.Extensions;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;

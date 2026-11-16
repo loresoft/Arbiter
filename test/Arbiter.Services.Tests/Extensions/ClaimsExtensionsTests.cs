@@ -1,10 +1,9 @@
 using System.Globalization;
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Extensions;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services.Extensions;
 
-namespace Arbiter.CommandQuery.Tests.Extensions;
+namespace Arbiter.Services.Tests.Extensions;
 
 public class ClaimsExtensionsTests
 {
@@ -129,6 +128,30 @@ public class ClaimsExtensionsTests
         var result = principal.GetValue<double>(TestType);
 
         result.Should().Be(1234.5d);
+    }
+
+    [Test]
+    public void GetValueTypedUsesProvidedCulture()
+    {
+        var principal = CreatePrincipal(new Claim(TestType, "1234,5"));
+        var culture = CultureInfo.GetCultureInfo("de-DE");
+
+        var result = principal.GetValue<double>(TestType, culture);
+
+        result.Should().Be(1234.5d);
+    }
+
+    [Test]
+    public void GetValuesTypedUsesProvidedCulture()
+    {
+        var principal = CreatePrincipal(
+            new Claim(TestType, "1,5"),
+            new Claim(TestType, "2,25"));
+        var culture = CultureInfo.GetCultureInfo("de-DE");
+
+        var result = principal.GetValues<double>(TestType, culture);
+
+        result.Should().BeEquivalentTo([1.5d, 2.25d]);
     }
 
     [Test]

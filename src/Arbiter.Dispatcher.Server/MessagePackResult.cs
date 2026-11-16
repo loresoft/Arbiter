@@ -1,7 +1,7 @@
 using System.Reflection;
 
 using Arbiter.CommandQuery;
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using MessagePack;
 

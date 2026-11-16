@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
 using Arbiter.CommandQuery;
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Azure.Core;
 using Azure.Messaging.ServiceBus;

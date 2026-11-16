@@ -1,5 +1,3 @@
-using Arbiter.Communication.Extensions;
-
 using MailKit;
 
 using Microsoft.Extensions.Logging;
@@ -56,7 +54,10 @@ public sealed partial class SmtpEmailDeliveryService : IEmailDeliveryService
         var password = emailServer.Password;
 
         var recipients = emailMessage.Recipients.ToString();
-        var truncatedSubject = emailMessage.Content.Subject.Truncate(100);
+
+        var truncatedSubject = emailMessage.Content.Subject;
+        if (truncatedSubject.Length > 100)
+            truncatedSubject = truncatedSubject[..100];
 
         LogSendingEmail(_logger, recipients, truncatedSubject, host);
 

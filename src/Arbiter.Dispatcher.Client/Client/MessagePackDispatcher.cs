@@ -3,9 +3,9 @@ using System.Net.Http.Headers;
 
 using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Models;
 using Arbiter.Mediation;
+using Arbiter.Services.Extensions;
 
 using MessagePack;
 

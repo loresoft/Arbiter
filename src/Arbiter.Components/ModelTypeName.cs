@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 namespace Arbiter.Components;
 

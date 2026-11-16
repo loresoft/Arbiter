@@ -1,11 +1,11 @@
 using Arbiter.CommandQuery.Behaviors;
 using Arbiter.CommandQuery.Commands;
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Options;
 using Arbiter.CommandQuery.Queries;
 using Arbiter.CommandQuery.Services;
 using Arbiter.Mapping;
+using Arbiter.Services.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

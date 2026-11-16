@@ -1,4 +1,5 @@
 using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

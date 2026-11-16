@@ -1,7 +1,5 @@
 using System.Diagnostics;
 
-using Arbiter.CommandQuery.Extensions;
-
 using MessagePack;
 
 namespace Arbiter.OpenTelemetry.Models;

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Azure.Messaging.WebPubSub.Clients;
 

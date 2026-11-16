@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
 
 using Bunit;
 

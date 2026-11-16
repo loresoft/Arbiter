@@ -1,4 +1,3 @@
-using Arbiter.Communication.Extensions;
 using Arbiter.Communication.Template;
 
 using Microsoft.Extensions.Logging;
@@ -149,13 +148,13 @@ public partial class EmailTemplateService : IEmailTemplateService
 
             var localSenders = senders ?? new EmailSenders(new EmailAddress(fromEmail, fromName));
 
-            if (localSenders.From.Address.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(localSenders.From.Address))
             {
                 LogFromAddressNotConfigured(Logger);
                 return EmailResult.Fail("From address is not configured.");
             }
 
-            if (Options.Value.SubjectPrefix.HasValue())
+            if (!string.IsNullOrEmpty(Options.Value.SubjectPrefix))
                 subject = $"{Options.Value.SubjectPrefix} {subject}";
 
             var content = new EmailContent(subject, htmlBody, textBody);

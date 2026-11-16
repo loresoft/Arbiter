@@ -1,6 +1,4 @@
-using Arbiter.Services;
-
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// <see cref="Type"/> extensions methods

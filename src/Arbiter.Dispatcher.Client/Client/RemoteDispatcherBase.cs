@@ -4,9 +4,9 @@ using System.Net;
 using System.Net.Http.Headers;
 
 using Arbiter.CommandQuery.Definitions;
-using Arbiter.CommandQuery.Extensions;
 using Arbiter.CommandQuery.Models;
 using Arbiter.Mediation;
+using Arbiter.Services.Extensions;
 
 using Microsoft.Extensions.Caching.Hybrid;
 

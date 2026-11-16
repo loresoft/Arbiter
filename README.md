@@ -538,6 +538,7 @@ dotnet add package Arbiter.Services
 - **Caching**: Helpers for building cache keys and managing cache entries
 - **Token Management**: Secure token generation and validation
 - **URL Building**: Fluent API for constructing URLs with query parameters
+- **Extension Methods**: Common helpers in `Arbiter.Services.Extensions` for strings, claims, GUIDs (sequential SQL / Base62), dates, time zones, business days, cloning, and background tasks
 
 ## Data Providers
 

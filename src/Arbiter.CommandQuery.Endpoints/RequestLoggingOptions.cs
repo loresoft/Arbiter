@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
+
+using Microsoft.Extensions.Logging;
 
 namespace Arbiter.CommandQuery.Endpoints;
 

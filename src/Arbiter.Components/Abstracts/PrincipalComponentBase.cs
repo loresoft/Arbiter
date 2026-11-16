@@ -1,7 +1,7 @@
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Extensions;
-using Arbiter.CommandQuery.Services;
+using Arbiter.Services;
+using Arbiter.Services.Extensions;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;

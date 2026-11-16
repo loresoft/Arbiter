@@ -1,6 +1,6 @@
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
-namespace Arbiter.CommandQuery.Tests.Extensions;
+namespace Arbiter.Services.Tests.Extensions;
 
 public class FromSqlGuidTests
 {

@@ -1,8 +1,8 @@
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Microsoft.Extensions.Logging;
 
-namespace Arbiter.CommandQuery.Tests.Extensions;
+namespace Arbiter.Services.Tests.Extensions;
 
 public class TaskExtensionsTests
 {

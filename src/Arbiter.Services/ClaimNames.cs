@@ -1,4 +1,4 @@
-namespace Arbiter.CommandQuery.Services;
+namespace Arbiter.Services;
 
 /// <summary>
 /// A static class that contains claim names used in the application.

@@ -1,9 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 
-using Arbiter.CommandQuery.Services;
-
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// Provides extension methods for reading and writing claims on <see cref="ClaimsPrincipal"/>
@@ -237,12 +235,15 @@ public static class ClaimsExtensions
     /// <typeparam name="T">The type to parse the claim value as, such as <see cref="int"/>, <see cref="long"/>, <see cref="Guid"/> or <see cref="string"/>.</typeparam>
     /// <param name="claimsPrincipal">The principal to read the claim from.</param>
     /// <param name="type">The claim type to find.</param>
+    /// <param name="provider">
+    /// The format provider used to parse the claim value. Defaults to <see cref="CultureInfo.InvariantCulture"/> when <see langword="null"/>.
+    /// </param>
     /// <returns>
     /// The parsed claim value if found and parsable; otherwise, the default value of <typeparamref name="T"/>.
     /// A missing claim and an unparsable value are not distinguished.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> is <see langword="null"/>.</exception>
-    public static T? GetValue<T>(this ClaimsPrincipal? claimsPrincipal, string type)
+    public static T? GetValue<T>(this ClaimsPrincipal? claimsPrincipal, string type, IFormatProvider? provider = null)
         where T : IParsable<T>
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -254,7 +255,7 @@ public static class ClaimsExtensions
         if (claim == null)
             return default;
 
-        return T.TryParse(claim.Value, CultureInfo.InvariantCulture, out var result) ? result : default;
+        return T.TryParse(claim.Value, provider ?? CultureInfo.InvariantCulture, out var result) ? result : default;
     }
 
     /// <summary>
@@ -288,12 +289,15 @@ public static class ClaimsExtensions
     /// <typeparam name="T">The type to parse the claim values as.</typeparam>
     /// <param name="claimsPrincipal">The principal to read the claims from.</param>
     /// <param name="type">The claim type to find.</param>
+    /// <param name="provider">
+    /// The format provider used to parse the claim values. Defaults to <see cref="CultureInfo.InvariantCulture"/> when <see langword="null"/>.
+    /// </param>
     /// <returns>
     /// The parsed claim values, or an empty list when <paramref name="claimsPrincipal"/> is
     /// <see langword="null"/> or no claims match. Values that cannot be parsed are skipped.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> is <see langword="null"/>.</exception>
-    public static IReadOnlyList<T> GetValues<T>(this ClaimsPrincipal? claimsPrincipal, string type)
+    public static IReadOnlyList<T> GetValues<T>(this ClaimsPrincipal? claimsPrincipal, string type, IFormatProvider? provider = null)
         where T : IParsable<T>
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -301,11 +305,13 @@ public static class ClaimsExtensions
         if (claimsPrincipal is null)
             return [];
 
+        provider ??= CultureInfo.InvariantCulture;
+
         List<T> values = [];
 
         foreach (var claim in claimsPrincipal.FindAll(type))
         {
-            if (T.TryParse(claim.Value, CultureInfo.InvariantCulture, out var result))
+            if (T.TryParse(claim.Value, provider, out var result))
                 values.Add(result);
         }
 
@@ -486,7 +492,7 @@ public static class ClaimsExtensions
     /// <returns>The same <paramref name="identity"/> so calls can be chained.</returns>
     /// <remarks>
     /// The value is formatted using <see cref="CultureInfo.InvariantCulture"/>, with date and time types using the
-    /// round trip (<c>o</c>) format, so it can be read back with <see cref="GetValue{T}(ClaimsPrincipal, string)"/>.
+    /// round trip (<c>o</c>) format, so it can be read back with <see cref="GetValue{T}(ClaimsPrincipal, string, IFormatProvider)"/>.
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="identity"/> or <paramref name="type"/> is <see langword="null"/>.</exception>
     public static ClaimsIdentity AddClaim<T>(this ClaimsIdentity identity, string type, T? value)

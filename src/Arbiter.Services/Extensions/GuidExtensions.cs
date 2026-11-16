@@ -1,8 +1,6 @@
 using System.Security.Cryptography;
 
-using Arbiter.Services;
-
-namespace Arbiter.CommandQuery.Extensions;
+namespace Arbiter.Services.Extensions;
 
 /// <summary>
 /// Provides extension methods for converting <see cref="Guid"/> values

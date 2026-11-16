@@ -1,4 +1,4 @@
-using Arbiter.CommandQuery.Extensions;
+using Arbiter.Services.Extensions;
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
