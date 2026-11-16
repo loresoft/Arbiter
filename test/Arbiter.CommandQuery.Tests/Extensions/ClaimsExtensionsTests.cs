@@ -688,6 +688,45 @@ public class ClaimsExtensionsTests
     }
 
     [Test]
+    public void GetUserNameWhenUserPrincipalNameReturnsValue()
+    {
+        var principal = CreatePrincipal(
+            new Claim(ClaimTypes.Name, "William Adama"),
+            new Claim(ClaimNames.UniqueName, "unique@battlestar.com"),
+            new Claim(ClaimTypes.Upn, "claimtype@battlestar.com"),
+            new Claim(ClaimNames.UserPrincipalName, "wadama@battlestar.com"));
+
+        var result = principal.GetUserName();
+
+        result.Should().Be("wadama@battlestar.com");
+    }
+
+    [Test]
+    public void GetUserNameWhenClaimTypeUpnReturnsValue()
+    {
+        var principal = CreatePrincipal(
+            new Claim(ClaimTypes.Name, "William Adama"),
+            new Claim(ClaimNames.UniqueName, "unique@battlestar.com"),
+            new Claim(ClaimTypes.Upn, "claimtype@battlestar.com"));
+
+        var result = principal.GetUserName();
+
+        result.Should().Be("claimtype@battlestar.com");
+    }
+
+    [Test]
+    public void GetUserNameWhenUniqueNameReturnsValue()
+    {
+        var principal = CreatePrincipal(
+            new Claim(ClaimTypes.Name, "William Adama"),
+            new Claim(ClaimNames.UniqueName, "unique@battlestar.com"));
+
+        var result = principal.GetUserName();
+
+        result.Should().Be("unique@battlestar.com");
+    }
+
+    [Test]
     public void GetUserNameWhenOnlySubjectReturnsValue()
     {
         var principal = CreatePrincipal(new Claim(ClaimNames.Subject, "adama"));

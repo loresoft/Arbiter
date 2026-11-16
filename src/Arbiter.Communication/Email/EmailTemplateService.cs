@@ -90,7 +90,7 @@ public partial class EmailTemplateService : IEmailTemplateService
                 return EmailResult.Fail($"Could not find template '{templateName}'");
             }
 
-            return await Send(emailTemplate, emailModel, recipients, senders, cancellationToken).ConfigureAwait(false);
+            return await SendTemplate(templateName, emailTemplate, emailModel, recipients, senders, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -114,20 +114,35 @@ public partial class EmailTemplateService : IEmailTemplateService
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="emailModel"/> is <see langword="null"/>.</exception>
     /// <exception cref="Exception">Thrown if an error occurs during template application or email sending.</exception>
-    public async Task<EmailResult> Send<TModel>(
+    public Task<EmailResult> Send<TModel>(
         EmailTemplate emailTemplate,
         TModel emailModel,
         EmailRecipients recipients,
         EmailSenders? senders = null,
         CancellationToken cancellationToken = default)
     {
+        return SendTemplate(null, emailTemplate, emailModel, recipients, senders, cancellationToken);
+    }
+
+    private async Task<EmailResult> SendTemplate<TModel>(
+        string? templateName,
+        EmailTemplate emailTemplate,
+        TModel emailModel,
+        EmailRecipients recipients,
+        EmailSenders? senders,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(emailModel);
 
         try
         {
-            var subject = TemplateService.ApplyTemplate(emailTemplate.Subject, emailModel);
-            var htmlBody = TemplateService.ApplyTemplate(emailTemplate.HtmlBody, emailModel);
-            var textBody = TemplateService.ApplyTemplate(emailTemplate.TextBody, emailModel);
+            var subjectName = GetCacheName(templateName, nameof(EmailTemplate.Subject));
+            var htmlBodyName = GetCacheName(templateName, nameof(EmailTemplate.HtmlBody));
+            var textBodyName = GetCacheName(templateName, nameof(EmailTemplate.TextBody));
+
+            var subject = TemplateService.ApplyTemplate(subjectName, emailTemplate.Subject, emailModel);
+            var htmlBody = TemplateService.ApplyTemplate(htmlBodyName, emailTemplate.HtmlBody, emailModel);
+            var textBody = TemplateService.ApplyTemplate(textBodyName, emailTemplate.TextBody, emailModel);
 
             var fromName = Options.Value.FromName;
             var fromEmail = Options.Value.FromAddress;
@@ -154,6 +169,9 @@ public partial class EmailTemplateService : IEmailTemplateService
             throw;
         }
     }
+
+    private static string? GetCacheName(string? templateName, string part)
+        => string.IsNullOrEmpty(templateName) ? null : $"{templateName}:{part}";
 
     [LoggerMessage(LogLevel.Error, "Could not find email template: {templateName}")]
     private static partial void LogTemplateNotFound(ILogger logger, string templateName);

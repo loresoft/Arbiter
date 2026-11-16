@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
-using Arbiter.Communication.Extensions;
-
 using Fluid;
 
 namespace Arbiter.Communication.Template;
@@ -43,6 +41,9 @@ public class TemplateService : ITemplateService
     /// Applies the specified template source to the given model and returns the rendered result.
     /// </summary>
     /// <typeparam name="TModel">The type of the model to use for template binding.</typeparam>
+    /// <param name="templateName">
+    /// The unique name used to cache the parsed template. If <see langword="null"/> or empty, the template is parsed without caching.
+    /// </param>
     /// <param name="source">The template source as a string. If <see langword="null"/> or whitespace, an empty string is returned.</param>
     /// <param name="model">The model to bind to the template. May be <see langword="null"/> if the template does not require data.</param>
     /// <returns>
@@ -51,8 +52,9 @@ public class TemplateService : ITemplateService
     /// </returns>
     /// <remarks>
     /// Uses Fluid to parse and render the template. If the model is <see langword="null"/>, the template is returned as-is.
+    /// Parsed templates are cached by <paramref name="templateName"/>; the same name must always refer to the same <paramref name="source"/>.
     /// </remarks>
-    public string ApplyTemplate<TModel>(string? source, TModel model)
+    public string ApplyTemplate<TModel>(string? templateName, string? source, TModel model)
     {
         if (string.IsNullOrEmpty(source))
             return string.Empty;
@@ -60,11 +62,11 @@ public class TemplateService : ITemplateService
         if (model is null)
             return source ?? string.Empty;
 
-        // cache parsed templates by hash of source
-        var hash = source.ToXXHash3();
-        var template = _templateCache.GetOrAdd(hash, _ => _fluidParser.Parse(source));
+        var template = string.IsNullOrEmpty(templateName)
+            ? _fluidParser.Parse(source)
+            : GetOrParseTemplate(templateName, source);
 
-        var context = new TemplateContext(model, _templateOptions, allowModelMembers: true);
+        var context = new TemplateContext(model, _templateOptions);
         return template.Render(context);
     }
 
@@ -99,5 +101,14 @@ public class TemplateService : ITemplateService
 
         template = default;
         return false;
+    }
+
+    private IFluidTemplate GetOrParseTemplate(string templateName, string source)
+    {
+        if (_templateCache.TryGetValue(templateName, out var cached))
+            return cached;
+
+        var parsed = _fluidParser.Parse(source);
+        return _templateCache.GetOrAdd(templateName, parsed);
     }
 }

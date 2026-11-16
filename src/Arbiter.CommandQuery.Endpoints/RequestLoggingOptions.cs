@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
+using Arbiter.CommandQuery.Services;
+
 namespace Arbiter.CommandQuery.Endpoints;
 
 /// <summary>
@@ -105,7 +107,7 @@ public class RequestLoggingOptions
     /// Gets or sets the user identifier claim configuration for logging scopes and activity tags.
     /// </summary>
     public ClaimLoggingType UserIdentifierClaim { get; set; } = new(
-        [ClaimTypes.NameIdentifier, "sub", "oid"],
+        [ClaimTypes.NameIdentifier, ClaimNames.Subject, ClaimNames.ObjectIdentifier],
         DefaultUserIdentifierScopeKey,
         DefaultUserIdentifierActivityTagName);
 

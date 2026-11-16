@@ -28,12 +28,10 @@ public static class DependencyInjectionExtensions
 
         services.TryAddSingleton<FluidParser>();
 
-        // template options should be reused across templates
-        services.TryAddSingleton(_ => new TemplateOptions
-        {
-            CultureInfo = System.Globalization.CultureInfo.CurrentUICulture,
-            MemberAccessStrategy = new UnsafeMemberAccessStrategy(),
-        });
+        // template options are immutable and should be reused across templates
+        services.TryAddSingleton(_ => new TemplateOptionsBuilder()
+            .WithCultureInfo(System.Globalization.CultureInfo.CurrentUICulture)
+            .Build());
 
         services.TryAddSingleton<ITemplateService, TemplateService>();
 

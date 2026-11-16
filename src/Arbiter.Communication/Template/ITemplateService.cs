@@ -11,6 +11,9 @@ public interface ITemplateService
     /// Applies the specified template source to the given model and returns the rendered result.
     /// </summary>
     /// <typeparam name="TModel">The type of the model to use for template binding.</typeparam>
+    /// <param name="templateName">
+    /// The unique name used to cache the parsed template. If <see langword="null"/> or empty, the template is parsed without caching.
+    /// </param>
     /// <param name="source">The template source as a string. If <see langword="null"/>, an empty string is returned.</param>
     /// <param name="model">The model to bind to the template. May be <see langword="null"/> if the template does not require data.</param>
     /// <returns>
@@ -20,8 +23,9 @@ public interface ITemplateService
     /// <remarks>
     /// Implementations should apply the provided model to the template source and return the resulting string.
     /// If the model is <see langword="null"/>, the template is returned as-is.
+    /// Parsed templates are cached by <paramref name="templateName"/>; the same name must always refer to the same <paramref name="source"/>.
     /// </remarks>
-    string ApplyTemplate<TModel>(string? source, TModel model);
+    string ApplyTemplate<TModel>(string? templateName, string? source, TModel model);
 
     /// <summary>
     /// Retrieves a template by name and attempts to deserialize or cast it to the specified type.

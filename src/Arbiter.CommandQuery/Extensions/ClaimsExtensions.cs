@@ -95,12 +95,16 @@ public static class ClaimsExtensions
     /// </summary>
     /// <param name="claimsPrincipal">The principal to read the claim from.</param>
     /// <returns>
-    /// The value of the first claim found in order of <see cref="ClaimNames.PreferredUserName"/>, <see cref="ClaimTypes.Name"/>
-    /// and <see cref="ClaimNames.Subject"/>; otherwise, <see langword="null"/>.
+    /// The value of the first claim found in order of <see cref="ClaimNames.PreferredUserName"/>,
+    /// <see cref="ClaimNames.UserPrincipalName"/>, <see cref="ClaimTypes.Upn"/>, <see cref="ClaimNames.UniqueName"/>,
+    /// <see cref="ClaimTypes.Name"/> and <see cref="ClaimNames.Subject"/>; otherwise, <see langword="null"/>.
     /// </returns>
     public static string? GetUserName(this ClaimsPrincipal? claimsPrincipal)
     {
         return claimsPrincipal.GetValue(ClaimNames.PreferredUserName)
+            ?? claimsPrincipal.GetValue(ClaimNames.UserPrincipalName)
+            ?? claimsPrincipal.GetValue(ClaimTypes.Upn)
+            ?? claimsPrincipal.GetValue(ClaimNames.UniqueName)
             ?? claimsPrincipal.GetValue(ClaimTypes.Name)
             ?? claimsPrincipal.GetValue(ClaimNames.Subject);
     }

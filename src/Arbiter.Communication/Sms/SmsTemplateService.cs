@@ -70,7 +70,7 @@ public partial class SmsTemplateService : ISmsTemplateService
                 return SmsResult.Fail($"Could not find template '{templateName}'");
             }
 
-            return await Send(template, model, recipient, sender, cancellationToken)
+            return await SendTemplate(templateName, template, model, recipient, sender, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -94,12 +94,23 @@ public partial class SmsTemplateService : ISmsTemplateService
     /// including success status, message, and any exception details.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="model"/> is null.</exception>
-    public async Task<SmsResult> Send<TModel>(
+    public Task<SmsResult> Send<TModel>(
         SmsTemplate template,
         TModel model,
         string recipient,
         string? sender = null,
         CancellationToken cancellationToken = default)
+    {
+        return SendTemplate(null, template, model, recipient, sender, cancellationToken);
+    }
+
+    private async Task<SmsResult> SendTemplate<TModel>(
+        string? templateName,
+        SmsTemplate template,
+        TModel model,
+        string recipient,
+        string? sender,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(model);
 
@@ -107,7 +118,7 @@ public partial class SmsTemplateService : ISmsTemplateService
 
         try
         {
-            var message = _templateService.ApplyTemplate(template.Message, model);
+            var message = _templateService.ApplyTemplate(templateName, template.Message, model);
             sender ??= options.SenderNumber;
 
             if (string.IsNullOrEmpty(sender))

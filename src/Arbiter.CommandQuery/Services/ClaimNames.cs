@@ -46,6 +46,21 @@ public static class ClaimNames
     public const string PreferredUserName = "preferred_username";
 
     /// <summary>
+    /// The claim name for the user principal name (UPN) of the user.
+    /// </summary>
+    public const string UserPrincipalName = "upn";
+
+    /// <summary>
+    /// The claim name for the unique name of the user.
+    /// </summary>
+    public const string UniqueName = "unique_name";
+
+    /// <summary>
+    /// The claim name for the client (application) identifier.
+    /// </summary>
+    public const string ClientId = "client_id";
+
+    /// <summary>
     /// The claim name for the given name (first name) of the user.
     /// </summary>
     public const string GivenName = "given_name";
@@ -79,6 +94,21 @@ public static class ClaimNames
     /// The claim name for the tenant identifier.
     /// </summary>
     public const string TenantId = "tenant_id";
+
+    /// <summary>
+    /// The claim name for the tenant name.
+    /// </summary>
+    public const string TenantName = "tenant_name";
+
+    /// <summary>
+    /// The claim name for the key identifier.
+    /// </summary>
+    public const string KeyId = "key_id";
+
+    /// <summary>
+    /// The claim name for the key name.
+    /// </summary>
+    public const string KeyName = "key_name";
 
     /// <summary>
     /// The claim name for the user employee number.
