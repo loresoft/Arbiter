@@ -5,6 +5,7 @@ using Arbiter.OpenTelemetry.Server;
 
 using AspNetCore.SecurityKey;
 
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
 
@@ -50,8 +51,6 @@ public static class Program
         var services = builder.Services;
         var configuration = builder.Configuration;
 
-        var connectionString = configuration.GetConnectionString("Tracker");
-
         services
             .AddAuthentication()
             .AddSecurityKey();
@@ -60,7 +59,8 @@ public static class Program
             .AddAuthorization();
 
         services
-           .AddProblemDetails();
+           .AddProblemDetails()
+           .AddValidation();
 
         services
             .AddTrackerShared();
@@ -93,26 +93,36 @@ public static class Program
 
     private static void ConfigureMiddleware(WebApplication app)
     {
+        app.UseExceptionHandler();
+        app.UseStatusCodePages();
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();
             app.UseResponseCompression();
         }
 
+        // don't require authentication for static files
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
+
         app.UseRequestLogging(config => config.IncludeRequestBody = true);
-
-        app.UseExceptionHandler();
-        app.UseStatusCodePages();
-
+                
         app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapOpenApi();
-        app.MapScalarApiReference();
+        app.UseClaimLogging();
+
+        app.MapOpenApi().AllowAnonymous();
+        app.MapScalarApiReference().AllowAnonymous();
 
         app.MapEndpointRoutes().RequireAuthorization();
-    }
 
+        HealthCheckOptions options = new() { Predicate = _ => false };
+
+        app.MapHealthChecks("/livez", options).AllowAnonymous();
+        app.MapHealthChecks("/healthz").AllowAnonymous();
+    }
 }

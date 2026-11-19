@@ -43,6 +43,7 @@ public static class HealthCheckExtensions
         );
 
         health.Add(healthCheckRegistration);
+
         return health;
 
     }
@@ -82,6 +83,7 @@ public static class HealthCheckExtensions
         );
 
         health.Add(healthCheckRegistration);
+
         return health;
     }
 

@@ -12,8 +12,6 @@
   <ItemGroup>
     <PackageReference Include="MicroSoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
   </ItemGroup>
 
   <ItemGroup>

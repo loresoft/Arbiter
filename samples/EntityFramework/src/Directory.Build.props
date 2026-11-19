@@ -43,8 +43,4 @@
     <PackageReference Include="Equatable.Generator" PrivateAssets="all" />
     <PackageReference Include="Injectio" PrivateAssets="All" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Equatable.Attributes" />
-  </ItemGroup>
 </Project>
