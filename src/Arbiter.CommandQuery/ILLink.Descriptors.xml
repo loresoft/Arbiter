@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MessagePackDefaults.DefaultFormatterFactory uses the MessagePack v4 GenericFormatterFactory, ReflectionFormatterFactory
+  and typeless tiers. Those resolve generic shapes (IReadOnlyList<T>, List<T>, T[], Nullable<T>, ...) through
+  MakeGenericType and Activator.CreateInstance, so the trimmer cannot see the formatter factory constructors and removes
+  them, failing at runtime with MissingMethodException (MissingConstructor_Name) in trimmed apps such as Blazor WebAssembly.
+  Embedded in Arbiter.CommandQuery so every trimmed consumer keeps MessagePack intact without extra configuration.
+-->
+<linker>
+  <assembly fullname="MessagePack" preserve="all" />
+</linker>
