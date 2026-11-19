@@ -58,6 +58,11 @@ public static class CommandQueryExtensions
     /// environment variables, are bound the same way.
     /// </para>
     /// <para>
+    /// When an <see cref="Microsoft.Extensions.Hosting.IHostEnvironment"/> is registered, <see cref="EnvironmentOptions.EnvironmentName"/>
+    /// defaults to <see cref="Microsoft.Extensions.Hosting.IHostEnvironment.EnvironmentName"/>. An explicit <c>EnvironmentName</c>
+    /// configuration value or the <paramref name="configure"/> delegate overrides this default.
+    /// </para>
+    /// <para>
     /// This method can be called multiple times; the configuration binding is only registered once.
     /// </para>
     /// </remarks>

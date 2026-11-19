@@ -443,17 +443,23 @@ The endpoints automatically generate OpenAPI documentation with:
 
 ## Base Address Resolution
 
-Similar to the MVC package, the endpoints include base address resolution:
+Similar to the MVC package, the endpoints include base address resolution. `AddEndpointRoutes` registers it along with `EnvironmentOptions`:
 
 ```csharp
-services.AddScoped<IBaseAddressResolver, BaseAddressResolver>();
+services.AddEndpointRoutes();
 ```
 
 Resolution order:
 
 1. Blazor `NavigationManager` (if available)
 2. HTTP context (current request)
-3. Configuration ("BaseAddress" key)
+3. `EnvironmentOptions.BaseAddress` for the default `BaseAddress` key, or configuration for a custom key
+
+`EnvironmentOptions.BaseAddress` is bound from the root `BaseAddress` configuration key and can be overridden in code:
+
+```csharp
+services.AddEnvironmentOptions(options => options.BaseAddress = "https://tracker.example.com/");
+```
 
 ## Dependencies
 

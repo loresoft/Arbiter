@@ -169,6 +169,7 @@ Features:
 Resolves base addresses for API endpoints with multiple fallback options:
 
 ```csharp
+services.AddEnvironmentOptions();
 services.AddScoped<IBaseAddressResolver, BaseAddressResolver>();
 ```
 
@@ -176,7 +177,13 @@ Resolution order:
 
 1. Blazor NavigationManager (if available)
 2. HTTP context (current request)
-3. Configuration ("BaseAddress" key)
+3. `EnvironmentOptions.BaseAddress` for the default `BaseAddress` key, or configuration for a custom key
+
+`EnvironmentOptions` is registered by `AddCommandQuery` or `AddEnvironmentOptions`. It is bound from the root `BaseAddress` configuration key and can be overridden in code:
+
+```csharp
+services.AddEnvironmentOptions(options => options.BaseAddress = "https://tracker.example.com/");
+```
 
 ## HTTP Status Codes
 
@@ -234,6 +241,7 @@ Add the controllers to your dependency injection:
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddControllers();
+    services.AddEnvironmentOptions();
     services.AddScoped<IBaseAddressResolver, BaseAddressResolver>();
     
     // Add your specific controllers

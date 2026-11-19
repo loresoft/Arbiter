@@ -3,6 +3,7 @@ using Azure.Messaging.WebPubSub;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.WebPubSub.Tests;
@@ -192,6 +193,30 @@ public class WebPubSubExtensionsTests
         var serviceClient = serviceProvider.GetRequiredKeyedService<WebPubSubServiceClient>("notifications");
 
         serviceClient.Hub.Should().Be("notifications_dev");
+    }
+
+    [Test]
+    public void AddWebPubSub_WithEnvironmentSuffix_UsesHostEnvironmentWhenNotConfigured()
+    {
+        var hostEnvironment = new HostingEnvironment { EnvironmentName = "Production" };
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+
+        services.AddWebPubSub(
+            null,
+            ConnectionString,
+            builder => builder.AddHub("notifications"),
+            builder => builder.WithEnvironmentSuffix());
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var options = serviceProvider
+            .GetRequiredService<IOptionsMonitor<WebPubSubOptions>>()
+            .Get(Options.DefaultName);
+
+        options.HubSuffix.Should().Be("production");
     }
 
     [Test]

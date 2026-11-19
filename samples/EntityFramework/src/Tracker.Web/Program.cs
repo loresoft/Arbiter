@@ -89,7 +89,7 @@ public static class Program
             .AddResponseCompression(options => options.EnableForHttps = true);
 
         services
-            .AddEnvironmentOptions(options => options.EnvironmentName = builder.Environment.EnvironmentName);
+            .AddEnvironmentOptions();
 
         // change authentication cookie name
         services

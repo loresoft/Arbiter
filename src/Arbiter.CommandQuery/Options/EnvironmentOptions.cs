@@ -49,7 +49,18 @@ public class EnvironmentOptions
     /// <summary>
     /// Gets or sets the name of the hosting environment, such as <c>Development</c>, <c>Staging</c> or <c>Production</c>.
     /// </summary>
-    /// <value>Defaults to <c>Development</c>.</value>
+    /// <value>
+    /// Defaults to <c>IHostEnvironment.EnvironmentName</c> when an <c>IHostEnvironment</c> is registered; otherwise <c>Development</c>.
+    /// </value>
+    /// <remarks>
+    /// When registered with <c>AddEnvironmentOptions</c>, the value is resolved in the following order, where later steps override earlier ones:
+    /// <list type="number">
+    ///   <item><description>The <c>Development</c> default.</description></item>
+    ///   <item><description><c>IHostEnvironment.EnvironmentName</c>, when an <c>IHostEnvironment</c> is registered.</description></item>
+    ///   <item><description>The root level <c>EnvironmentName</c> configuration key.</description></item>
+    ///   <item><description>The delegate passed to <c>AddEnvironmentOptions</c>, which runs as a post-configure action.</description></item>
+    /// </list>
+    /// </remarks>
     public string EnvironmentName { get; set; } = "Development";
 
     /// <summary>

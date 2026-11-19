@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery;
 using Arbiter.Mediation;
 using Arbiter.Queue;
 
@@ -295,6 +296,9 @@ public static class ServiceBusExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(nameOrConnectionString);
         ArgumentNullException.ThrowIfNull(configureBus);
+
+        // bound environment options are required for WithEnvironmentSuffix, otherwise the unbound default is used
+        services.AddEnvironmentOptions();
 
         // named options instance; senders, clients and the initializer all resolve options by this name
         var optionsName = serviceName?.ToString() ?? Options.DefaultName;

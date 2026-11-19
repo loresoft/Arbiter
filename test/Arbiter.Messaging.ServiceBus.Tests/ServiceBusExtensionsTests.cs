@@ -7,6 +7,7 @@ using Arbiter.Queue;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.ServiceBus.Tests;
@@ -220,6 +221,59 @@ public class ServiceBusExtensionsTests
 
         keyedOptions!.ServiceKey.Should().Be("TestService");
         keyedOptions.Queues.Should().Contain("orders");
+    }
+
+    [Test]
+    public void AddServiceBus_WithEnvironmentSuffix_UsesHostEnvironmentWhenNotConfigured()
+    {
+        var hostEnvironment = new HostingEnvironment { EnvironmentName = "Production" };
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
+            configureBus: options => options.AddQueue("orders"),
+            configureOptions: options => options.WithEnvironmentSuffix());
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var options = serviceProvider
+            .GetRequiredService<IOptionsMonitor<ServiceBusOptions>>()
+            .Get("TestService");
+
+        options.NameSuffix.Should().Be("production");
+    }
+
+    [Test]
+    public void AddServiceBus_WithEnvironmentSuffix_PrefersConfiguredEnvironmentName()
+    {
+        var configurationData = new Dictionary<string, string?> { ["EnvironmentName"] = "Staging" };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationData)
+            .Build();
+
+        var hostEnvironment = new HostingEnvironment { EnvironmentName = "Production" };
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+
+        services.AddServiceBus(
+            serviceName: "TestService",
+            nameOrConnectionString: "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=abc",
+            configureBus: options => options.AddQueue("orders"),
+            configureOptions: options => options.WithEnvironmentSuffix());
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var options = serviceProvider
+            .GetRequiredService<IOptionsMonitor<ServiceBusOptions>>()
+            .Get("TestService");
+
+        options.NameSuffix.Should().Be("staging");
     }
 
     [Test]

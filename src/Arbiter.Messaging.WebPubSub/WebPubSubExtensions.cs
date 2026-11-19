@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 
+using Arbiter.CommandQuery;
 using Arbiter.Services.Extensions;
 
 using Azure.Core;
@@ -194,6 +195,9 @@ public static class WebPubSubExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(nameOrConnectionString);
         ArgumentNullException.ThrowIfNull(configureHubs);
+
+        // bound environment options are required for WithEnvironmentSuffix, otherwise the unbound default is used
+        services.AddEnvironmentOptions();
 
         // named options instance; service clients and processors all resolve options by this name
         var optionsName = serviceName?.ToString() ?? Options.DefaultName;

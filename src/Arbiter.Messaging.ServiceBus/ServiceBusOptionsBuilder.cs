@@ -1,3 +1,9 @@
+using Arbiter.CommandQuery.Options;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+
 namespace Arbiter.Messaging.ServiceBus;
 
 /// <summary>
@@ -53,6 +59,27 @@ public sealed class ServiceBusOptionsBuilder
         var nameSuffix = factory(Services);
         if (nameSuffix != null)
             _options.WithNameSuffix(nameSuffix.ToLowerInvariant());
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the suffix appended to queue and topic names to the lower case name of the current environment.
+    /// </summary>
+    /// <remarks>
+    /// The environment name is resolved from <see cref="EnvironmentOptions.EnvironmentName" /> when
+    /// <see cref="IOptions{TOptions}" /> of <see cref="EnvironmentOptions" /> is registered; otherwise from
+    /// <see cref="IHostEnvironment.EnvironmentName" /> when an <see cref="IHostEnvironment" /> is registered.
+    /// The name suffix is left unchanged when no environment name can be resolved.
+    /// </remarks>
+    /// <returns>The current <see cref="ServiceBusOptionsBuilder" /> instance for chaining.</returns>
+    public ServiceBusOptionsBuilder WithEnvironmentSuffix()
+    {
+        var environmentName = Services.GetService<IOptions<EnvironmentOptions>>()?.Value.EnvironmentName
+            ?? Services.GetService<IHostEnvironment>()?.EnvironmentName;
+
+        if (!string.IsNullOrWhiteSpace(environmentName))
+            _options.WithNameSuffix(environmentName.ToLowerInvariant());
 
         return this;
     }

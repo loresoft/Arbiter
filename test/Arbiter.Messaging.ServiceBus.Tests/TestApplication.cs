@@ -20,8 +20,7 @@ public class TestApplication : TestHostApplication
                 .AddQueue("test-queue")
                 .AddTopic("test-topic", "unit-test")
                 .AddTopic("cache-expire-test", "cache-expire-sub"),
-            configureOptions: options =>
-                options.WithNameSuffix(options.Services.GetRequiredService<IHostEnvironment>().EnvironmentName)
+            configureOptions: options => options.WithEnvironmentSuffix()
         );
 
         base.ConfigureApplication(builder);

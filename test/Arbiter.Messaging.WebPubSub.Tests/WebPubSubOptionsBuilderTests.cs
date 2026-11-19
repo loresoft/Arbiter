@@ -1,4 +1,9 @@
+using Arbiter.CommandQuery.Options;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Options;
 
 namespace Arbiter.Messaging.WebPubSub.Tests;
 
@@ -42,6 +47,54 @@ public class WebPubSubOptionsBuilderTests
         result.Should().BeSameAs(builder);
 
         options.HubSuffix.Should().Be("dev");
+    }
+
+    [Test]
+    public void WithEnvironmentSuffix_UsesEnvironmentOptions()
+    {
+        var environmentOptions = new EnvironmentOptions { EnvironmentName = "Staging" };
+        var hostEnvironment = new HostingEnvironment { EnvironmentName = "Production" };
+
+        var services = new ServiceCollection();
+        services.AddSingleton(Options.Create(environmentOptions));
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+
+        var options = new WebPubSubOptions();
+        var builder = new WebPubSubOptionsBuilder(options, services.BuildServiceProvider());
+
+        var result = builder.WithEnvironmentSuffix();
+
+        result.Should().BeSameAs(builder);
+
+        options.HubSuffix.Should().Be("staging");
+        options.GroupSuffix.Should().BeNull();
+    }
+
+    [Test]
+    public void WithEnvironmentSuffix_FallsBackToHostEnvironment()
+    {
+        var hostEnvironment = new HostingEnvironment { EnvironmentName = "Production" };
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(hostEnvironment);
+
+        var options = new WebPubSubOptions();
+        var builder = new WebPubSubOptionsBuilder(options, services.BuildServiceProvider());
+
+        builder.WithEnvironmentSuffix();
+
+        options.HubSuffix.Should().Be("production");
+    }
+
+    [Test]
+    public void WithEnvironmentSuffix_LeavesHubSuffixWhenEnvironmentNotRegistered()
+    {
+        var options = new WebPubSubOptions { HubSuffix = "existing" };
+        var builder = CreateBuilder(options);
+
+        builder.WithEnvironmentSuffix();
+
+        options.HubSuffix.Should().Be("existing");
     }
 
     [Test]

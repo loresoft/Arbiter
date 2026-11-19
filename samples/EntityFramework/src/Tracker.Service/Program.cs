@@ -88,7 +88,7 @@ public static class Program
         services
             .AddResponseCompression(options => options.EnableForHttps = true);
 
-        services.AddEnvironmentOptions(options => options.EnvironmentName = builder.Environment.EnvironmentName);
+        services.AddEnvironmentOptions();
     }
 
     private static void ConfigureMiddleware(WebApplication app)

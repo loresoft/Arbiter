@@ -212,6 +212,18 @@ services.AddServiceBus(
         .WithSubscriptionSuffix(Environment.MachineName)); // subscription becomes "app-instance-<machine>"
 ```
 
+To suffix queue and topic names with the current environment, use `WithEnvironmentSuffix()`. It resolves the lower case environment name from `EnvironmentOptions`, which `AddServiceBus` registers. The root `EnvironmentName` configuration key takes precedence, falling back to `IHostEnvironment`:
+
+```csharp
+services.AddServiceBus(
+    serviceName: "Default",
+    nameOrConnectionString: "ServiceBus",
+    configureBus: bus => bus.AddTopic("cache-expire", "app-instance"),
+    configureOptions: options => options
+        .WithEnvironmentSuffix()                        // topic becomes "cache-expire-production"
+        .WithSubscriptionSuffix(Environment.MachineName));
+```
+
 > [!NOTE]
 > Distributed expiration complements, and does not replace, the shared distributed cache tier (such as Redis). It is most useful for expiring the fast local L1 cache in each process when data changes elsewhere.
 
@@ -253,7 +265,7 @@ services.AddWebPubSubCacheExpire(
     groupName: "app-instance");
 ```
 
-Use `WebPubSubOptions.NameSuffix` to scope hub names per environment and `WebPubSubOptions.GroupSuffix` to scope group names per process:
+Use `WebPubSubOptions.HubSuffix` to scope hub names per environment and `WebPubSubOptions.GroupSuffix` to scope group names per process:
 
 ```csharp
 services.AddWebPubSub(
@@ -261,8 +273,20 @@ services.AddWebPubSub(
     nameOrConnectionString: "WebPubSub",
     configureHubs: hubs => hubs.AddHub("cacheExpire", "app-instance"),
     configureOptions: options => options
-        .WithNameSuffix("dev")                      // hub becomes "cacheExpire_dev"
+        .WithHubSuffix("dev")                       // hub becomes "cacheExpire_dev"
         .WithGroupSuffix(Environment.MachineName)); // group becomes "app-instance-<machine>"
+```
+
+To suffix hub names with the current environment, use `WithEnvironmentSuffix()`. It resolves the lower case environment name from `EnvironmentOptions`, which `AddWebPubSub` registers. The root `EnvironmentName` configuration key takes precedence, falling back to `IHostEnvironment`:
+
+```csharp
+services.AddWebPubSub(
+    serviceName: "Default",
+    nameOrConnectionString: "WebPubSub",
+    configureHubs: hubs => hubs.AddHub("cacheExpire", "app-instance"),
+    configureOptions: options => options
+        .WithEnvironmentSuffix()                    // hub becomes "cacheExpire_production"
+        .WithGroupSuffix(Environment.MachineName));
 ```
 
 > [!NOTE]

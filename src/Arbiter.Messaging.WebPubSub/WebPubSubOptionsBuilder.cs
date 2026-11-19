@@ -1,3 +1,9 @@
+using Arbiter.CommandQuery.Options;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+
 namespace Arbiter.Messaging.WebPubSub;
 
 /// <summary>
@@ -54,6 +60,27 @@ public sealed class WebPubSubOptionsBuilder
 
         if (nameSuffix != null)
             _options.WithHubSuffix(nameSuffix.ToLowerInvariant());
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the suffix appended to hub names to the lower case name of the current environment.
+    /// </summary>
+    /// <remarks>
+    /// The environment name is resolved from <see cref="EnvironmentOptions.EnvironmentName" /> when
+    /// <see cref="IOptions{TOptions}" /> of <see cref="EnvironmentOptions" /> is registered; otherwise from
+    /// <see cref="IHostEnvironment.EnvironmentName" /> when an <see cref="IHostEnvironment" /> is registered.
+    /// The hub suffix is left unchanged when no environment name can be resolved.
+    /// </remarks>
+    /// <returns>The current <see cref="WebPubSubOptionsBuilder" /> instance for chaining.</returns>
+    public WebPubSubOptionsBuilder WithEnvironmentSuffix()
+    {
+        var environmentName = Services.GetService<IOptions<EnvironmentOptions>>()?.Value.EnvironmentName
+            ?? Services.GetService<IHostEnvironment>()?.EnvironmentName;
+
+        if (!string.IsNullOrWhiteSpace(environmentName))
+            _options.WithHubSuffix(environmentName.ToLowerInvariant());
 
         return this;
     }

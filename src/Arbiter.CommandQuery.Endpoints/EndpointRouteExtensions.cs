@@ -1,3 +1,4 @@
+using Arbiter.CommandQuery;
 using Arbiter.CommandQuery.Definitions;
 
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,7 @@ public static class EndpointRouteExtensions
     public static IServiceCollection AddEndpointRoutes(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
+        services.AddEnvironmentOptions();
         services.TryAddScoped<IBaseAddressResolver, BaseAddressResolver>();
         services.TryAddSingleton<IPrincipalResolver, PrincipalResolver>();
 
